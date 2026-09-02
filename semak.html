@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semakan Status Aduan - SISTEM ADUAN</title>
+    
+    <!-- Libraries CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 min-h-screen py-8 px-4">
+
+    <!-- Container Utama -->
+    <div class="max-w-2xl mx-auto">
+        
+        <!-- Header / Navigation -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">Semakan Status Aduan</h1>
+            <a href="index.html" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">← Borang Aduan</a>
+        </div>
+
+        <!-- Borang Carian Tiket -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <form id="semak-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">No. Tiket Aduan</label>
+                    <input type="text" id="search-ticket" required placeholder="Contoh: ADU-2026-000001" class="w-full border border-gray-300 rounded-lg p-3 uppercase outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">No. Telefon Pemohon</label>
+                    <input type="tel" id="search-phone" required placeholder="Contoh: 0123456789" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <button type="submit" id="btn-semak" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition">
+                    SEMAK STATUS
+                </button>
+            </form>
+        </div>
+
+        <!-- Keputusan Carian (Hidden by default) -->
+        <div id="result-container" class="bg-white rounded-xl shadow-md p-6 hidden">
+            
+            <!-- Status Badge Header -->
+            <div class="flex justify-between items-start border-b pb-4 mb-4">
+                <div>
+                    <span class="text-xs text-gray-500 uppercase tracking-wider">Nombor Tiket</span>
+                    <h2 id="res-ticket" class="text-xl font-bold text-slate-800"></h2>
+                </div>
+                <span id="res-status-badge" class="px-3 py-1 text-xs font-bold rounded-full"></span>
+            </div>
+
+            <!-- Maklumat Aduan -->
+            <div class="space-y-3 text-sm">
+                <div>
+                    <span class="text-gray-500 block">Nama Pemohon:</span>
+                    <span id="res-nama" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Tarikh Aduan:</span>
+                    <span id="res-tarikh" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Lokasi:</span>
+                    <span id="res-lokasi" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Kategori:</span>
+                    <span id="res-kategori" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Butiran Kerosakan / Aduan:</span>
+                    <p id="res-butiran" class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-100"></p>
+                </div>
+                
+                <!-- Attachment List -->
+                <div>
+                    <span class="text-gray-500 block mb-1">Lampiran:</span>
+                    <div id="res-attachments" class="space-y-1"></div>
+                </div>
+            </div>
+
+            <!-- Maklum Balas KCPPPP / Pengurusan -->
+            <div id="res-feedback-section" class="mt-6 border-t pt-4 hidden">
+                <h3 class="text-sm font-bold text-slate-800 mb-2">Maklum Balas / Syor Pengurusan</h3>
+                <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-900 text-sm">
+                    <p id="res-feedback-text"></p>
+                    <span id="res-feedback-date" class="block text-xs text-emerald-600 mt-2"></span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Mesej Ralat / Tidak Dijumpai -->
+        <div id="error-container" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center hidden">
+            <p id="error-msg">Maklumat aduan tidak ditemui. Sila pastikan Nombor Tiket dan No. Telefon adalah betul.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. SETUP SUPABASE
+        const SUPABASE_URL = 'https://[PROJECT_ID].supabase.co';
+        const SUPABASE_ANON_KEY = '[YOUR_ANON_KEY]';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 2. LOGIK SEMAKAN STATUS
+        document.getElementById('semak-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const ticket = document.getElementById('search-ticket').value.trim().toUpperCase();
+            const phone = document.getElementById('search-phone').value.trim();
+
+            const btn = document.getElementById('btn-semak');
+            const resultBox = document.getElementById('result-container');
+            const errorBox = document.getElementById('error-container');
+
+            btn.disabled = true;
+            btn.innerText = "Menyemak...";
+            resultBox.classList.add('hidden');
+            errorBox.classList.add('hidden');
+
+            try {
+                // A. Cari aduan yang sepadan dengan No. Tiket DAN No. Telefon
+                const { data: complaint, error } = await supabase
+                    .from('complaints')
+                    .select(`
+                        *,
+                        complaint_attachments (*)
+                    `)
+                    .eq('ticket_number', ticket)
+                    .eq('applicant_phone', phone)
+                    .single();
+
+                if (error || !complaint) {
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+
+                // B. Paparkan Maklumat Aduan
+                document.getElementById('res-ticket').innerText = complaint.ticket_number;
+                document.getElementById('res-nama').innerText = complaint.applicant_name;
+                document.getElementById('res-tarikh').innerText = new Date(complaint.created_at).toLocaleString('ms-MY');
+                document.getElementById('res-lokasi').innerText = complaint.location;
+                document.getElementById('res-kategori').innerText = complaint.categories ? complaint.categories.join(', ') : '-';
+                document.getElementById('res-butiran').innerText = complaint.description;
+
+                // C. Format Status Badge
+                const badge = document.getElementById('res-status-badge');
+                const statusMap = {
+                    'SUBMITTED': { text: 'ADUAN DITERIMA', class: 'bg-yellow-100 text-yellow-800' },
+                    'CPPP_REVIEW': { text: 'SEMAKAN CPPP', class: 'bg-blue-100 text-blue-800' },
+                    'KCPPPP_REVIEW': { text: 'SEMAKAN KCPPPP', class: 'bg-purple-100 text-purple-800' },
+                    'COMPLETED': { text: 'SELESAI', class: 'bg-emerald-100 text-emerald-800' },
+                    'CANCELLED': { text: 'DIBATALKAN', class: 'bg-red-100 text-red-800' }
+                };
+                const currentStatus = statusMap[complaint.status] || { text: complaint.status, class: 'bg-gray-100 text-gray-800' };
+                badge.className = `px-3 py-1 text-xs font-bold rounded-full ${currentStatus.class}`;
+                badge.innerText = currentStatus.text;
+
+                // D. Paparkan Lampiran jika ada
+                const attachBox = document.getElementById('res-attachments');
+                attachBox.innerHTML = '';
+                if (complaint.complaint_attachments && complaint.complaint_attachments.length > 0) {
+                    complaint.complaint_attachments.forEach(file => {
+                        // Dapatkan Public URL daripada Supabase Storage
+                        const { data: urlData } = supabase.storage.from('attachments').getPublicUrl(file.storage_path);
+                        attachBox.innerHTML += `
+                            <a href="${urlData.publicUrl}" target="_blank" class="text-xs text-emerald-600 hover:underline block truncate">
+                                📄 ${file.file_name}
+                            </a>
+                        `;
+                    });
+                } else {
+                    attachBox.innerHTML = '<span class="text-xs text-gray-400">Tiada lampiran</span>';
+                }
+
+                resultBox.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                errorBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SEMAK STATUS";
+            }
+        });
+    </script>
+</body>
+</html>
