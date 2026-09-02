@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Masuk Staf - SISTEM ADUAN</title>
+    
+    <!-- Libraries CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container Login -->
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">SISTEM ADUAN KEROSAKAN</h1>
+            <p class="text-sm text-gray-500 mt-2">Log Masuk Kakitangan (CPPP / KCPPPP / Admin)</p>
+        </div>
+
+        <!-- Borang Login -->
+        <form id="login-form" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">E-mel</label>
+                <input type="email" id="email" required placeholder="admin@sistem.com" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kata Laluan</label>
+                <input type="password" id="password" required placeholder="••••••••" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <!-- Mesej Ralat -->
+            <div id="error-msg" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg text-center border border-red-100">
+                Log masuk gagal. Sila semak e-mel dan kata laluan.
+            </div>
+
+            <button type="submit" id="btn-login" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition">
+                LOG MASUK
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="index.html" class="text-sm text-emerald-600 hover:underline">← Kembali ke Halaman Utama</a>
+        </div>
+    </div>
+
+    <script>
+        // 1. SETUP SUPABASE
+        const SUPABASE_URL = 'https://[PROJECT_ID].supabase.co';
+        const SUPABASE_ANON_KEY = '[YOUR_ANON_KEY]';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 2. SEMAK SESI (Jika dah login, terus bawa ke dashboard)
+        async function checkSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'cppp.html'; // Bawa terus ke dashboard CPPP
+            }
+        }
+        checkSession();
+
+        // 3. LOGIK LOG MASUK
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            const btn = document.getElementById('btn-login');
+            const errorMsg = document.getElementById('error-msg');
+
+            btn.disabled = true;
+            btn.innerText = "Mengesahkan...";
+            errorMsg.classList.add('hidden');
+
+            // Authenticate guna Supabase
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                errorMsg.innerText = error.message === 'Invalid login credentials' 
+                    ? "Log masuk gagal. E-mel atau kata laluan salah." 
+                    : error.message;
+                errorMsg.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerText = "LOG MASUK";
+            } else {
+                // Log masuk berjaya, redirect ke dashboard
+                window.location.href = 'cppp.html';
+            }
+        });
+    </script>
+</body>
+</html>
