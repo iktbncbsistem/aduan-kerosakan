@@ -3,36 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Aduan Kerosakan</title>
+    <title>SISTEM ADUAN KEROSAKAN</title>
     
-    <!-- 1. Tailwind CSS via CDN -->
+    <!-- Libraries CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. Supabase Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 3. Image Compression via CDN -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
 </head>
-<body class="bg-gray-100 p-8">
+<body class="bg-slate-50 min-h-screen py-8 px-4">
 
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold text-emerald-700 mb-6">Borang Aduan Kerosakan</h1>
-        <!-- Borang HTML biasa akan berada di sini -->
+    <!-- Container Utama -->
+    <div id="main-container" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-slate-800 border-b pb-4 mb-6">Borang Aduan Kerosakan</h1>
+        
+        <form id="aduan-form" class="space-y-6">
+            
+            <!-- Maklumat Pemohon -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pemohon</label>
+                    <input type="text" id="nama" required class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">No. Telefon</label>
+                    <input type="tel" id="telefon" required pattern="^(\+?6?01)[0-46-9]-*[0-9]{7,8}$" placeholder="Contoh: 0123456789" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <!-- Lokasi & Tarikh -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Kerosakan</label>
+                <input type="text" id="lokasi" required class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <!-- Kategori -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Kerosakan</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="kategori" value="Peralatan Mesin" class="w-5 h-5 text-emerald-600">
+                        <span class="text-gray-700">Peralatan Mesin</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="kategori" value="Infrastruktur" class="w-5 h-5 text-emerald-600">
+                        <span class="text-gray-700">Infrastruktur</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="kategori" value="Peralatan ICT" class="w-5 h-5 text-emerald-600">
+                        <span class="text-gray-700">Peralatan ICT</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="kategori" value="Lain-lain" id="chk-lain" class="w-5 h-5 text-emerald-600">
+                        <span class="text-gray-700">Lain-lain</span>
+                    </label>
+                </div>
+                <div id="lain-container" class="hidden mt-3">
+                    <input type="text" id="kategori-lain" placeholder="Sila nyatakan kategori lain..." class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <!-- Butiran Kerosakan -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Butiran Kerosakan</label>
+                <textarea id="butiran" required rows="4" placeholder="Nyatakan kerosakan dengan lengkap..." class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            </div>
+
+            <!-- Upload Gambar / Fail -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Bukti Kerosakan (Gambar/PDF)</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <label class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 border-2 border-dashed border-slate-300 text-slate-700 py-4 rounded-lg cursor-pointer transition">
+                        <span>📷 Ambil Gambar</span>
+                        <input type="file" id="file-camera" accept="image/*" capture="environment" multiple class="hidden">
+                    </label>
+                    
+                    <label class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 border-2 border-dashed border-slate-300 text-slate-700 py-4 rounded-lg cursor-pointer transition">
+                        <span>📎 Upload Fail</span>
+                        <input type="file" id="file-upload" accept="image/*,.pdf" multiple class="hidden">
+                    </label>
+                </div>
+                <div id="file-list" class="mt-4 space-y-2"></div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="btn-submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2">
+                HANTAR ADUAN
+            </button>
+        </form>
     </div>
 
+    <!-- UI Berjaya (Hidden by default) -->
+    <div id="success-container" class="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-lg text-center hidden">
+        <h2 class="text-2xl font-bold text-emerald-600 mb-4">Aduan Berjaya Dihantar!</h2>
+        <p class="text-gray-600 mb-2">No. Tiket Anda:</p>
+        <div id="display-ticket" class="text-3xl font-mono font-bold bg-gray-100 p-4 rounded-lg mb-6 tracking-wider"></div>
+        <p class="text-sm text-gray-500 mb-6">Sila simpan nombor tiket ini untuk menyemak status aduan anda.</p>
+        
+        <div class="space-y-3">
+            <button onclick="window.print()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-900 transition">Cetak Maklumat Tiket</button>
+            <a href="semak.html" class="block w-full bg-emerald-100 text-emerald-700 py-3 rounded-lg font-semibold hover:bg-emerald-200 transition">Semak Status Aduan</a>
+        </div>
+    </div>
+
+    <!-- Scripts Logik -->
     <script>
-        // Initialize Supabase terus dalam browser
+        // 1. SETUP SUPABASE (Tukar URL & Key dengan maklumat Supabase anda)
         const SUPABASE_URL = 'https://[PROJECT_ID].supabase.co';
         const SUPABASE_ANON_KEY = '[YOUR_ANON_KEY]';
-        
-        // Guna window.supabase sebab kita panggil dari CDN
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const adminWhatsAppNumber = '60123456789'; // Boleh ambil dari table setting kemudian
 
-        // Logik submit borang pakai Vanilla JS
-        async function hantarAduan() {
-            // Kod insert database & upload fail di sini...
+        // 2. STATE FILES & UI LOGIC
+        let selectedFiles = [];
+        const chkLain = document.getElementById('chk-lain');
+        const txtLain = document.getElementById('kategori-lain');
+        const containerLain = document.getElementById('lain-container');
+
+        // Tunjuk/Sorok input 'Lain-lain'
+        chkLain.addEventListener('change', (e) => {
+            if(e.target.checked) {
+                containerLain.classList.remove('hidden');
+                txtLain.required = true;
+            } else {
+                containerLain.classList.add('hidden');
+                txtLain.required = false;
+                txtLain.value = '';
+            }
+        });
+
+        // 3. PENGURUSAN GAMBAR & KOMPRESI
+        async function handleFiles(event) {
+            const files = event.target.files;
+            const options = { maxSizeMB: 1, maxWidthOrHeight: 1600, useWebWorker: true, fileType: 'image/webp' };
+
+            for (let file of files) {
+                // Compress jika gambar, biarkan jika PDF
+                if (file.type.startsWith('image/')) {
+                    try {
+                        let compressedFile = await imageCompression(file, options);
+                        selectedFiles.push(new File([compressedFile], file.name.replace(/\.[^/.]+$/, ".webp"), { type: 'image/webp' }));
+                    } catch (error) {
+                        console.error("Compression error:", error);
+                        selectedFiles.push(file); // Fallback
+                    }
+                } else {
+                    selectedFiles.push(file); // PDF
+                }
+            }
+            renderFileList();
         }
+
+        function renderFileList() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <span class="text-sm truncate mr-4">${file.name}</span>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 text-sm font-semibold hover:text-red-700">Buang</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        document.getElementById('file-camera').addEventListener('change', handleFiles);
+        document.getElementById('file-upload').addEventListener('change', handleFiles);
+
+        // 4. SUBMIT FORM
+        document.getElementById('aduan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Semak checkbox kategori
+            const categories = Array.from(document.querySelectorAll('input[name="kategori"]:checked')).map(cb => cb.value);
+            if (categories.length === 0) {
+                alert("Sila pilih sekurang-kurangnya satu Kategori Kerosakan.");
+                return;
+            }
+
+            if (!confirm("Adakah anda pasti maklumat aduan yang dimasukkan adalah betul?")) return;
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = `Memproses Maklumat...`;
+
+            try {
+                // A. Insert Aduan ke Database
+                const aduanData = {
+                    applicant_name: document.getElementById('nama').value,
+                    applicant_phone: document.getElementById('telefon').value,
+                    location: document.getElementById('lokasi').value,
+                    categories: categories,
+                    other_category_desc: chkLain.checked ? txtLain.value : null,
+                    description: document.getElementById('butiran').value
+                };
+
+                const { data: resultData, error: insertError } = await supabase
+                    .from('complaints')
+                    .insert(aduanData)
+                    .select('id, ticket_number')
+                    .single();
+
+                if (insertError) throw insertError;
+                const complaintId = resultData.id;
+                const ticketNo = resultData.ticket_number;
+
+                // B. Upload Files (Looping)
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    let file = selectedFiles[i];
+                    let fileExt = file.name.split('.').pop();
+                    let storagePath = `${complaintId}/${Date.now()}_${i}.${fileExt}`;
+                    
+                    btn.innerHTML = `Upload Fail ${i+1}/${selectedFiles.length}...`;
+
+                    const { error: uploadError } = await supabase.storage.from('attachments').upload(storagePath, file);
+                    
+                    if (!uploadError) {
+                        await supabase.from('complaint_attachments').insert({
+                            complaint_id: complaintId,
+                            file_name: file.name,
+                            stored_name: storagePath,
+                            file_type: file.type,
+                            file_size: file.size,
+                            storage_path: storagePath
+                        });
+                    }
+                }
+
+                // C. Buka WhatsApp notification
+                const msg = `*SISTEM ADUAN KEROSAKAN*%0A%0AAduan baharu telah diterima.%0A%0A*No. Tiket:* ${ticketNo}%0A*Pemohon:* ${aduanData.applicant_name}%0A*Lokasi:* ${aduanData.location}%0A*Kategori:* ${categories.join(', ')}%0A%0ASila semak sistem untuk maklumat lengkap.`;
+                window.open(`https://wa.me/${adminWhatsAppNumber}?text=${msg}`, '_blank');
+
+                // D. Tunjuk Skrin Berjaya
+                document.getElementById('main-container').classList.add('hidden');
+                document.getElementById('success-container').classList.remove('hidden');
+                document.getElementById('display-ticket').innerText = ticketNo;
+
+            } catch (error) {
+                alert("Ralat semasa menghantar aduan. Sila cuba lagi.");
+                console.error(error);
+                btn.disabled = false;
+                btn.innerHTML = "HANTAR ADUAN";
+            }
+        });
     </script>
 </body>
 </html>
