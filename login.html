@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Masuk Staf - SISTEM ADUAN</title>
-    
-    <!-- Libraries CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -14,13 +12,15 @@
     <!-- Container Login -->
     <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
         
-        <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-2xl font-bold text-slate-800">SISTEM ADUAN KEROSAKAN</h1>
-            <p class="text-sm text-gray-500 mt-2">Log Masuk Kakitangan (CPPP / KCPPPP / Admin)</p>
+            <p id="form-subtitle" class="text-sm text-gray-500 mt-2">Log Masuk Kakitangan (CPPP / KCPPPP / Admin)</p>
         </div>
 
-        <!-- Borang Login -->
+        <!-- Mesej Notis (Berjaya / Gagal) -->
+        <div id="notice-msg" class="hidden text-sm p-3 rounded-lg text-center border mb-4 font-semibold"></div>
+
+        <!-- Borang Login Utama -->
         <form id="login-form" class="space-y-5">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">E-mel</label>
@@ -31,9 +31,8 @@
                 <input type="password" id="password" required placeholder="••••••••" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
 
-            <!-- Mesej Ralat -->
-            <div id="error-msg" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg text-center border border-red-100">
-                Log masuk gagal. Sila semak e-mel dan kata laluan.
+            <div class="flex justify-end mt-2">
+                <button type="button" onclick="toggleResetForm()" class="text-sm text-emerald-600 hover:underline">Lupa Kata Laluan?</button>
             </div>
 
             <button type="submit" id="btn-login" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition">
@@ -41,57 +40,121 @@
             </button>
         </form>
 
-        <div class="mt-6 text-center">
-            <a href="index.html" class="text-sm text-emerald-600 hover:underline">← Kembali ke Halaman Utama</a>
+        <!-- Borang Reset Kata Laluan (Disorok pada mulanya) -->
+        <form id="reset-form" class="space-y-5 hidden">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan E-mel Anda</label>
+                <input type="email" id="reset-email" required placeholder="admin@sistem.com" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <button type="submit" id="btn-reset" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition">
+                HANTAR LINK RESET
+            </button>
+
+            <div class="text-center mt-4">
+                <button type="button" onclick="toggleResetForm()" class="text-sm text-slate-500 hover:underline">Batal & Kembali ke Log Masuk</button>
+            </div>
+        </form>
+
+        <div class="mt-6 text-center border-t pt-4">
+            <a href="index.html" class="text-sm text-slate-500 hover:text-emerald-600">← Kembali ke Halaman Utama</a>
         </div>
     </div>
 
     <script>
-        // 1. SETUP SUPABASE
+        // 1. SETUP SUPABASE (MASUKKAN URL DAN KEY BOS DI SINI)
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_8-cKoqfNtUkEOHIFsU1T0w_goYzrnVZ';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 2. SEMAK SESI (Jika dah login, terus bawa ke dashboard)
+        const noticeMsg = document.getElementById('notice-msg');
+
+        // Fungsi Tunjuk Mesej
+        function showNotice(message, isError = true) {
+            noticeMsg.innerText = message;
+            noticeMsg.className = isError 
+                ? "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-red-50 text-red-600 border-red-200 block" 
+                : "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-emerald-50 text-emerald-600 border-emerald-200 block";
+        }
+
+        // Semak Sesi
         async function checkSession() {
             const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                window.location.href = 'cppp.html'; // Bawa terus ke dashboard CPPP
-            }
+            if (session) window.location.href = 'cppp.html';
         }
         checkSession();
 
-        // 3. LOGIK LOG MASUK
+        // 2. LOGIK LOG MASUK
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            noticeMsg.classList.add('hidden'); // Sorok mesej lama
+            
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true;
+            btn.innerText = "Mengesahkan...";
 
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             
-            const btn = document.getElementById('btn-login');
-            const errorMsg = document.getElementById('error-msg');
-
-            btn.disabled = true;
-            btn.innerText = "Mengesahkan...";
-            errorMsg.classList.add('hidden');
-
-            // Authenticate guna Supabase
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                errorMsg.innerText = error.message === 'Invalid login credentials' 
-                    ? "Log masuk gagal. E-mel atau kata laluan salah." 
-                    : error.message;
-                errorMsg.classList.remove('hidden');
+                // Tangkap ralat spesifik
+                let errMsg = "Log masuk gagal.";
+                if (error.message.includes('Invalid login')) errMsg = "Sila semak semula e-mel dan kata laluan anda.";
+                else if (error.message.includes('Email not confirmed')) errMsg = "Akaun belum disahkan. Sila semak e-mel anda.";
+                else errMsg = error.message;
+
+                showNotice(errMsg, true);
                 btn.disabled = false;
                 btn.innerText = "LOG MASUK";
             } else {
-                // Log masuk berjaya, redirect ke dashboard
                 window.location.href = 'cppp.html';
             }
+        });
+
+        // 3. LOGIK TOGGLE & LUPA KATA LALUAN
+        const loginForm = document.getElementById('login-form');
+        const resetForm = document.getElementById('reset-form');
+        const subtitle = document.getElementById('form-subtitle');
+
+        function toggleResetForm() {
+            noticeMsg.classList.add('hidden');
+            if (loginForm.classList.contains('hidden')) {
+                loginForm.classList.remove('hidden');
+                resetForm.classList.add('hidden');
+                subtitle.innerText = "Log Masuk Kakitangan (CPPP / KCPPPP / Admin)";
+            } else {
+                loginForm.classList.add('hidden');
+                resetForm.classList.remove('hidden');
+                subtitle.innerText = "Tetapan Semula Kata Laluan";
+            }
+        }
+
+        document.getElementById('reset-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            noticeMsg.classList.add('hidden');
+            
+            const btnReset = document.getElementById('btn-reset');
+            btnReset.disabled = true;
+            btnReset.innerText = "Menghantar...";
+
+            const resetEmail = document.getElementById('reset-email').value.trim();
+
+            const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+                // URL INI PENTING UNTUK REDIRECT LEPAS KLIK LINK DI EMEL
+                redirectTo: window.location.origin + '/login.html', 
+            });
+
+            if (error) {
+                showNotice(error.message, true);
+            } else {
+                showNotice("Link reset kata laluan telah dihantar. Sila semak peti masuk atau folder spam e-mel anda.", false);
+                document.getElementById('reset-email').value = '';
+            }
+
+            btnReset.disabled = false;
+            btnReset.innerText = "HANTAR LINK RESET";
         });
     </script>
 </body>
