@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Aduan Kerosakan</title>
+    
+    <!-- 1. Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Supabase Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 3. Image Compression via CDN -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold text-emerald-700 mb-6">Borang Aduan Kerosakan</h1>
+        <!-- Borang HTML biasa akan berada di sini -->
+    </div>
+
+    <script>
+        // Initialize Supabase terus dalam browser
+        const SUPABASE_URL = 'https://[PROJECT_ID].supabase.co';
+        const SUPABASE_ANON_KEY = '[YOUR_ANON_KEY]';
+        
+        // Guna window.supabase sebab kita panggil dari CDN
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Logik submit borang pakai Vanilla JS
+        async function hantarAduan() {
+            // Kod insert database & upload fail di sini...
+        }
+    </script>
+</body>
+</html>
