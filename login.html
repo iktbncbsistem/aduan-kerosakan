@@ -168,29 +168,46 @@
         // 2. LOGIK LOG MASUK
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            noticeMsg.classList.add('hidden'); // Sorok mesej lama
-            
             const btn = document.getElementById('btn-login');
             btn.disabled = true;
-            btn.innerText = "Mengesahkan...";
+            btn.innerHTML = 'Mengesahkan...';
+            document.getElementById('error-msg').classList.add('hidden');
 
             const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            // Guna client.auth
-            const { data, error } = await client.auth.signInWithPassword({ email, password });
+            const password = document.getElementById('password').value;
 
-            if (error) {
-                let errMsg = "Log masuk gagal.";
-                if (error.message.includes('Invalid login')) errMsg = "Sila semak semula e-mel dan kata laluan anda.";
-                else if (error.message.includes('Email not confirmed')) errMsg = "Akaun belum disahkan. Sila semak e-mel anda.";
-                else errMsg = error.message;
+            try {
+                // 1. Log masuk Supabase Auth
+                const { data, error } = await client.auth.signInWithPassword({ email, password });
+                if (error) throw error;
 
-                showNotice(errMsg, true);
+                // 2. Semak di jadual KCPPP dan CPPP
+                // (Andaian: Bos ada table 'kcppp_officers' & 'cppp_officers' di Supabase)
+                const { data: isKcppp } = await client.from('kcppp_officers').select('email').eq('email', email).maybeSingle();
+                const { data: isCppp } = await client.from('cppp_officers').select('email').eq('email', email).maybeSingle();
+
+                // 3. SEKATAN: Jika dia ada di kedua-dua jawatan
+                if (isKcppp && isCppp) {
+                    await client.auth.signOut(); // Tendang keluar terus
+                    throw new Error("RALAT AUDIT: Akaun anda didaftarkan sebagai CPPP dan KCPPP serentak. Sila hubungi Admin untuk mengasingkan tugas (Separation of Duties).");
+                }
+
+                // 4. Halakan (Redirect) ke halaman yang betul secara automatik
+                if (isKcppp) {
+                    window.location.href = 'kcppp.html';
+                } else if (isCppp) {
+                    window.location.href = 'cppp.html';
+                } else {
+                    // Kalau admin atau akaun master
+                    window.location.href = 'admin.html';
+                }
+
+            } catch (err) {
+                const msgBox = document.getElementById('error-msg');
+                msgBox.innerText = err.message === 'Invalid login credentials' ? 'Sila semak semula e-mel dan kata laluan anda.' : err.message;
+                msgBox.classList.remove('hidden');
                 btn.disabled = false;
-                btn.innerText = "LOG MASUK";
-            } else {
-                window.location.href = 'cppp.html';
+                btn.innerHTML = 'Log Masuk Sistem';
             }
         });
 
