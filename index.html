@@ -128,7 +128,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
         
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const adminWhatsAppNumber = '60129074782'; // PERHATIAN: Masukkan No Tel Admin/CPPP sebenar di sini (tanpa simbol +)
+    
 
         // 2. STATE FILES & UI LOGIC
         let selectedFiles = [];
@@ -253,9 +253,12 @@ const aduanData = {
                     }
                 }
 
-                // C. Buka WhatsApp notification dalam Tab Baru
-                const msg = `*SISTEM ADUAN KEROSAKAN*%0A%0AAduan baharu telah diterima.%0A%0A*No. Tiket:* ${ticketNo}%0A*Pemohon:* ${aduanData.applicant_name}%0A*Lokasi:* ${aduanData.location}%0A*Kategori:* ${categories.join(', ')}%0A%0ASila semak sistem untuk maklumat lengkap.`;
-                window.open(`https://wa.me/${adminWhatsAppNumber}?text=${msg}`, '_blank');
+// C. Buka WhatsApp menggunakan nombor dari database
+const { data: settingData } = await client.from('system_settings').select('whatsapp_number').eq('id', 1).single();
+const targetNumber = (settingData && settingData.whatsapp_number) ? settingData.whatsapp_number : '601112223333'; 
+
+const msg = `*SISTEM ADUAN KEROSAKAN*%0A%0AAduan baharu telah diterima.%0A%0A*No. Tiket:* ${ticketNo}%0A*Pemohon:* ${aduanData.applicant_name}%0A*Lokasi:* ${aduanData.location}%0A*Kategori:* ${categories.join(', ')}%0A%0ASila semak sistem untuk maklumat lengkap.`;
+window.open(`https://wa.me/${targetNumber}?text=${msg}`, '_blank');
 
                 // D. Tunjuk Skrin Berjaya
                 document.getElementById('main-container').classList.add('hidden');
