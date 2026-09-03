@@ -123,15 +123,17 @@
 
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
-        const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_SUPABASE_ANDA';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
+        
+        // Guna _supabase untuk mengelakkan konflik dengan perpustakaan CDN
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
         let whatsappSettings = { enabled: false, phone: '' };
 
         // 1. Semak Pengesahan & Pengguna
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await _supabase.auth.getSession();
             if (!session) {
                 window.location.href = 'login.html';
                 return;
@@ -152,7 +154,7 @@
         // 2. Muat Naik Jabatan, Jenis Kerosakan & Tetapan WhatsApp dari DB
         async function loadMasterData() {
             // Fetch Jabatan / Lokasi
-            const { data: locations } = await supabase.from('locations').select('*');
+            const { data: locations } = await _supabase.from('locations').select('*');
             const deptSelect = document.getElementById('department');
             if (locations && locations.length > 0) {
                 deptSelect.innerHTML = '<option value="">Pilih Jabatan</option>' + 
@@ -162,7 +164,7 @@
             }
 
             // Fetch Jenis Kerosakan (Standard or Settings)
-            const { data: settings } = await supabase.from('system_settings').select('*');
+            const { data: settings } = await _supabase.from('system_settings').select('*');
             let damageTypes = ["Perkakasan (Hardware)", "Perisian (Software)", "Rangkaian / Wi-Fi", "Pencetak (Printer)", "Lain-lain"];
             
             if (settings) {
@@ -180,7 +182,7 @@
 
             // Render Checkboxes
             const container = document.getElementById('damage-types-container');
-            container.innerHTML = damageTypes.map((type, idx) => `
+            container.innerHTML = damageTypes.map((type) => `
                 <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
                     <input type="checkbox" name="damage_types" value="${type}" class="rounded text-blue-600 focus:ring-blue-500">
                     <span>${type}</span>
@@ -222,7 +224,7 @@
                         
                         canvas.toBlob((blob) => {
                             resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-                        }, 'image/jpeg', 0.7); // Quality 70%
+                        }, 'image/jpeg', 0.7);
                     };
                 };
             });
@@ -236,7 +238,6 @@
             btn.innerText = 'Menghantar Aduan...';
 
             try {
-                // Kumpul Jenis Kerosakan daripada Checkbox
                 const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
                 if (selectedDamageTypes.length === 0) {
                     alert('Sila pilih sekurang-kurangnya satu Jenis Kerosakan.');
@@ -251,9 +252,9 @@
                 if (imageFileInput.files.length > 0) {
                     const compressedFile = await compressImage(imageFileInput.files[0]);
                     const filePath = `images/${Date.now()}_${compressedFile.name}`;
-                    const { data, error } = await supabase.storage.from('complaint_attachments').upload(filePath, compressedFile);
+                    const { error } = await _supabase.storage.from('complaint_attachments').upload(filePath, compressedFile);
                     if (!error) {
-                        imageUrl = supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
+                        imageUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
                     }
                 }
 
@@ -263,9 +264,9 @@
                 if (quoteFileInput.files.length > 0) {
                     const file = quoteFileInput.files[0];
                     const filePath = `quotations/${Date.now()}_${file.name}`;
-                    const { data, error } = await supabase.storage.from('complaint_attachments').upload(filePath, file);
+                    const { error } = await _supabase.storage.from('complaint_attachments').upload(filePath, file);
                     if (!error) {
-                        quotationUrl = supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
+                        quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
                     }
                 }
 
@@ -284,14 +285,13 @@
                     status: 'BARU'
                 };
 
-                const { error } = await supabase.from('complaints').insert([newComplaint]);
+                const { error } = await _supabase.from('complaints').insert([newComplaint]);
 
                 if (error) {
                     alert('Gagal menghantar aduan: ' + error.message);
                 } else {
                     alert('Aduan berjaya dihantar!');
                     
-                    // Semak jika Admin Mengaktifkan Mesej WhatsApp
                     if (whatsappSettings.enabled && whatsappSettings.phone) {
                         const message = `*ADUAN KEROSAKAN BAHARU (IKTBN)*%0A%0A` +
                             `*Nama:* ${newComplaint.full_name}%0A` +
@@ -318,7 +318,7 @@
 
         // 5. Muat Senarai Rekod Aduan
         async function loadMyComplaints() {
-            const { data, error } = await supabase
+            const { data, error } = await _supabase
                 .from('complaints')
                 .select('*')
                 .eq('user_id', currentUser.id)
@@ -353,7 +353,7 @@
         }
 
         async function logout() {
-            await supabase.auth.signOut();
+            await _supabase.auth.signOut();
             window.location.href = 'login.html';
         }
 
