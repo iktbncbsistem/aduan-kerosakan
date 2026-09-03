@@ -209,14 +209,7 @@ loadDynamicContent();
             
         });
 
-        // UI Logic Tunjuk nama fail
-        let uploadedFile = null;
-        document.getElementById('gambar').addEventListener('change', function(e) {
-            uploadedFile = e.target.files[0];
-            if(uploadedFile) {
-                document.getElementById('file-name').innerText = `Fail sedia: ${uploadedFile.name}`;
-            }
-        });
+
 
         // Proses Hantar Aduan
         document.getElementById('aduan-form').addEventListener('submit', async (e) => {
