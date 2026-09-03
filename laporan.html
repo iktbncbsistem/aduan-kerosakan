@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Tahunan Aduan & Bajet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Sembunyikan elemen tidak perlu semasa cetak PDF */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .print-container { max-width: 100%; padding: 0; box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white p-8 rounded-xl shadow-lg print-container">
+        
+        <!-- Header Laporan -->
+        <div class="text-center mb-8 border-b pb-6">
+            <h1 class="text-2xl font-bold uppercase">Laporan Aduan Kerosakan & Keperluan Bajet</h1>
+            <p class="text-slate-600">Institusi Kemahiran Tinggi Belia Negara (IKTBN) Chembong</p>
+        </div>
+
+        <!-- Filter Section (Tidak dicetak) -->
+        <div class="no-print bg-slate-50 p-4 rounded-lg border mb-6 flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-sm font-bold mb-1">Tahun</label>
+                <select id="filter-tahun" class="border p-2 rounded w-32 outline-none">
+                    <option value="ALL">Semua</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1">Lokasi</label>
+                <select id="filter-lokasi" class="border p-2 rounded w-48 outline-none">
+                    <option value="ALL">Semua Lokasi</option>
+                    <option value="Blok Pentadbiran">Blok Pentadbiran</option>
+                    <option value="Blok Akademik">Blok Akademik</option>
+                    <option value="Bengkel Automotif">Bengkel Automotif</option>
+                    <option value="Asrama Lelaki">Asrama Lelaki</option>
+                    <option value="Asrama Perempuan">Asrama Perempuan</option>
+                    <option value="Dewan Makan">Dewan Makan</option>
+                </select>
+            </div>
+            <button onclick="renderTable()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded font-bold">Tapis Data</button>
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold ml-auto">🖨️ Cetak / Simpan PDF</button>
+        </div>
+
+        <!-- Rumusan Bajet -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <div class="text-sm font-bold text-blue-700">Jumlah Aduan</div>
+                <div id="sum-aduan" class="text-2xl font-black text-blue-900">0</div>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                <div class="text-sm font-bold text-red-700">Anggaran Kos Keseluruhan (RM)</div>
+                <div id="sum-kos" class="text-2xl font-black text-red-900">0.00</div>
+            </div>
+        </div>
+
+        <!-- Jadual Data -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse border border-slate-200 text-sm">
+                <thead>
+                    <tr class="bg-slate-100 uppercase text-xs">
+                        <th class="p-2 border">No</th>
+                        <th class="p-2 border">No. Tiket</th>
+                        <th class="p-2 border">Lokasi / Kategori</th>
+                        <th class="p-2 border w-1/3">Justifikasi</th>
+                        <th class="p-2 border text-right">Anggaran Kos (RM)</th>
+                        <th class="p-2 border">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr><td colspan="6" class="p-4 text-center">Memuatkan data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let allData = [];
+
+        // Security check (Pastikan hanya admin/staf boleh akses)
+        async function checkAuth() {
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) window.location.href = 'login.html';
+            else loadData();
+        }
+        checkAuth();
+
+        async function loadData() {
+            const { data, error } = await client.from('complaints').select('*').order('created_at', { ascending: false });
+            if (error) return console.error(error);
+            
+            allData = data;
+            setupTahunDropdown();
+            renderTable();
+        }
+
+        function setupTahunDropdown() {
+            const tahunSet = new Set();
+            allData.forEach(d => {
+                const year = new Date(d.created_at).getFullYear();
+                tahunSet.add(year);
+            });
+            
+            const dropdown = document.getElementById('filter-tahun');
+            Array.from(tahunSet).sort().reverse().forEach(year => {
+                dropdown.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+        }
+
+        function renderTable() {
+            const fTahun = document.getElementById('filter-tahun').value;
+            const fLokasi = document.getElementById('filter-lokasi').value;
+
+            let filtered = allData.filter(d => {
+                const yearMatch = fTahun === 'ALL' || new Date(d.created_at).getFullYear().toString() === fTahun;
+                const lokasiMatch = fLokasi === 'ALL' || d.location === fLokasi;
+                return yearMatch && lokasiMatch;
+            });
+
+            let totalKos = 0;
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">Tiada rekod dijumpai.</td></tr>';
+            } else {
+                filtered.forEach((item, index) => {
+                    const kos = item.estimated_cost ? parseFloat(item.estimated_cost) : 0;
+                    totalKos += kos;
+
+                    tbody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 border text-center">${index + 1}</td>
+                            <td class="p-2 border font-mono font-bold">${item.ticket_number}</td>
+                            <td class="p-2 border"><b>${item.location}</b><br><span class="text-xs text-gray-500">${item.categories.join(', ')}</span></td>
+                            <td class="p-2 border text-xs">${item.justification || '-'}</td>
+                            <td class="p-2 border text-right font-semibold">${kos > 0 ? kos.toFixed(2) : '-'}</td>
+                            <td class="p-2 border text-xs font-bold">${item.status}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('sum-aduan').innerText = filtered.length;
+            document.getElementById('sum-kos').innerText = totalKos.toLocaleString('ms-MY', { minimumFractionDigits: 2 });
+        }
+    </script>
+</body>
+</html>
