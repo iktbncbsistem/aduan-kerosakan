@@ -91,19 +91,29 @@
                     </div>
 
                     <!-- Muat Naik -->
+                    <!-- Muat Naik Multi-Fail & Kamera -->
                     <div class="border-t border-gray-200 pt-6">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Bukti Bergambar / Sebut Harga (Max 5MB)</label>
-                        <div class="flex items-center justify-center w-full">
-                            <label for="gambar" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
-                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <svg class="w-8 h-8 mb-3 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
-                                    <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Klik untuk muat naik</span> atau seret fail ke sini</p>
-                                    <p class="text-xs text-gray-500">PNG, JPG atau PDF sahaja</p>
-                                </div>
-                                <input id="gambar" type="file" class="hidden" accept=".png,.jpg,.jpeg,.pdf" />
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Bukti Bergambar / Sebut Harga (Boleh muat naik > 1 fail)</label>
+                        <p class="text-xs text-gray-500 mb-3">Gambar dari pelbagai sudut amat digalakkan untuk penyediaan slide bajet PowerPoint.</p>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <!-- Butang Pilih Galeri / Fail -->
+                            <label class="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>📁 Pilih Fail / Galeri</span>
+                                <input id="gambar-galeri" type="file" multiple accept="image/*,.pdf" class="hidden" />
+                            </label>
+
+                            <!-- Butang Kamera Telefon Direct -->
+                            <label class="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition text-sm font-medium text-blue-700">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <span>📸 Tangkap Gambar</span>
+                                <input id="gambar-kamera" type="file" accept="image/*" capture="environment" class="hidden" />
                             </label>
                         </div>
-                        <p id="file-name" class="text-sm font-medium text-blue-600 mt-2 text-center"></p>
+
+                        <!-- Senarai Fail Yang Dipilih -->
+                        <div id="file-list" class="space-y-2 mt-2"></div>
                     </div>
 
                     <!-- Submit Button -->
