@@ -124,71 +124,78 @@
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        
-        // Guna _supabase untuk mengelakkan konflik dengan perpustakaan CDN
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
         let whatsappSettings = { enabled: false, phone: '' };
 
-        // 1. Semak Pengesahan & Pengguna
-        // Semak Pengesahan & Kawalan Peranan Pengguna
-async function checkAuth() {
-    const { data: { session } } = await _supabase.auth.getSession();
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
-    currentUser = session.user;
+        async function checkAuth() {
+            try {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                currentUser = session.user;
 
-    // Semak atau Wujudkan Profil Pengguna di user_profiles
-    let { data: profile } = await _supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('email', currentUser.email)
-        .maybeSingle();
+                // Dapatkan nama dari pendaftaran Google
+                const fullName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
 
-    const fullName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+                // Semak pangkalan data pengguna
+                let { data: profile } = await _supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('email', currentUser.email)
+                    .maybeSingle();
 
-    // Jika pengguna baharu, cipta rekod lalai dengan role PENDING
-    if (!profile) {
-        const { data: newProfile } = await _supabase.from('user_profiles').insert([{
-            email: currentUser.email,
-            full_name: fullName,
-            role: 'PENDING',
-            is_blocked: false
-        }]).select().single();
-        profile = newProfile;
-    }
+                let currentRole = 'PENDING';
+                let isBlocked = false;
 
-    // Paparan Halangan Jika Akaun Disekat / Belum Diluluskan
-    if (profile.role === 'PENDING' || profile.role === 'TIADA' || profile.is_blocked) {
-        document.body.innerHTML = `
-            <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border">
-                    <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">⚠️</div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-2">Akaun Menunggu Pengesahan</h2>
-                    <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-                        Akaun anda (<span class="font-semibold text-gray-800">${currentUser.email}</span>) telah didaftarkan. Sila tunggu pengesahan dan kelulusan akses daripada Pentadbir Sistem (Admin) sebelum boleh menggunakan sistem ini.
-                    </p>
-                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-semibold text-sm shadow transition">Log Keluar</button>
-                </div>
-            </div>
-        `;
-        return;
-    }
+                if (profile) {
+                    currentRole = profile.role || 'PENDING';
+                    isBlocked = profile.is_blocked === true;
+                } else {
+                    // Cipta profil secara automatik jika tiada
+                    await _supabase.from('user_profiles').insert([{
+                        email: currentUser.email,
+                        full_name: fullName,
+                        role: 'PENDING',
+                        is_blocked: false
+                    }]);
+                }
 
-    // Jika Diluluskan, Paparkan Maklumat Pengadu
-    document.getElementById('display-name').innerText = profile.full_name || fullName;
-    document.getElementById('display-email').innerText = currentUser.email;
-    document.getElementById('user-email-header').innerText = currentUser.email;
+                // Halang akses jika belum diluluskan oleh Admin
+                if (currentRole === 'PENDING' || currentRole === 'TIADA' || isBlocked) {
+                    document.body.innerHTML = `
+                        <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                            <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border">
+                                <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">⚠️</div>
+                                <h2 class="text-xl font-bold text-gray-800 mb-2">Akaun Menunggu Pengesahan</h2>
+                                <p class="text-gray-600 text-sm mb-6 leading-relaxed">
+                                    Akaun anda (<span class="font-semibold text-gray-800">${currentUser.email}</span>) telah direkodkan. Sila tunggu kelulusan akses daripada Pentadbir Sistem (Admin) sebelum menggunakan sistem ini.
+                                </p>
+                                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-semibold text-sm shadow transition">Log Keluar</button>
+                            </div>
+                        </div>
+                    `;
+                    return; // Hentikan skrip di sini
+                }
 
-    await loadMasterData();
-    loadMyComplaints();
-}
-        // 2. Muat Naik Jabatan, Jenis Kerosakan & Tetapan WhatsApp dari DB
+                // Jika diluluskan (STAF), isikan data ke borang
+                document.getElementById('display-name').innerText = profile?.full_name || fullName;
+                document.getElementById('display-email').innerText = currentUser.email;
+                document.getElementById('user-email-header').innerText = currentUser.email;
+
+                await loadMasterData();
+                loadMyComplaints();
+
+            } catch (error) {
+                console.error("Ralat Log Masuk:", error);
+                alert("Berlaku ralat sistem. Sila 'refresh' halaman.");
+            }
+        }
+
         async function loadMasterData() {
-            // Fetch Jabatan / Lokasi
             const { data: locations } = await _supabase.from('locations').select('*');
             const deptSelect = document.getElementById('department');
             if (locations && locations.length > 0) {
@@ -198,26 +205,20 @@ async function checkAuth() {
                 deptSelect.innerHTML = '<option value="Teknologi Maklumat">Teknologi Maklumat</option><option value="Pentadbiran">Pentadbiran</option>';
             }
 
-            // Fetch Jenis Kerosakan (Standard or Settings)
             const { data: settings } = await _supabase.from('system_settings').select('*');
             let damageTypes = ["Perkakasan (Hardware)", "Perisian (Software)", "Rangkaian / Wi-Fi", "Pencetak (Printer)", "Lain-lain"];
             
             if (settings) {
                 const typesSetting = settings.find(s => s.key === 'damage_types');
-                if (typesSetting && typesSetting.value) {
-                    damageTypes = JSON.parse(typesSetting.value);
-                }
-
-                // WhatsApp Config
+                if (typesSetting && typesSetting.value) { damageTypes = JSON.parse(typesSetting.value); }
                 const waEnabled = settings.find(s => s.key === 'whatsapp_enabled');
                 const waPhone = settings.find(s => s.key === 'whatsapp_number');
                 whatsappSettings.enabled = waEnabled ? waEnabled.value === 'true' : false;
                 whatsappSettings.phone = waPhone ? waPhone.value : '';
             }
 
-            // Render Checkboxes
             const container = document.getElementById('damage-types-container');
-            container.innerHTML = damageTypes.map((type) => `
+            container.innerHTML = damageTypes.map(type => `
                 <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
                     <input type="checkbox" name="damage_types" value="${type}" class="rounded text-blue-600 focus:ring-blue-500">
                     <span>${type}</span>
@@ -225,146 +226,76 @@ async function checkAuth() {
             `).join('');
         }
 
-        // 3. Fungsi Pemampatan Gambar (Client-Side Compression)
         function compressImage(file) {
             return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
+                const reader = new FileReader(); reader.readAsDataURL(file);
                 reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
+                    const img = new Image(); img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 1200;
-                        const MAX_HEIGHT = 1200;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        canvas.toBlob((blob) => {
-                            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-                        }, 'image/jpeg', 0.7);
+                        const MAX = 1200; let w = img.width, h = img.height;
+                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } 
+                        else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.7);
                     };
                 };
             });
         }
 
-        // 4. Hantar Aduan Baharu
         async function submitComplaint(e) {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerText = 'Menghantar Aduan...';
-
+            btn.disabled = true; btn.innerText = 'Menghantar Aduan...';
             try {
                 const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
                 if (selectedDamageTypes.length === 0) {
-                    alert('Sila pilih sekurang-kurangnya satu Jenis Kerosakan.');
-                    btn.disabled = false;
-                    btn.innerText = 'Hantar Aduan';
-                    return;
+                    alert('Sila pilih sekurang-kurangnya satu Jenis Kerosakan.'); btn.disabled = false; btn.innerText = 'Hantar Aduan'; return;
                 }
-
-                // Upload Gambar (Compressed)
-                let imageUrl = null;
-                const imageFileInput = document.getElementById('image-file');
-                if (imageFileInput.files.length > 0) {
-                    const compressedFile = await compressImage(imageFileInput.files[0]);
-                    const filePath = `images/${Date.now()}_${compressedFile.name}`;
-                    const { error } = await _supabase.storage.from('complaint_attachments').upload(filePath, compressedFile);
-                    if (!error) {
-                        imageUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
-                    }
+                
+                let imageUrl = null, quotationUrl = null;
+                const imgFile = document.getElementById('image-file').files[0];
+                if (imgFile) {
+                    const compFile = await compressImage(imgFile);
+                    const path = `images/${Date.now()}_${compFile.name}`;
+                    const { error } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
+                    if (!error) imageUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
                 }
-
-                // Upload Sebutharga
-                let quotationUrl = null;
-                const quoteFileInput = document.getElementById('quotation-file');
-                if (quoteFileInput.files.length > 0) {
-                    const file = quoteFileInput.files[0];
-                    const filePath = `quotations/${Date.now()}_${file.name}`;
-                    const { error } = await _supabase.storage.from('complaint_attachments').upload(filePath, file);
-                    if (!error) {
-                        quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
-                    }
+                const quoteFile = document.getElementById('quotation-file').files[0];
+                if (quoteFile) {
+                    const path = `quotations/${Date.now()}_${quoteFile.name}`;
+                    const { error } = await _supabase.storage.from('complaint_attachments').upload(path, quoteFile);
+                    if (!error) quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
                 }
 
                 const newComplaint = {
-                    user_id: currentUser.id,
-                    full_name: document.getElementById('display-name').innerText,
-                    email: currentUser.email,
-                    phone: document.getElementById('phone').value,
-                    department: document.getElementById('department').value,
-                    damage_types: selectedDamageTypes,
-                    details: document.getElementById('details').value,
-                    justification: document.getElementById('justification').value,
+                    user_id: currentUser.id, full_name: document.getElementById('display-name').innerText,
+                    email: currentUser.email, phone: document.getElementById('phone').value,
+                    department: document.getElementById('department').value, damage_types: selectedDamageTypes,
+                    details: document.getElementById('details').value, justification: document.getElementById('justification').value,
                     estimated_cost: parseFloat(document.getElementById('estimated-cost').value || 0),
-                    image_url: imageUrl,
-                    quotation_url: quotationUrl,
-                    status: 'BARU'
+                    image_url: imageUrl, quotation_url: quotationUrl, status: 'BARU'
                 };
 
                 const { error } = await _supabase.from('complaints').insert([newComplaint]);
-
-                if (error) {
-                    alert('Gagal menghantar aduan: ' + error.message);
-                } else {
-                    alert('Aduan berjaya dihantar!');
-                    
-                    if (whatsappSettings.enabled && whatsappSettings.phone) {
-                        const message = `*ADUAN KEROSAKAN BAHARU (IKTBN)*%0A%0A` +
-                            `*Nama:* ${newComplaint.full_name}%0A` +
-                            `*Jabatan:* ${newComplaint.department}%0A` +
-                            `*Telefon:* ${newComplaint.phone}%0A` +
-                            `*Jenis Kerosakan:* ${selectedDamageTypes.join(', ')}%0A` +
-                            `*Butiran:* ${newComplaint.details}`;
-                        
-                        const waUrl = `https://wa.me/${whatsappSettings.phone}?text=${message}`;
-                        window.open(waUrl, '_blank');
-                    }
-
-                    document.getElementById('complaint-form').reset();
-                    loadMyComplaints();
+                if (error) throw error;
+                
+                alert('Aduan berjaya dihantar!');
+                if (whatsappSettings.enabled && whatsappSettings.phone) {
+                    const msg = `*ADUAN KEROSAKAN BAHARU*%0A*Nama:* ${newComplaint.full_name}%0A*Jabatan:* ${newComplaint.department}%0A*Kerosakan:* ${selectedDamageTypes.join(', ')}`;
+                    window.open(`https://wa.me/${whatsappSettings.phone}?text=${msg}`, '_blank');
                 }
-
-            } catch (err) {
-                alert('Ralat sistem: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Hantar Aduan';
-            }
+                document.getElementById('complaint-form').reset();
+                loadMyComplaints();
+            } catch (err) { alert('Ralat: ' + err.message); }
+            finally { btn.disabled = false; btn.innerText = 'Hantar Aduan'; }
         }
 
-        // 5. Muat Senarai Rekod Aduan
         async function loadMyComplaints() {
-            const { data, error } = await _supabase
-                .from('complaints')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .order('created_at', { ascending: false });
-
+            const { data, error } = await _supabase.from('complaints').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
             const tbody = document.getElementById('complaints-list');
-            if (error || !data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Tiada aduan dihantar lagi.</td></tr>';
-                return;
-            }
-
+            if (error || !data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Tiada aduan dihantar lagi.</td></tr>'; return; }
             tbody.innerHTML = data.map(item => `
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-3 font-medium text-gray-800">
@@ -383,15 +314,11 @@ async function checkAuth() {
                 case 'BARU': return '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">BARU</span>';
                 case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">PROSES</span>';
                 case 'SELESAI': return '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">SELESAI</span>';
-                default: return '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">' + (status || 'BARU') + '</span>';
+                default: return `<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">${status || 'BARU'}</span>`;
             }
         }
 
-        async function logout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
+        async function logout() { await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         checkAuth();
     </script>
 </body>
