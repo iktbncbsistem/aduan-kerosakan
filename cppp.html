@@ -110,25 +110,27 @@
     </div>
 
     <script>
+        // 1. SETUP - Gunakan nama 'client'
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Security: Mesti login
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await client.auth.getSession();
             if (!session) window.location.href = 'login.html';
             else loadData();
         }
         checkAuth();
 
         async function logout() {
-            await supabase.auth.signOut();
+            await client.auth.signOut();
             window.location.href = 'login.html';
         }
 
         async function loadData() {
-            const { data, error } = await supabase.from('complaints').select(`*, complaint_attachments(*)`).order('created_at', { ascending: false });
+            const { data, error } = await client.from('complaints').select(`*, complaint_attachments(*)`).order('created_at', { ascending: false });
             if (error) return console.error(error);
 
             // Update Stats
@@ -141,6 +143,11 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
             
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Tiada aduan direkodkan.</td></tr>';
+                return;
+            }
+
             data.forEach(item => {
                 const badgeColor = item.status === 'SUBMITTED' ? 'bg-yellow-100 text-yellow-800' 
                                  : item.status === 'KCPPPP_REVIEW' ? 'bg-purple-100 text-purple-800'
@@ -152,7 +159,7 @@
                     : `<span class="text-xs text-gray-400 font-semibold">Telah Disemak</span>`;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                         <td class="p-4 font-mono text-xs font-bold">${item.ticket_number}</td>
                         <td class="p-4 font-semibold">${item.applicant_name}</td>
                         <td class="p-4">${item.categories.join(', ')}</td>
@@ -177,7 +184,7 @@
             lampiranBox.innerHTML = '';
             if (data.complaint_attachments && data.complaint_attachments.length > 0) {
                 data.complaint_attachments.forEach(file => {
-                    const { data: urlData } = supabase.storage.from('attachments').getPublicUrl(file.storage_path);
+                    const { data: urlData } = client.storage.from('attachments').getPublicUrl(file.storage_path);
                     lampiranBox.innerHTML += `<a href="${urlData.publicUrl}" target="_blank" class="text-blue-600 hover:underline block truncate text-xs">📄 ${file.file_name}</a>`;
                 });
             } else {
@@ -207,7 +214,7 @@
             const klasifikasi = document.getElementById('m-klasifikasi').value;
             const catatan = document.getElementById('m-catatan').value;
 
-            const { error } = await supabase.from('complaints').update({
+            const { error } = await client.from('complaints').update({
                 status: 'KCPPPP_REVIEW',
                 cppp_classification: klasifikasi,
                 cppp_notes: catatan,
@@ -217,14 +224,13 @@
             if (error) {
                 alert("Gagal mengemaskini status.");
                 console.error(error);
-                btn.disabled = false;
-                btn.innerText = 'SAHKAN & HANTAR KE KCPPPP';
             } else {
                 closeModal();
                 loadData(); // Refresh table
-                btn.disabled = false;
-                btn.innerText = 'SAHKAN & HANTAR KE KCPPPP';
             }
+            
+            btn.disabled = false;
+            btn.innerText = 'SAHKAN & HANTAR KE KCPPPP';
         });
     </script>
 </body>
