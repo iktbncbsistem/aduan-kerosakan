@@ -74,7 +74,9 @@
                 <!-- Info Aduan Asal -->
                 <div class="bg-slate-50 p-4 rounded-lg text-xs space-y-1 border">
                     <div><span class="text-gray-500">No. Tiket:</span> <span id="m-tiket" class="font-bold"></span> | <span class="text-gray-500">Pemohon:</span> <span id="m-nama" class="font-bold"></span></div>
-                    <div><span class="text-gray-500">Butiran:</span> <span id="m-butiran"></span></div>
+<div><span class="text-gray-500 block mb-1">Butiran:</span> <p id="m-butiran" class="font-medium bg-white p-2 border rounded"></p></div>
+<div><span class="text-gray-500 block mb-1">Justifikasi:</span> <p id="m-justifikasi" class="font-medium bg-red-50 text-red-800 p-2 border border-red-100 rounded"></p></div>
+<div><span class="text-gray-500">Anggaran Kos:</span> <span id="m-kos" class="font-bold text-emerald-700"></span></div>
                     <div><span class="text-gray-500 block mt-2">Lampiran:</span> <div id="m-lampiran" class="space-y-1 mt-1"></div></div>
                 </div>
 
@@ -167,6 +169,8 @@
             document.getElementById('m-butiran').innerText = data.description;
             document.getElementById('m-syor').innerText = data.cppp_classification || 'Tiada Syor';
             document.getElementById('m-catatan-cppp').innerText = data.cppp_notes || 'Tiada catatan';
+document.getElementById('m-justifikasi').innerText = data.justification || 'Tiada justifikasi diberikan';
+document.getElementById('m-kos').innerText = data.estimated_cost ? 'RM ' + data.estimated_cost : 'Tidak dinyatakan';
             
             const lampiranBox = document.getElementById('m-lampiran');
             lampiranBox.innerHTML = '';
