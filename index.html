@@ -31,10 +31,18 @@
             </div>
 
             <!-- Lokasi & Tarikh -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Kerosakan</label>
-                <input type="text" id="lokasi" required class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
-            </div>
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Kerosakan</label>
+    <select id="lokasi" required class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+        <option value="">-- Pilih Lokasi --</option>
+        <option value="Blok Pentadbiran">Blok Pentadbiran</option>
+        <option value="Blok Akademik">Blok Akademik</option>
+        <option value="Bengkel Automotif">Bengkel Automotif</option>
+        <option value="Asrama Lelaki">Asrama Lelaki</option>
+        <option value="Asrama Perempuan">Asrama Perempuan</option>
+        <option value="Dewan Makan">Dewan Makan</option>
+    </select>
+</div>
 
             <!-- Kategori -->
             <div>
@@ -68,6 +76,16 @@
                 <textarea id="butiran" required rows="4" placeholder="Nyatakan kerosakan dengan lengkap..." class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
             </div>
 
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Justifikasi Pembaikan (Wajib untuk Mohon Bajet)</label>
+    <textarea id="justifikasi" required rows="3" placeholder="Nyatakan mengapa kerosakan ini sangat kritikal dan perlu dibaiki segera..." class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+</div>
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Anggaran Kos (RM) - Jika Ada</label>
+    <input type="number" id="anggaran_kos" step="0.01" placeholder="Contoh: 1500.00" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+    <p class="text-xs text-gray-500 mt-1">*Sila muat naik sebut harga (quotation) pada ruangan lampiran di bawah sebagai sokongan.</p>
+</div>
+            
             <!-- Upload Gambar / Fail -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Bukti Kerosakan (Gambar/PDF)</label>
@@ -195,15 +213,17 @@
 
             try {
                 // A. Insert Aduan ke Database (Guna client.from)
-                const aduanData = {
-                    applicant_name: document.getElementById('nama').value,
-                    applicant_phone: document.getElementById('telefon').value,
-                    location: document.getElementById('lokasi').value,
-                    categories: categories,
-                    other_category_desc: chkLain.checked ? txtLain.value : null,
-                    description: document.getElementById('butiran').value
-                };
-
+const aduanData = {
+    applicant_name: document.getElementById('nama').value,
+    applicant_phone: document.getElementById('telefon').value,
+    location: document.getElementById('lokasi').value,
+    categories: categories,
+    other_category_desc: chkLain.checked ? txtLain.value : null,
+    description: document.getElementById('butiran').value,
+    justification: document.getElementById('justifikasi').value,
+    estimated_cost: document.getElementById('anggaran_kos').value ? parseFloat(document.getElementById('anggaran_kos').value) : null
+};
+               
                 const { data: resultData, error: insertError } = await client
                     .from('complaints')
                     .insert(aduanData)
