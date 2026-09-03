@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - SISTEM ADUAN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 p-6">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="flex justify-between items-center bg-slate-800 text-white p-4 rounded-xl shadow">
+            <h1 class="font-bold text-lg">⚙️ Panel Pentadbir (Tetapan Sistem)</h1>
+            <button onclick="window.location.href='cppp.html'" class="text-sm bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded">Kembali ke Dashboard</button>
+        </div>
+
+        <!-- Tetapan Sistem -->
+        <div class="bg-white p-6 rounded-xl shadow-md border">
+            <h2 class="font-bold text-slate-700 border-b pb-2 mb-4">1. Tetapan Utama & Antaramuka</h2>
+            <form id="settings-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold mb-1">No. WhatsApp Admin (Mula dengan 6)</label>
+                    <input type="text" id="s-wa" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">URL Logo Agensi / Sistem</label>
+                    <input type="text" id="s-logo" placeholder="https://contoh.com/logo.png" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">URL Gambar Latar Belakang (Login & Borang)</label>
+                    <input type="text" id="s-bg" placeholder="https://contoh.com/bg.jpg" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">Simpan Tetapan Utama</button>
+            </form>
+        </div>
+
+        <!-- Pengurusan Lokasi -->
+        <div class="bg-white p-6 rounded-xl shadow-md border">
+            <h2 class="font-bold text-slate-700 border-b pb-2 mb-4">2. Pengurusan Lokasi (Dropdown)</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="new-loc" placeholder="Nama lokasi baharu..." class="flex-1 border p-2 rounded outline-none focus:ring-2 focus:ring-emerald-500">
+                <button onclick="addLocation()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded">Tambah</button>
+            </div>
+            <ul id="loc-list" class="space-y-2 divide-y border rounded p-2 bg-slate-50">
+                <li class="p-2 text-center text-gray-500 text-sm">Memuatkan senarai lokasi...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_API_KEY_HERE'; // Gantikan dengan kunci bos
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function initAdmin() {
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.href = 'login.html';
+            loadSettings();
+            loadLocations();
+        }
+
+        async function loadSettings() {
+            const { data } = await client.from('system_settings').select('*').eq('id', 1).single();
+            if (data) {
+                document.getElementById('s-wa').value = data.whatsapp_number || '';
+                document.getElementById('s-logo').value = data.logo_url || '';
+                document.getElementById('s-bg').value = data.bg_url || '';
+            }
+        }
+
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const wa = document.getElementById('s-wa').value;
+            const logo = document.getElementById('s-logo').value;
+            const bg = document.getElementById('s-bg').value;
+
+            const { error } = await client.from('system_settings').update({
+                whatsapp_number: wa, logo_url: logo, bg_url: bg
+            }).eq('id', 1);
+
+            if (error) alert("Ralat menyimpan tetapan.");
+            else alert("Tetapan berjaya disimpan!");
+        });
+
+        async function loadLocations() {
+            const { data } = await client.from('locations').select('*').order('created_at', { ascending: true });
+            const list = document.getElementById('loc-list');
+            list.innerHTML = '';
+            if (data) {
+                data.forEach(loc => {
+                    list.innerHTML += `
+                        <li class="p-2 flex justify-between items-center bg-white rounded shadow-sm">
+                            <span class="font-medium">${loc.name}</span>
+                            <button onclick="deleteLocation('${loc.id}')" class="text-red-500 hover:text-red-700 text-sm font-bold">Padam</button>
+                        </li>`;
+                });
+            }
+        }
+
+        async function addLocation() {
+            const input = document.getElementById('new-loc');
+            if (!input.value.trim()) return;
+            await client.from('locations').insert({ name: input.value.trim() });
+            input.value = '';
+            loadLocations();
+        }
+
+        async function deleteLocation(id) {
+            if (!confirm("Padam lokasi ini?")) return;
+            await client.from('locations').delete().eq('id', id);
+            loadLocations();
+        }
+
+        initAdmin();
+    </script>
+</body>
+</html>
