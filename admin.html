@@ -3,145 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Sistem Aduan</title>
+    <title>Tetapan & Pentadbiran Sistem - RBAC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 font-sans">
+<body class="bg-gray-100 min-h-screen">
 
-<!-- Navigasi Utiliti Admin / Tetapan -->
-    <nav class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
-        <div class="flex items-center space-x-6">
-            <span class="font-bold text-gray-900 text-lg tracking-tight">⚙️ Tetapan & Pentadbiran Sistem</span>
-            <div class="hidden md:flex space-x-4 text-sm font-medium">
-                <button onclick="window.history.back()" class="text-gray-500 hover:text-gray-900 transition flex items-center gap-1">
-                    ← Kembali ke Dashboard
-                </button>
-                <a href="laporan.html" class="text-gray-500 hover:text-gray-900 transition">📊 Modul Laporan</a>
-            </div>
+    <!-- Header -->
+    <nav class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-4">
+            <h1 class="font-bold text-lg text-gray-800">Tetapan & Pentadbiran Sistem</h1>
+            <a href="index.html" class="text-sm text-blue-600 hover:underline">← Kembali ke Dashboard</a>
         </div>
-        <button onclick="logout()" class="text-sm font-medium text-gray-600 hover:text-red-600 border border-gray-200 hover:bg-red-50 px-3 py-1.5 rounded transition">Log Keluar</button>
+        <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold transition">Log Keluar</button>
     </nav>
 
-    <!-- Seksyen Pengurusan Akses Pengguna Berpusat -->
-    <main class="max-w-5xl mx-auto p-6 space-y-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div class="flex justify-between items-center mb-4">
+    <div class="max-w-7xl mx-auto p-6">
+        
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4 mb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900">👥 Pengurusan Akses Pengguna (RBAC)</h2>
-                    <p class="text-sm text-gray-500">Kawal tahap akses sistem untuk semua kakitangan IKTBN Chembong.</p>
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        👥 Pengurusan Akses Pengguna (RBAC)
+                    </h2>
+                    <p class="text-xs text-gray-500">Kawal tahap akses, status kawalan, dan kelulusan kakitangan IKTBN Chembong.</p>
                 </div>
-                <button onclick="loadUsers()" class="text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded transition flex items-center gap-2">
+                <button onclick="loadUsers()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded font-semibold flex items-center gap-1 transition">
                     🔄 Muat Semula
                 </button>
             </div>
-            
-            <div class="overflow-x-auto border border-gray-200 rounded-lg">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-600 text-sm border-b border-gray-200">
-                            <th class="py-3 px-4 font-semibold w-16 text-center">Bil</th>
-                            <th class="py-3 px-4 font-semibold">E-mel Kakitangan</th>
-                            <th class="py-3 px-4 font-semibold w-48 text-center">Peranan Semasa</th>
-                            <th class="py-3 px-4 font-semibold w-32 text-center">Tindakan</th>
+
+            <!-- Toolbar: Carian & Tindakan Pukal -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
+                
+                <!-- Carian -->
+                <div class="w-full md:w-72">
+                    <input type="text" id="search-input" oninput="filterUsers()" placeholder="🔍 Cari nama atau e-mel..." class="w-full border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- Butang Pukal -->
+                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <button onclick="bulkApprove()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 shadow transition">
+                        ✓ Lulus Pukal (STAF)
+                    </button>
+                    <button onclick="bulkDelete()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 shadow transition">
+                        🗑️ Delete Pukal
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Jadual Pengguna -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead class="bg-gray-50 border-y text-gray-600 text-xs uppercase">
+                        <tr>
+                            <th class="p-3 w-8"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+                            <th class="p-3 w-12">Bil</th>
+                            <th class="p-3">Nama Penuh</th>
+                            <th class="p-3">E-mel Kakitangan</th>
+                            <th class="p-3">Peranan Semasa</th>
+                            <th class="p-3 text-center">Status Sekat</th>
+                            <th class="p-3 text-center">Tindakan</th>
                         </tr>
                     </thead>
-                    <tbody id="user-table-body" class="text-sm divide-y divide-gray-100">
-                        <tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Memuatkan data pengguna...</td></tr>
+                    <tbody id="users-table-body">
+                        <tr>
+                            <td colspan="7" class="p-6 text-center text-gray-400">Memuatkan senarai pengguna...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+
         </div>
-    </main>
+
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function initAdmin() {
-            const { data: { session } } = await client.auth.getSession();
-            if (!session) return window.location.href = 'login.html';
-            
-            // Muatkan jadual RBAC bila admin buka muka surat ini
+        let allUsers = [];
+
+        // Semak Peranan Admin
+        async function checkAdminAuth() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const { data: profile } = await _supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('email', session.user.email)
+                .single();
+
+            if (!profile || profile.role !== 'ADMIN') {
+                alert('Akses Ditolak! Halaman ini khas untuk Pentadbir Sistem (ADMIN) sahaja.');
+                window.location.href = 'index.html';
+                return;
+            }
+
             loadUsers();
         }
 
+        // Muat Senarai Pengguna
+        async function loadUsers() {
+            const { data, error } = await _supabase
+                .from('user_profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                alert('Gagal memuatkan senarai pengguna: ' + error.message);
+                return;
+            }
+
+            allUsers = data || [];
+            renderTable(allUsers);
+        }
+
+        // Paparkan Jadual
+        function renderTable(users) {
+            const tbody = document.getElementById('users-table-body');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-500">Tiada rekod pengguna dijumpai.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map((u, idx) => `
+                <tr class="border-b hover:bg-gray-50 text-gray-800">
+                    <td class="p-3"><input type="checkbox" class="user-checkbox" value="${u.id}"></td>
+                    <td class="p-3 font-medium text-gray-500">${idx + 1}</td>
+                    <td class="p-3 font-semibold">
+                        <input type="text" id="name-${u.id}" value="${u.full_name || ''}" placeholder="Taip Nama Penuh" class="border rounded px-2 py-1 text-xs w-full focus:ring-1 focus:ring-blue-500 outline-none">
+                    </td>
+                    <td class="p-3 text-gray-600 font-mono text-xs">${u.email}</td>
+                    <td class="p-3">
+                        <select id="role-${u.id}" class="border rounded px-2 py-1 text-xs font-bold outline-none ${u.role === 'PENDING' ? 'bg-yellow-50 text-yellow-700' : 'bg-gray-50 text-gray-800'}">
+                            <option value="PENDING" ${u.role === 'PENDING' || u.role === 'TIADA' ? 'selected' : ''}>PENDING / TIADA</option>
+                            <option value="STAF" ${u.role === 'STAF' ? 'selected' : ''}>STAF</option>
+                            <option value="CPPP" ${u.role === 'CPPP' ? 'selected' : ''}>CPPP</option>
+                            <option value="KCPPP" ${u.role === 'KCPPP' ? 'selected' : ''}>KCPPP</option>
+                            <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+                        </select>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="toggleBlock('${u.id}', ${!u.is_blocked})" class="px-2.5 py-1 rounded-full text-xs font-bold transition ${u.is_blocked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}">
+                            ${u.is_blocked ? '🔒 Disekat' : '🔓 Aktif'}
+                        </button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="saveUser('${u.id}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1 rounded font-semibold transition">Simpan</button>
+                            <button onclick="deleteSingleUser('${u.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 text-xs px-2.5 py-1 rounded font-semibold transition">Hapus</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Tapis Carian
+        function filterUsers() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                (u.full_name && u.full_name.toLowerCase().includes(query)) || 
+                (u.email && u.email.toLowerCase().includes(query))
+            );
+            renderTable(filtered);
+        }
+
+        // Simpan Individu
+        async function saveUser(id) {
+            const newRole = document.getElementById(`role-${id}`).value;
+            const newName = document.getElementById(`name-${id}`).value;
+
+            const { error } = await _supabase
+                .from('user_profiles')
+                .update({ role: newRole, full_name: newName })
+                .eq('id', id);
+
+            if (error) {
+                alert('Gagal mengemaskini: ' + error.message);
+            } else {
+                alert('Maklumat pengguna berjaya dikemaskini!');
+                loadUsers();
+            }
+        }
+
+        // Tukar Status Sekat (Lock/Unlock)
+        async function toggleBlock(id, newStatus) {
+            const { error } = await _supabase
+                .from('user_profiles')
+                .update({ is_blocked: newStatus })
+                .eq('id', id);
+
+            if (error) {
+                alert('Gagal menukar status sekatan: ' + error.message);
+            } else {
+                loadUsers();
+            }
+        }
+
+        // Hapus Individu
+        async function deleteSingleUser(id) {
+            if (!confirm('Adakah anda pasti mahu memadam pengguna ini?')) return;
+
+            const { error } = await _supabase.from('user_profiles').delete().eq('id', id);
+            if (error) {
+                alert('Gagal memadam: ' + error.message);
+            } else {
+                loadUsers();
+            }
+        }
+
+        // Pilih Semua Checkbox
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+        }
+
+        // Lulus Pukal (Set to STAF & Unlock)
+        async function bulkApprove() {
+            const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) {
+                alert('Sila pilih sekurang-kurangnya seorang pengguna.');
+                return;
+            }
+
+            if (!confirm(`Luluskan ${selectedIds.length} pengguna sebagai STAF?`)) return;
+
+            const { error } = await _supabase
+                .from('user_profiles')
+                .update({ role: 'STAF', is_blocked: false })
+                .in('id', selectedIds);
+
+            if (error) {
+                alert('Gagal memproses kelulusan pukal: ' + error.message);
+            } else {
+                alert('Kelulusan pukal berjaya!');
+                loadUsers();
+            }
+        }
+
+        // Hapus Pukal
+        async function bulkDelete() {
+            const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) {
+                alert('Sila pilih sekurang-kurangnya seorang pengguna untuk dipadam.');
+                return;
+            }
+
+            if (!confirm(`Adakah anda pasti mahu memadam ${selectedIds.length} pengguna yang dipilih?`)) return;
+
+            const { error } = await _supabase
+                .from('user_profiles')
+                .delete()
+                .in('id', selectedIds);
+
+            if (error) {
+                alert('Gagal memadam secara pukal: ' + error.message);
+            } else {
+                alert('Pemadaman pukal berjaya!');
+                loadUsers();
+            }
+        }
+
         async function logout() {
-            await client.auth.signOut();
+            await _supabase.auth.signOut();
             window.location.href = 'login.html';
         }
 
-        // ==========================================
-        // FUNGSI PENGURUSAN PENGGUNA BERPUSAT (RBAC)
-        // ==========================================
-        async function loadUsers() {
-            const tbody = document.getElementById('user-table-body');
-            if(!tbody) return;
-
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Memuatkan senarai pengguna...</td></tr>';
-            
-            const { data, error } = await client.from('user_profiles').select('*').order('email', { ascending: true });
-            
-            if (error) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-semibold">Ralat: ${error.message}</td></tr>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Tiada rekod ditemui. Staf perlu log masuk sekurang-kurangnya sekali.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = '';
-            data.forEach((user, index) => {
-                const roles = ['STAF', 'CPPP', 'KCPPP', 'ADMIN'];
-                let optionsHtml = '';
-                
-                roles.forEach(r => {
-                    const selected = user.role === r ? 'selected' : '';
-                    optionsHtml += `<option value="${r}" ${selected}>${r}</option>`;
-                });
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
-                        <td class="py-3 px-4 text-center text-gray-500 font-medium">${index + 1}</td>
-                        <td class="py-3 px-4 font-bold text-gray-800">${user.email}</td>
-                        <td class="py-3 px-4">
-                            <select id="role-${user.id}" class="w-full border border-gray-300 rounded-md p-1.5 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center cursor-pointer bg-white shadow-sm">
-                                ${optionsHtml}
-                            </select>
-                        </td>
-                        <td class="py-3 px-4 text-center">
-                            <button onclick="updateRole('${user.id}', '${user.email}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md text-xs font-bold transition shadow-sm">
-                                Simpan
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function updateRole(userId, userEmail) {
-            const newRole = document.getElementById(`role-${userId}`).value;
-            const confirmUpdate = confirm(`Sahkan pertukaran pangkat:\nE-mel: ${userEmail}\nPeranan Baharu: ${newRole}`);
-            
-            if (!confirmUpdate) return;
-
-            // Update ke jadual user_profiles
-            const { error } = await client.from('user_profiles').update({ role: newRole }).eq('id', userId);
-
-            if (error) {
-                alert("Ralat mengemaskini peranan: " + error.message);
-            } else {
-                alert(`✅ BERJAYA: ${userEmail} kini adalah ${newRole}.`);
-                loadUsers(); // Refresh jadual
-            }
-        }
-
-        // Mulakan sistem admin
-        initAdmin();
+        checkAdminAuth();
     </script>
 </body>
 </html>
