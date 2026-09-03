@@ -132,25 +132,60 @@
         let whatsappSettings = { enabled: false, phone: '' };
 
         // 1. Semak Pengesahan & Pengguna
-        async function checkAuth() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-                return;
-            }
-            currentUser = session.user;
-            
-            // Nama Auto dari Google atau Registration Metadata
-            const fullName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
-            
-            document.getElementById('display-name').innerText = fullName;
-            document.getElementById('display-email').innerText = currentUser.email;
-            document.getElementById('user-email-header').innerText = currentUser.email;
+        // Semak Pengesahan & Kawalan Peranan Pengguna
+async function checkAuth() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) {
+        window.location.href = 'login.html';
+        return;
+    }
+    currentUser = session.user;
 
-            await loadMasterData();
-            loadMyComplaints();
-        }
+    // Semak atau Wujudkan Profil Pengguna di user_profiles
+    let { data: profile } = await _supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('email', currentUser.email)
+        .maybeSingle();
 
+    const fullName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+
+    // Jika pengguna baharu, cipta rekod lalai dengan role PENDING
+    if (!profile) {
+        const { data: newProfile } = await _supabase.from('user_profiles').insert([{
+            email: currentUser.email,
+            full_name: fullName,
+            role: 'PENDING',
+            is_blocked: false
+        }]).select().single();
+        profile = newProfile;
+    }
+
+    // Paparan Halangan Jika Akaun Disekat / Belum Diluluskan
+    if (profile.role === 'PENDING' || profile.role === 'TIADA' || profile.is_blocked) {
+        document.body.innerHTML = `
+            <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border">
+                    <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">⚠️</div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Akaun Menunggu Pengesahan</h2>
+                    <p class="text-gray-600 text-sm mb-6 leading-relaxed">
+                        Akaun anda (<span class="font-semibold text-gray-800">${currentUser.email}</span>) telah didaftarkan. Sila tunggu pengesahan dan kelulusan akses daripada Pentadbir Sistem (Admin) sebelum boleh menggunakan sistem ini.
+                    </p>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-semibold text-sm shadow transition">Log Keluar</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Jika Diluluskan, Paparkan Maklumat Pengadu
+    document.getElementById('display-name').innerText = profile.full_name || fullName;
+    document.getElementById('display-email').innerText = currentUser.email;
+    document.getElementById('user-email-header').innerText = currentUser.email;
+
+    await loadMasterData();
+    loadMyComplaints();
+}
         // 2. Muat Naik Jabatan, Jenis Kerosakan & Tetapan WhatsApp dari DB
         async function loadMasterData() {
             // Fetch Jabatan / Lokasi
