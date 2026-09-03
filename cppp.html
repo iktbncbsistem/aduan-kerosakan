@@ -3,120 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard CPPP - Sistem Aduan</title>
+    <title>Panel CPPP - Sistem Pengurusan IT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 font-sans">
-
-    <!-- Navigasi Utama Ala Cloudflare -->
-    <nav class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
-        <div class="flex items-center space-x-6">
-            <span class="font-bold text-gray-900 text-lg tracking-tight">📋 Panel CPPP</span>
-            <div class="hidden md:flex space-x-4 text-sm font-medium text-gray-500">
-               <a href="laporan.html" class="hover:text-gray-900 transition">Laporan</a>
-               <a href="admin.html" class="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-    <span>Tetapan</span>
-</a>
-            </div>
+<body class="bg-gray-100 min-h-screen">
+    
+    <nav class="bg-emerald-800 text-white p-4 shadow-lg flex justify-between items-center">
+        <div>
+            <h1 class="font-bold text-xl">Sistem Pengurusan IT</h1>
+            <p class="text-xs text-emerald-200">Panel Pengurusan Aduan CPPP / KCPPP</p>
         </div>
-        <div class="flex items-center space-x-4">
-            <span class="text-xs text-gray-400 hidden md:block">Peranan: Penyaring</span>
-            <button onclick="logout()" class="text-sm font-medium text-gray-600 hover:text-red-600 border border-gray-200 hover:border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition">Log Keluar</button>
+        <div class="flex gap-3 items-center">
+            <a href="index.html" class="bg-emerald-900 hover:bg-emerald-950 px-3 py-1.5 rounded text-sm font-semibold transition">Borang Aduan (Staf)</a>
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow">Log Keluar</button>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto p-6 space-y-6">
-        
-        <!-- Statistik Kad -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                <div class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Jumlah Aduan</div>
-                <div id="stat-total" class="text-3xl font-bold text-gray-900 mt-2">0</div>
-            </div>
-            <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 shadow-sm">
-                <div class="text-blue-600 text-xs font-semibold uppercase tracking-wider">Menunggu Tindakan Baru</div>
-                <div id="stat-new" class="text-3xl font-bold text-blue-700 mt-2">0</div>
-            </div>
-            <div class="bg-purple-50 p-5 rounded-lg border border-purple-100 shadow-sm">
-                <div class="text-purple-600 text-xs font-semibold uppercase tracking-wider">Disemak (Menunggu KCPPP)</div>
-                <div id="stat-reviewed" class="text-3xl font-bold text-purple-700 mt-2">0</div>
-            </div>
-        </div>
-
-        <!-- Jadual Aduan -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h3 class="font-semibold text-gray-800">Senarai Aduan Masuk</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
-                            <th class="px-6 py-3 font-medium">No. Tiket</th>
-                            <th class="px-6 py-3 font-medium">Pemohon</th>
-                            <th class="px-6 py-3 font-medium">Lokasi</th>
-                            <th class="px-6 py-3 font-medium">Status</th>
-                            <th class="px-6 py-3 font-medium text-right">Tindakan</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body" class="text-sm divide-y divide-gray-100">
-                        <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Memuatkan data dari pelayan...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Modal CPPP -->
-    <div id="modal" class="fixed inset-0 bg-gray-900/60 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
-                <h2 class="font-semibold text-gray-800">Tindakan CPPP</h2>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 transition">&times;</button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto flex-1 space-y-6">
-                <!-- Info Aduan Asal -->
-                <div class="bg-gray-50 p-4 rounded-md text-sm space-y-3 border border-gray-200">
-                    <div class="grid grid-cols-2 gap-4 border-b border-gray-200 pb-3">
-                        <div><span class="text-gray-500 block text-xs uppercase tracking-wider mb-1">No. Tiket</span> <span id="m-tiket" class="font-semibold text-gray-900"></span></div>
-                        <div><span class="text-gray-500 block text-xs uppercase tracking-wider mb-1">Pemohon</span> <span id="m-nama" class="font-medium text-gray-900"></span></div>
-                    </div>
-                    <div><span class="text-gray-500 block text-xs uppercase tracking-wider mb-1">Butiran Kerosakan</span> <p id="m-butiran" class="text-gray-800"></p></div>
-                    <div><span class="text-gray-500 block text-xs uppercase tracking-wider mb-1">Justifikasi</span> <p id="m-justifikasi" class="text-red-700 bg-red-50 p-2 rounded text-xs border border-red-100"></p></div>
-                    <div class="flex justify-between items-center border-t border-gray-200 pt-3">
-                        <div><span class="text-gray-500 text-xs uppercase tracking-wider">Anggaran Kos:</span> <span id="m-kos" class="font-bold text-emerald-600 ml-2"></span></div>
-                        <div class="text-right"><span class="text-gray-500 text-xs uppercase tracking-wider block mb-1">Lampiran</span> <div id="m-lampiran" class="text-xs"></div></div>
-                    </div>
-                </div>
-
-                <!-- Form Tindakan CPPP -->
-                <form id="cppp-form" class="space-y-4">
-                    <input type="hidden" id="m-id">
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Klasifikasi CPPP</label>
-                        <select id="m-klasifikasi" required class="w-full border border-gray-300 rounded-md p-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">-- Sila Pilih --</option>
-                            <option value="BAIKPULIH DALAMAN">BAIKPULIH DALAMAN</option>
-                            <option value="PERLUKAN KONTRAKTOR / BAJET">PERLUKAN KONTRAKTOR / BAJET</option>
-                            <option value="DITOLAK (TIDAK RELEVAN)">DITOLAK (TIDAK RELEVAN)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan CPPP</label>
-                        <textarea id="m-catatan" rows="2" class="w-full border border-gray-300 rounded-md p-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Syor kepada KCPPP..."></textarea>
-                    </div>
-
-                    <div class="pt-2 flex justify-end">
-                        <button type="submit" id="btn-submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-6 rounded-md shadow-sm transition">Sahkan & Maju ke KCPPP</button>
-                    </div>
-                </form>
-            </div>
+    <div class="max-w-7xl mx-auto p-6 mt-4">
+        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-100 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Selamat Datang ke Panel CPPP</h2>
+            <p class="text-gray-600">Halaman ini akan digunakan untuk menyemak senarai aduan dan mengagihkan tugasan kepada juruteknik.</p>
         </div>
     </div>
 
@@ -126,116 +33,24 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function checkAuth() {
-            const { data: { session } } = await client.auth.getSession();
-            if (!session) window.location.href = 'login.html';
-            else loadData();
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
+            
+            const { data: profile } = await _supabase.from('user_profiles').select('role').eq('email', session.user.email).single();
+            
+            if (!profile || (profile.role !== 'CPPP' && profile.role !== 'KCPPP' && profile.role !== 'ADMIN')) {
+                alert('Akses Ditolak! Panel ini khas untuk pegawai CPPP sahaja.');
+                window.location.href = 'index.html';
+            }
         }
+
+        async function logout() { 
+            sessionStorage.clear(); // Bersihkan memori redirect
+            await _supabase.auth.signOut(); 
+            window.location.href = 'login.html'; 
+        }
+
         checkAuth();
-
-        async function logout() {
-            await client.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        async function loadData() {
-            const { data, error } = await client.from('complaints').select(`*, complaint_attachments(*)`).order('created_at', { ascending: false });
-            if (error) return console.error(error);
-
-            document.getElementById('stat-total').innerText = data.length;
-            document.getElementById('stat-new').innerText = data.filter(d => d.status === 'SUBMITTED').length;
-            document.getElementById('stat-reviewed').innerText = data.filter(d => d.status === 'KCPPP_REVIEW').length;
-
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tiada rekod aduan.</td></tr>';
-                return;
-            }
-
-            data.forEach(item => {
-                let badgeClass = 'bg-gray-100 text-gray-600';
-                if(item.status === 'SUBMITTED') badgeClass = 'bg-blue-100 text-blue-700 border border-blue-200';
-                else if(item.status === 'KCPPP_REVIEW') badgeClass = 'bg-purple-100 text-purple-700 border border-purple-200';
-                else if(item.status === 'COMPLETED') badgeClass = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-
-                const btnHtml = item.status === 'SUBMITTED' 
-                    ? `<button onclick='openModal(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="text-blue-600 hover:text-blue-800 text-xs font-semibold py-1 px-3 border border-blue-200 hover:bg-blue-50 rounded transition">Sahkan</button>`
-                    : `<span class="text-xs text-gray-400 font-medium">Selesai Disemak</span>`;
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition group">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900">${item.ticket_number}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.applicant_name}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">${item.location}</td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${badgeClass}">${item.status}</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">${btnHtml}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        const modal = document.getElementById('modal');
-        function openModal(data) {
-            document.getElementById('m-id').value = data.id;
-            document.getElementById('m-tiket').innerText = data.ticket_number;
-            document.getElementById('m-nama').innerText = data.applicant_name;
-            document.getElementById('m-butiran').innerText = data.description;
-            document.getElementById('m-justifikasi').innerText = data.justification || 'Tiada justifikasi';
-            document.getElementById('m-kos').innerText = data.estimated_cost ? 'RM ' + data.estimated_cost : 'Tidak dinyatakan';
-            
-            // Jana Pautan Lampiran
-            const lampiranBox = document.getElementById('m-lampiran');
-            lampiranBox.innerHTML = '';
-            if (data.complaint_attachments && data.complaint_attachments.length > 0) {
-                data.complaint_attachments.forEach((file, index) => {
-                    const { data: urlData } = client.storage.from('attachments').getPublicUrl(file.storage_path);
-                    lampiranBox.innerHTML += `
-                        <a href="${urlData.publicUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold text-xs bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md border border-blue-200 transition mb-1 mr-1">
-                            📄 Lampiran ${index + 1}
-                        </a>`;
-                });
-            } else {
-                lampiranBox.innerHTML = '<span class="text-gray-400 text-xs italic">Tiada lampiran dimuat naik.</span>';
-            }
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeModal() {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.getElementById('cppp-form').reset();
-        }
-
-        document.getElementById('cppp-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerText = 'Menyimpan...';
-
-            const id = document.getElementById('m-id').value;
-            const klasifikasi = document.getElementById('m-klasifikasi').value;
-            const catatan = document.getElementById('m-catatan').value;
-
-            const { error } = await client.from('complaints').update({
-                status: 'KCPPP_REVIEW',
-                cppp_classification: klasifikasi,
-                cppp_notes: catatan,
-                updated_at: new Date().toISOString()
-            }).eq('id', id);
-
-            if (error) {
-                alert("Gagal mengemaskini status.");
-                console.error(error);
-            } else {
-                closeModal();
-                loadData(); 
-            }
-            btn.disabled = false;
-            btn.innerText = 'Sahkan & Maju ke KCPPP';
-        });
     </script>
 </body>
 </html>
