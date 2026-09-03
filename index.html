@@ -16,55 +16,98 @@
             <p class="text-xs text-blue-200">Portal Aduan Kerosakan IKTBN</p>
         </div>
         <div class="flex items-center gap-4">
-            <span id="user-email" class="text-sm font-medium bg-blue-800 px-3 py-1 rounded">Memuatkan...</span>
+            <span id="user-email-header" class="text-sm font-medium bg-blue-800 px-3 py-1 rounded">Memuatkan...</span>
             <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">Log Keluar</button>
         </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Borang Aduan Kerosakan -->
-        <div class="bg-white p-6 rounded-xl shadow-md md:col-span-1">
+        <!-- Borang Aduan Kerosakan Baharu -->
+        <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-5">
             <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Hantar Aduan Baharu</h2>
             <form id="complaint-form" onsubmit="submitComplaint(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Tajuk Aduan / Kerosakan</label>
-                    <input type="text" id="title" required placeholder="Cth: PC Tak Boleh On" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                
+                <!-- Maklumat Pengadu (Auto-Readonly) -->
+                <div class="grid grid-cols-1 gap-3 mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <div>
+                        <label class="block text-xs font-semibold text-blue-800 uppercase">Nama Pengadu</label>
+                        <div id="display-name" class="font-bold text-gray-800 text-sm mt-0.5">-</div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-blue-800 uppercase">E-mel</label>
+                        <div id="display-email" class="text-xs text-gray-600 mt-0.5">-</div>
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Kategori Kerosakan</label>
-                    <select id="category" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="">Pilih Kategori</option>
-                        <option value="Perkakasan (Hardware)">Perkakasan (Hardware)</option>
-                        <option value="Perisian (Software)">Perisian (Software)</option>
-                        <option value="Rangkaian / Rangkaian Wi-Fi">Rangkaian / Wi-Fi</option>
-                        <option value="Pencetak (Printer)">Pencetak (Printer)</option>
-                        <option value="Lain-lain">Lain-lain</option>
-                    </select>
+
+                <!-- No Telefon & Jabatan -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">No. Telefon <span class="text-red-500">*</span></label>
+                        <input type="tel" id="phone" required placeholder="Cth: 0123456789" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Jabatan / Lokasi <span class="text-red-500">*</span></label>
+                        <select id="department" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Pilih Jabatan</option>
+                        </select>
+                    </div>
                 </div>
+
+                <!-- Jenis Kerosakan (Checkbox Dynamic) -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Lokasi / Bilik / Makmal</label>
-                    <input type="text" id="location" required placeholder="Cth: Makmal Komputer 2" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium mb-2">Jenis Kerosakan <span class="text-red-500">*</span></label>
+                    <div id="damage-types-container" class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded border text-sm max-h-36 overflow-y-auto">
+                        <span class="text-xs text-gray-400 col-span-2">Memuatkan jenis kerosakan...</span>
+                    </div>
                 </div>
+
+                <!-- Butiran Kerosakan -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Penerangan Kerosakan</label>
-                    <textarea id="description" rows="3" required placeholder="Terangkan butiran masalah..." class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                    <label class="block text-sm font-medium mb-1">Butiran Kerosakan <span class="text-red-500">*</span></label>
+                    <textarea id="details" rows="3" required placeholder="Terangkan kerosakan secara terperinci..." class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                 </div>
-                <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold text-sm transition">Hantar Aduan</button>
+
+                <!-- Justifikasi Keperluan (Kotak Besar) -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Justifikasi Keperluan Penyenggaraan <span class="text-red-500">*</span></label>
+                    <textarea id="justification" rows="4" required placeholder="Sebab mendesak penyenggaraan perlu dijalankan secepat mungkin..." class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+
+                <!-- Muat Naik Gambar (Kamera / Fail) -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Gambar Kerosakan (Ambil Gambar / Upload)</label>
+                    <input type="file" id="image-file" accept="image/*" capture="environment" class="w-full border rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-[10px] text-gray-400 mt-1">*Sistem mengecilkan saiz imej secara automatik tanpa mengurangkan kualiti.</p>
+                </div>
+
+                <!-- Anggaran Kos & Sebutharga -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Anggaran Kos (RM)</label>
+                        <input type="number" step="0.01" id="estimated-cost" placeholder="0.00" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Upload Sebutharga (PDF/Doc)</label>
+                        <input type="file" id="quotation-file" accept=".pdf,.doc,.docx,image/*" class="w-full border rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700">
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold text-sm shadow transition">Hantar Aduan</button>
             </form>
         </div>
 
-        <!-- Senarai Aduan Saya -->
-        <div class="bg-white p-6 rounded-xl shadow-md md:col-span-2">
+        <!-- Senarai Rekod Aduan Saya -->
+        <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-7">
             <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Rekod Aduan Saya</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
-                    <thead class="bg-gray-50 border-b">
+                    <thead class="bg-gray-50 border-b text-gray-600">
                         <tr>
-                            <th class="p-2">Tajuk</th>
-                            <th class="p-2">Lokasi</th>
-                            <th class="p-2">Tarikh</th>
-                            <th class="p-2">Status</th>
+                            <th class="p-3">Kerosakan</th>
+                            <th class="p-3">Jabatan</th>
+                            <th class="p-3">Tarikh</th>
+                            <th class="p-3">Status</th>
                         </tr>
                     </thead>
                     <tbody id="complaints-list">
@@ -80,12 +123,13 @@
 
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
+        const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_SUPABASE_ANDA';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
+        let whatsappSettings = { enabled: false, phone: '' };
 
-        // Semak Sesi Log Masuk
+        // 1. Semak Pengesahan & Pengguna
         async function checkAuth() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
@@ -93,11 +137,186 @@
                 return;
             }
             currentUser = session.user;
-            document.getElementById('user-email').innerText = currentUser.email;
+            
+            // Nama Auto dari Google atau Registration Metadata
+            const fullName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+            
+            document.getElementById('display-name').innerText = fullName;
+            document.getElementById('display-email').innerText = currentUser.email;
+            document.getElementById('user-email-header').innerText = currentUser.email;
+
+            await loadMasterData();
             loadMyComplaints();
         }
 
-        // Muat Turun Senarai Aduan Staf
+        // 2. Muat Naik Jabatan, Jenis Kerosakan & Tetapan WhatsApp dari DB
+        async function loadMasterData() {
+            // Fetch Jabatan / Lokasi
+            const { data: locations } = await supabase.from('locations').select('*');
+            const deptSelect = document.getElementById('department');
+            if (locations && locations.length > 0) {
+                deptSelect.innerHTML = '<option value="">Pilih Jabatan</option>' + 
+                    locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+            } else {
+                deptSelect.innerHTML = '<option value="Teknologi Maklumat">Teknologi Maklumat</option><option value="Pentadbiran">Pentadbiran</option>';
+            }
+
+            // Fetch Jenis Kerosakan (Standard or Settings)
+            const { data: settings } = await supabase.from('system_settings').select('*');
+            let damageTypes = ["Perkakasan (Hardware)", "Perisian (Software)", "Rangkaian / Wi-Fi", "Pencetak (Printer)", "Lain-lain"];
+            
+            if (settings) {
+                const typesSetting = settings.find(s => s.key === 'damage_types');
+                if (typesSetting && typesSetting.value) {
+                    damageTypes = JSON.parse(typesSetting.value);
+                }
+
+                // WhatsApp Config
+                const waEnabled = settings.find(s => s.key === 'whatsapp_enabled');
+                const waPhone = settings.find(s => s.key === 'whatsapp_number');
+                whatsappSettings.enabled = waEnabled ? waEnabled.value === 'true' : false;
+                whatsappSettings.phone = waPhone ? waPhone.value : '';
+            }
+
+            // Render Checkboxes
+            const container = document.getElementById('damage-types-container');
+            container.innerHTML = damageTypes.map((type, idx) => `
+                <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
+                    <input type="checkbox" name="damage_types" value="${type}" class="rounded text-blue-600 focus:ring-blue-500">
+                    <span>${type}</span>
+                </label>
+            `).join('');
+        }
+
+        // 3. Fungsi Pemampatan Gambar (Client-Side Compression)
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1200;
+                        const MAX_HEIGHT = 1200;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        canvas.toBlob((blob) => {
+                            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                        }, 'image/jpeg', 0.7); // Quality 70%
+                    };
+                };
+            });
+        }
+
+        // 4. Hantar Aduan Baharu
+        async function submitComplaint(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = 'Menghantar Aduan...';
+
+            try {
+                // Kumpul Jenis Kerosakan daripada Checkbox
+                const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
+                if (selectedDamageTypes.length === 0) {
+                    alert('Sila pilih sekurang-kurangnya satu Jenis Kerosakan.');
+                    btn.disabled = false;
+                    btn.innerText = 'Hantar Aduan';
+                    return;
+                }
+
+                // Upload Gambar (Compressed)
+                let imageUrl = null;
+                const imageFileInput = document.getElementById('image-file');
+                if (imageFileInput.files.length > 0) {
+                    const compressedFile = await compressImage(imageFileInput.files[0]);
+                    const filePath = `images/${Date.now()}_${compressedFile.name}`;
+                    const { data, error } = await supabase.storage.from('complaint_attachments').upload(filePath, compressedFile);
+                    if (!error) {
+                        imageUrl = supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
+                    }
+                }
+
+                // Upload Sebutharga
+                let quotationUrl = null;
+                const quoteFileInput = document.getElementById('quotation-file');
+                if (quoteFileInput.files.length > 0) {
+                    const file = quoteFileInput.files[0];
+                    const filePath = `quotations/${Date.now()}_${file.name}`;
+                    const { data, error } = await supabase.storage.from('complaint_attachments').upload(filePath, file);
+                    if (!error) {
+                        quotationUrl = supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
+                    }
+                }
+
+                const newComplaint = {
+                    user_id: currentUser.id,
+                    full_name: document.getElementById('display-name').innerText,
+                    email: currentUser.email,
+                    phone: document.getElementById('phone').value,
+                    department: document.getElementById('department').value,
+                    damage_types: selectedDamageTypes,
+                    details: document.getElementById('details').value,
+                    justification: document.getElementById('justification').value,
+                    estimated_cost: parseFloat(document.getElementById('estimated-cost').value || 0),
+                    image_url: imageUrl,
+                    quotation_url: quotationUrl,
+                    status: 'BARU'
+                };
+
+                const { error } = await supabase.from('complaints').insert([newComplaint]);
+
+                if (error) {
+                    alert('Gagal menghantar aduan: ' + error.message);
+                } else {
+                    alert('Aduan berjaya dihantar!');
+                    
+                    // Semak jika Admin Mengaktifkan Mesej WhatsApp
+                    if (whatsappSettings.enabled && whatsappSettings.phone) {
+                        const message = `*ADUAN KEROSAKAN BAHARU (IKTBN)*%0A%0A` +
+                            `*Nama:* ${newComplaint.full_name}%0A` +
+                            `*Jabatan:* ${newComplaint.department}%0A` +
+                            `*Telefon:* ${newComplaint.phone}%0A` +
+                            `*Jenis Kerosakan:* ${selectedDamageTypes.join(', ')}%0A` +
+                            `*Butiran:* ${newComplaint.details}`;
+                        
+                        const waUrl = `https://wa.me/${whatsappSettings.phone}?text=${message}`;
+                        window.open(waUrl, '_blank');
+                    }
+
+                    document.getElementById('complaint-form').reset();
+                    loadMyComplaints();
+                }
+
+            } catch (err) {
+                alert('Ralat sistem: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Hantar Aduan';
+            }
+        }
+
+        // 5. Muat Senarai Rekod Aduan
         async function loadMyComplaints() {
             const { data, error } = await supabase
                 .from('complaints')
@@ -113,55 +332,26 @@
 
             tbody.innerHTML = data.map(item => `
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 font-medium">${item.title}</td>
-                    <td class="p-2 text-gray-600">${item.location || '-'}</td>
-                    <td class="p-2 text-gray-500">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
-                    <td class="p-2">${getStatusBadge(item.status)}</td>
+                    <td class="p-3 font-medium text-gray-800">
+                        <div>${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
+                        <div class="text-xs text-gray-400 font-normal truncate max-w-xs">${item.details || ''}</div>
+                    </td>
+                    <td class="p-3 text-gray-600">${item.department || '-'}</td>
+                    <td class="p-3 text-gray-500 text-xs">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
+                    <td class="p-3">${getStatusBadge(item.status)}</td>
                 </tr>
             `).join('');
         }
 
-        // Lencana Status Aduan
         function getStatusBadge(status) {
             switch(status) {
                 case 'BARU': return '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">BARU</span>';
-                case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">DALAM PROSES</span>';
+                case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">PROSES</span>';
                 case 'SELESAI': return '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">SELESAI</span>';
                 default: return '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">' + (status || 'BARU') + '</span>';
             }
         }
 
-        // Hantar Aduan Baharu
-        async function submitComplaint(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerText = 'Menghantar...';
-
-            const newComplaint = {
-                user_id: currentUser.id,
-                title: document.getElementById('title').value,
-                category: document.getElementById('category').value,
-                location: document.getElementById('location').value,
-                description: document.getElementById('description').value,
-                status: 'BARU'
-            };
-
-            const { error } = await supabase.from('complaints').insert([newComplaint]);
-
-            if (error) {
-                alert('Gagal menghantar aduan: ' + error.message);
-            } else {
-                alert('Aduan berjaya dihantar!');
-                document.getElementById('complaint-form').reset();
-                loadMyComplaints();
-            }
-
-            btn.disabled = false;
-            btn.innerText = 'Hantar Aduan';
-        }
-
-        // Log Keluar
         async function logout() {
             await supabase.auth.signOut();
             window.location.href = 'login.html';
