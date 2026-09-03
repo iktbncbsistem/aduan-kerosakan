@@ -197,6 +197,10 @@
             } else {
                 lampiranBox.innerHTML = '<span class="text-gray-400 text-xs italic">Tiada lampiran dimuat naik.</span>';
             }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
 
         function closeModal() {
             modal.classList.add('hidden');
