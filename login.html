@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Masuk Staf - Sistem Aduan</title>
+    <title>Log Masuk Staf - Sistem Aduan Kerosakan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
 
     <!-- Container Login -->
-    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-slate-800">SISTEM ADUAN KEROSAKAN</h1>
-            <p id="form-subtitle" class="text-sm text-gray-500 mt-2">Log Masuk Kakitangan (CPPP / KCPPPP / Admin)</p>
+            <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">SISTEM ADUAN KEROSAKAN</h1>
+            <p id="form-subtitle" class="text-sm text-gray-500 mt-2">Log Masuk Kakitangan (CPPP / KCPPP / Admin)</p>
         </div>
 
-        <!-- Mesej Notis (Berjaya / Gagal) -->
+        <!-- Mesej Notis -->
         <div id="notice-msg" class="hidden text-sm p-3 rounded-lg text-center border mb-4 font-semibold"></div>
 
-        <!-- Borang Login Utama -->
-        <!-- Butang Log Masuk Google -->
+        <!-- Bahagian Log Masuk Utama -->
+        <div id="login-section">
+            <!-- Butang Log Masuk Google -->
             <button id="btn-google" type="button" class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 px-4 rounded transition shadow-sm mb-4">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -42,206 +43,162 @@
             <form id="login-form">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="email">E-mel</label>
-                    <input class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="email" type="email" placeholder="contoh@iktbn.gov.my" required>
+                    <input class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" id="email" type="email" placeholder="contoh@iktbn.gov.my" required>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Kata Laluan</label>
-                    <input class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="password" type="password" placeholder="••••••••" required>
+                    <input class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" id="password" type="password" placeholder="••••••••" required>
                 </div>
-                <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded transition duration-150 ease-in-out shadow-sm" type="submit">
+                
+                <div class="flex justify-end mb-4">
+                    <button type="button" onclick="toggleResetForm()" class="text-sm text-blue-600 hover:underline">Lupa Kata Laluan?</button>
+                </div>
+
+                <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded transition shadow-sm" type="submit">
                     Log Masuk Sistem
                 </button>
             </form>
-<!DOCTYPE html>
-<html lang="ms">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Masuk - Sistem Aduan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen relative">
-    
-    <!-- Lapisan Gelap untuk Background Dinamik -->
-    <div id="bg-overlay" class="absolute inset-0 bg-black/40 hidden z-0"></div>
-
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md z-10 relative">
-        <div class="text-center mb-8">
-            <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Log Masuk Staf</h2>
-            <p class="text-sm text-gray-500 mt-2">Sistem Pengurusan Aduan IKTBN Chembong</p>
         </div>
 
-        <form id="login-form" class="space-y-5">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">E-mel Rasmi</label>
-                <input type="email" id="email" required class="w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kata Laluan</label>
-                <input type="password" id="password" required class="w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition">
-            </div>
-            <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-md shadow-sm transition mt-4">Log Masuk</button>
-        </form>
-    </div>
-
-    <script>
-        const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
-        const SUPABASE_ANON_KEY = 'YOUR_API_KEY_HERE'; // MASUKKAN API KEY BOS
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Semak jika sudah login
-        async function checkSession() {
-            const { data: { session } } = await client.auth.getSession();
-            if (session) window.location.href = 'cppp.html';
-        }
-        checkSession();
-
-        // Tarik Gambar Latar dari Admin
-        async function loadBackground() {
-            const { data: settings } = await client.from('system_settings').select('bg_url').eq('id', 1).single();
-            if (settings && settings.bg_url) {
-                document.body.style.backgroundImage = `url('${settings.bg_url}')`;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundPosition = 'center';
-                document.body.style.backgroundAttachment = 'fixed';
-                document.getElementById('bg-overlay').classList.remove('hidden');
-            }
-        }
-        loadBackground();
-
-        // Proses Login
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-login');
-            btn.disabled = true;
-            btn.innerText = 'Mengesahkan...';
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            const { data, error } = await client.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                alert("Log Masuk Gagal: Sila semak e-mel atau kata laluan.");
-                btn.disabled = false;
-                btn.innerText = 'Log Masuk';
-            } else {
-                window.location.href = 'cppp.html';
-            }
-        });
-    </script>
-</body>
-</html>
-        <!-- Borang Reset Kata Laluan (Disorok pada mulanya) -->
+        <!-- Form Reset Kata Laluan (Disorok pada mulanya) -->
         <form id="reset-form" class="space-y-5 hidden">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan E-mel Anda</label>
-                <input type="email" id="reset-email" required placeholder="admin@sistem.com" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Masukkan E-mel Anda</label>
+                <input type="email" id="reset-email" required placeholder="contoh@iktbn.gov.my" class="w-full border border-gray-300 rounded p-2.5 outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <button type="submit" id="btn-reset" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition">
-                HANTAR LINK RESET
+            <button type="submit" id="btn-reset" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-2.5 rounded transition">
+                Hantar Link Reset
             </button>
 
             <div class="text-center mt-4">
-                <button type="button" onclick="toggleResetForm()" class="text-sm text-slate-500 hover:underline">Batal & Kembali ke Log Masuk</button>
+                <button type="button" onclick="toggleResetForm()" class="text-sm text-gray-500 hover:underline">Batal & Kembali ke Log Masuk</button>
             </div>
         </form>
 
         <div class="mt-6 text-center border-t pt-4">
-            <a href="index.html" class="text-sm text-slate-500 hover:text-emerald-600">← Kembali ke Halaman Utama</a>
+            <a href="index.html" class="text-sm text-gray-500 hover:text-blue-600">← Kembali ke Halaman Utama</a>
         </div>
     </div>
 
     <script>
-        // 1. SETUP - Tukar nama kepada 'client' supaya tak bercanggah
+        // SETUP SUPABASE
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // ELEMEN UI
         const noticeMsg = document.getElementById('notice-msg');
+        const loginSection = document.getElementById('login-section');
+        const resetForm = document.getElementById('reset-form');
+        const subtitle = document.getElementById('form-subtitle');
 
-        // Fungsi Tunjuk Mesej
+        // PAPARAN MESEJ
         function showNotice(message, isError = true) {
             noticeMsg.innerText = message;
             noticeMsg.className = isError 
                 ? "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-red-50 text-red-600 border-red-200 block" 
-                : "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-emerald-50 text-emerald-600 border-emerald-200 block";
+                : "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-blue-50 text-blue-600 border-blue-200 block";
+            noticeMsg.classList.remove('hidden');
         }
 
-        // Semak Sesi
-        async function checkSession() {
-            const { data: { session } } = await client.auth.getSession();
-            if (session) window.location.href = 'cppp.html';
-        }
-        checkSession();
-
-        // 2. LOGIK LOG MASUK
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-login');
-            btn.disabled = true;
-            btn.innerHTML = 'Mengesahkan...';
-            document.getElementById('error-msg').classList.add('hidden');
-
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-
+        // 1. PENGHALAAN PINTAR (ROUTING)
+        async function routeUser(email) {
             try {
-                // 1. Log masuk Supabase Auth
-                const { data, error } = await client.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-
-                // 2. Semak di jadual KCPPP dan CPPP
-                // (Andaian: Bos ada table 'kcppp_officers' & 'cppp_officers' di Supabase)
                 const { data: isKcppp } = await client.from('kcppp_officers').select('email').eq('email', email).maybeSingle();
                 const { data: isCppp } = await client.from('cppp_officers').select('email').eq('email', email).maybeSingle();
 
-                // 3. SEKATAN: Jika dia ada di kedua-dua jawatan
+                // Sekatan ISO
                 if (isKcppp && isCppp) {
-                    await client.auth.signOut(); // Tendang keluar terus
-                    throw new Error("RALAT AUDIT: Akaun anda didaftarkan sebagai CPPP dan KCPPP serentak. Sila hubungi Admin untuk mengasingkan tugas (Separation of Duties).");
+                    await client.auth.signOut();
+                    throw new Error("RALAT AUDIT (ISO): Akaun dikesan memegang 2 peranan (CPPP & KCPPP). Akses disekat.");
                 }
 
-                // 4. Halakan (Redirect) ke halaman yang betul secara automatik
                 if (isKcppp) {
                     window.location.href = 'kcppp.html';
                 } else if (isCppp) {
                     window.location.href = 'cppp.html';
-                } else {
-                    // Kalau admin atau akaun master
+                } else if (email === 'admin@iktbn.gov.my') { 
                     window.location.href = 'admin.html';
+                } else {
+                    // Staf biasa pergi ke dashboard pemohon
+                    window.location.href = 'index.html'; 
                 }
-
             } catch (err) {
-                const msgBox = document.getElementById('error-msg');
-                msgBox.innerText = err.message === 'Invalid login credentials' ? 'Sila semak semula e-mel dan kata laluan anda.' : err.message;
-                msgBox.classList.remove('hidden');
-                btn.disabled = false;
-                btn.innerHTML = 'Log Masuk Sistem';
+                showNotice(err.message, true);
+                const btn = document.getElementById('btn-login');
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Log Masuk Sistem";
+                }
+            }
+        }
+
+        // 2. PEMANTAU STATUS SESI GOOGLE
+        client.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                routeUser(session.user.email);
             }
         });
 
-        // 3. LOGIK TOGGLE & LUPA KATA LALUAN
-        const loginForm = document.getElementById('login-form');
-        const resetForm = document.getElementById('reset-form');
-        const subtitle = document.getElementById('form-subtitle');
+        // 3. FUNGSI BUTANG GOOGLE
+        document.getElementById('btn-google').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-google');
+            btn.disabled = true;
+            btn.innerHTML = 'Menyambung...';
+            
+            const { error } = await client.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.href }
+            });
 
+            if (error) {
+                showNotice("Ralat Google: " + error.message, true);
+                btn.disabled = false;
+                btn.innerHTML = 'Log Masuk dengan Google';
+            }
+        });
+
+        // 4. FUNGSI LOG MASUK E-MEL BIASA
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            noticeMsg.classList.add('hidden');
+            
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true;
+            btn.innerText = "Mengesahkan...";
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            const { error } = await client.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                let errMsg = "Log masuk gagal.";
+                if (error.message.includes('Invalid login')) errMsg = "E-mel atau kata laluan salah.";
+                showNotice(errMsg, true);
+                btn.disabled = false;
+                btn.innerText = "Log Masuk Sistem";
+            } else {
+                routeUser(email);
+            }
+        });
+
+        // 5. TOGGLE BORANG RESET KATA LALUAN
         function toggleResetForm() {
             noticeMsg.classList.add('hidden');
-            if (loginForm.classList.contains('hidden')) {
-                loginForm.classList.remove('hidden');
+            if (loginSection.classList.contains('hidden')) {
+                loginSection.classList.remove('hidden');
                 resetForm.classList.add('hidden');
-                subtitle.innerText = "Log Masuk Kakitangan (CPPP / KCPPPP / Admin)";
+                subtitle.innerText = "Log Masuk Kakitangan (CPPP / KCPPP / Admin)";
             } else {
-                loginForm.classList.add('hidden');
+                loginSection.classList.add('hidden');
                 resetForm.classList.remove('hidden');
                 subtitle.innerText = "Tetapan Semula Kata Laluan";
             }
         }
 
+        // 6. FUNGSI HANTAR RESET KATA LALUAN
         document.getElementById('reset-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             noticeMsg.classList.add('hidden');
@@ -252,8 +209,7 @@
 
             const resetEmail = document.getElementById('reset-email').value.trim();
 
-            // Guna client.auth
-            const { data, error } = await client.auth.resetPasswordForEmail(resetEmail, {
+            const { error } = await client.auth.resetPasswordForEmail(resetEmail, {
                 redirectTo: window.location.origin + '/login.html', 
             });
 
@@ -265,7 +221,7 @@
             }
 
             btnReset.disabled = false;
-            btnReset.innerText = "HANTAR LINK RESET";
+            btnReset.innerText = "Hantar Link Reset";
         });
     </script>
 </body>
