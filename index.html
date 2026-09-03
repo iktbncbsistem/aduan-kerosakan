@@ -10,12 +10,17 @@
 <body class="bg-gray-100 min-h-screen">
 
     <!-- Header / Navibar -->
+    <!-- Header / Navibar -->
     <nav class="bg-blue-900 text-white p-4 shadow-lg flex justify-between items-center">
         <div>
             <h1 class="font-bold text-xl">Sistem Pengurusan IT</h1>
             <p class="text-xs text-blue-200">Portal Aduan Kerosakan IKTBN</p>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            
+            <!-- Tempat Letak Butang Menu Dinamik (Keluar ikut peranan) -->
+            <div id="dynamic-menu" class="hidden sm:flex gap-2"></div>
+            
             <span id="user-email-header" class="text-sm font-medium bg-blue-800 px-3 py-1 rounded hidden md:block">Memuatkan...</span>
             <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow">Log Keluar</button>
         </div>
@@ -200,6 +205,35 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 }
 
                 updateProfileUI();
+
+                // --- SISTEM HALA TUJU (ROUTING) & MENU DINAMIK ---
+                const menuContainer = document.getElementById('dynamic-menu');
+                menuContainer.innerHTML = '';
+                
+                // Jika Admin, keluar butang panel admin
+                if (profile.role === 'ADMIN') {
+                    menuContainer.innerHTML += `<a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">⚙️ Panel Admin</a>`;
+                }
+                // Jika CPPP / KCPPP / Admin, keluar butang panel CPPP
+                if (profile.role === 'CPPP' || profile.role === 'KCPPP' || profile.role === 'ADMIN') {
+                    menuContainer.innerHTML += `<a href="cppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">🔧 Panel CPPP</a>`;
+                }
+                menuContainer.classList.remove('hidden');
+
+                // Auto-Redirect ke page peranan (Hanya untuk 1st login supaya tak 'loop')
+                if (!sessionStorage.getItem('sudah_redirect')) {
+                    sessionStorage.setItem('sudah_redirect', 'true');
+                    
+                    if (profile.role === 'CPPP' || profile.role === 'KCPPP') {
+                        window.location.href = 'cppp.html';
+                        return;
+                    } else if (profile.role === 'ADMIN') {
+                        window.location.href = 'admin.html';
+                        return;
+                    }
+                }
+                // ------------------------------------------------
+
                 await loadMasterData();
                 loadMyComplaints();
             } catch (error) {
@@ -207,7 +241,6 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 alert("Ralat sistem. Sila muat semula halaman.");
             }
         }
-
         // ================= KEMASKINI PROFIL & GAMBAR =================
         function updateProfileUI() {
             const displayName = userProfile.full_name || currentUser.email.split('@')[0];
