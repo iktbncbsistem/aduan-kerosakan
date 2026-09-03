@@ -82,156 +82,35 @@
     </div>
 
     <script>
-        // SETUP SUPABASE
 const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ELEMEN UI
-        const noticeMsg = document.getElementById('notice-msg');
-        const loginSection = document.getElementById('login-section');
-        const resetForm = document.getElementById('reset-form');
-        const subtitle = document.getElementById('form-subtitle');
-
-        // PAPARAN MESEJ
-        function showNotice(message, isError = true) {
-            noticeMsg.innerText = message;
-            noticeMsg.className = isError 
-                ? "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-red-50 text-red-600 border-red-200 block" 
-                : "text-sm p-3 rounded-lg text-center border mb-4 font-semibold bg-blue-50 text-blue-600 border-blue-200 block";
-            noticeMsg.classList.remove('hidden');
-        }
-
-        // 1. PENGHALAAN PINTAR (ROUTING)
-        // 1. PENGHALAAN PINTAR & AUTO-DAFTAR PERANAN BERPUSAT
-        async function routeUser(email) {
-            try {
-                // Semak peranan semasa dalam jadual berpusat
-                let { data: profile, error } = await client.from('user_profiles').select('role').eq('email', email).maybeSingle();
-
-                // Jika pengguna baru (First time login), daftar terus sebagai 'STAF'
-                if (!profile) {
-                    const { data: newProfile, error: insertError } = await client.from('user_profiles').insert([
-                        { email: email, role: 'STAF' }
-                    ]).select().single();
-                    
-                    if (insertError) throw new Error("Gagal mendaftar profil baharu.");
-                    profile = newProfile;
-                }
-
-                const userRole = profile.role || 'STAF';
-
-                // Tapis dan hantar ke dashboard yang betul
-                if (userRole === 'ADMIN' || email === 'admin@iktbn.gov.my') {
-                    window.location.href = 'admin.html';
-                } else if (userRole === 'KCPPP') {
-                    window.location.href = 'kcppp.html';
-                } else if (userRole === 'CPPP') {
-                    window.location.href = 'cppp.html';
-                } else {
-                    // Default kepada staf biasa
-                    window.location.href = 'index.html'; 
-                }
-                
-            } catch (err) {
-                showNotice(err.message, true);
-                const btn = document.getElementById('btn-login');
-                if(btn) {
-                    btn.disabled = false;
-                    btn.innerText = "Log Masuk Sistem";
-                }
-            }
-        }
-
-        // 2. PEMANTAU STATUS SESI GOOGLE
-        client.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                routeUser(session.user.email);
-            }
-        });
-
-        // 3. FUNGSI BUTANG GOOGLE
-        document.getElementById('btn-google').addEventListener('click', async () => {
-            const btn = document.getElementById('btn-google');
-            btn.disabled = true;
-            btn.innerHTML = 'Menyambung...';
-            
-            const { error } = await client.auth.signInWithOAuth({
+        // Fungsi Log Masuk Google
+        async function loginGoogle() {
+            const { error } = await _supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: window.location.href }
+                options: {
+                    redirectTo: 'https://aduan-kerosakan.is.iktbnchembong.com/index.html'
+                }
             });
-
             if (error) {
-                showNotice("Ralat Google: " + error.message, true);
-                btn.disabled = false;
-                btn.innerHTML = 'Log Masuk dengan Google';
-            }
-        });
-
-        // 4. FUNGSI LOG MASUK E-MEL BIASA
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            noticeMsg.classList.add('hidden');
-            
-            const btn = document.getElementById('btn-login');
-            btn.disabled = true;
-            btn.innerText = "Mengesahkan...";
-
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            
-            const { error } = await client.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                let errMsg = "Log masuk gagal.";
-                if (error.message.includes('Invalid login')) errMsg = "E-mel atau kata laluan salah.";
-                showNotice(errMsg, true);
-                btn.disabled = false;
-                btn.innerText = "Log Masuk Sistem";
-            } else {
-                routeUser(email);
-            }
-        });
-
-        // 5. TOGGLE BORANG RESET KATA LALUAN
-        function toggleResetForm() {
-            noticeMsg.classList.add('hidden');
-            if (loginSection.classList.contains('hidden')) {
-                loginSection.classList.remove('hidden');
-                resetForm.classList.add('hidden');
-                subtitle.innerText = "Log Masuk Kakitangan (CPPP / KCPPP / Admin)";
-            } else {
-                loginSection.classList.add('hidden');
-                resetForm.classList.remove('hidden');
-                subtitle.innerText = "Tetapan Semula Kata Laluan";
+                alert("Ralat log masuk Google: " + error.message);
             }
         }
 
-        // 6. FUNGSI HANTAR RESET KATA LALUAN
-        document.getElementById('reset-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            noticeMsg.classList.add('hidden');
-            
-            const btnReset = document.getElementById('btn-reset');
-            btnReset.disabled = true;
-            btnReset.innerText = "Menghantar...";
-
-            const resetEmail = document.getElementById('reset-email').value.trim();
-
-            const { error } = await client.auth.resetPasswordForEmail(resetEmail, {
-                redirectTo: window.location.origin + '/login.html', 
-            });
-
-            if (error) {
-                showNotice(error.message, true);
-            } else {
-                showNotice("Link reset kata laluan telah dihantar. Sila semak peti masuk atau folder spam e-mel anda.", false);
-                document.getElementById('reset-email').value = '';
+        // Fungsi Semak Sesi (Jika dah login, terus ke index)
+        async function checkSession() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'index.html';
             }
+        }
 
-            btnReset.disabled = false;
-            btnReset.innerText = "Hantar Link Reset";
-        });
+        // Gantikan onClick butang Google bos untuk memanggil fungsi ini
+        document.querySelector('button').addEventListener('click', loginGoogle);
+
+        checkSession();
     </script>
 </body>
 </html>
