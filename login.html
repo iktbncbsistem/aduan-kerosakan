@@ -103,27 +103,36 @@
         }
 
         // 1. PENGHALAAN PINTAR (ROUTING)
+        // 1. PENGHALAAN PINTAR & AUTO-DAFTAR PERANAN BERPUSAT
         async function routeUser(email) {
             try {
-                const { data: isKcppp } = await client.from('kcppp_officers').select('email').eq('email', email).maybeSingle();
-                const { data: isCppp } = await client.from('cppp_officers').select('email').eq('email', email).maybeSingle();
+                // Semak peranan semasa dalam jadual berpusat
+                let { data: profile, error } = await client.from('user_profiles').select('role').eq('email', email).maybeSingle();
 
-                // Sekatan ISO
-                if (isKcppp && isCppp) {
-                    await client.auth.signOut();
-                    throw new Error("RALAT AUDIT (ISO): Akaun dikesan memegang 2 peranan (CPPP & KCPPP). Akses disekat.");
+                // Jika pengguna baru (First time login), daftar terus sebagai 'STAF'
+                if (!profile) {
+                    const { data: newProfile, error: insertError } = await client.from('user_profiles').insert([
+                        { email: email, role: 'STAF' }
+                    ]).select().single();
+                    
+                    if (insertError) throw new Error("Gagal mendaftar profil baharu.");
+                    profile = newProfile;
                 }
 
-                if (isKcppp) {
-                    window.location.href = 'kcppp.html';
-                } else if (isCppp) {
-                    window.location.href = 'cppp.html';
-                } else if (email === 'admin@iktbn.gov.my') { 
+                const userRole = profile.role || 'STAF';
+
+                // Tapis dan hantar ke dashboard yang betul
+                if (userRole === 'ADMIN' || email === 'admin@iktbn.gov.my') {
                     window.location.href = 'admin.html';
+                } else if (userRole === 'KCPPP') {
+                    window.location.href = 'kcppp.html';
+                } else if (userRole === 'CPPP') {
+                    window.location.href = 'cppp.html';
                 } else {
-                    // Staf biasa pergi ke dashboard pemohon
+                    // Default kepada staf biasa
                     window.location.href = 'index.html'; 
                 }
+                
             } catch (err) {
                 showNotice(err.message, true);
                 const btn = document.getElementById('btn-login');
