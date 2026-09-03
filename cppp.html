@@ -10,9 +10,14 @@
 <body class="bg-slate-50 min-h-screen text-slate-800">
 
     <!-- Navigation -->
-    <nav class="bg-slate-800 text-white p-4 shadow-md flex justify-between items-center">
+<nav class="bg-slate-800 text-white p-4 shadow-md flex flex-wrap justify-between items-center gap-4">
         <div class="font-bold text-lg">⚙️ Pengesahan CPPP</div>
-        <button onclick="logout()" class="text-sm bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold transition">Log Keluar</button>
+        <div class="space-x-3 md:space-x-6 text-sm flex items-center font-medium">
+            <a href="kcppp.html" class="hover:text-emerald-400 transition">KCPPP</a>
+            <a href="laporan.html" class="hover:text-emerald-400 transition">Laporan</a>
+            <a href="admin.html" class="hover:text-emerald-400 transition">Admin</a>
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold transition ml-2 shadow-sm">Log Keluar</button>
+        </div>
     </nav>
 
     <main class="max-w-6xl mx-auto p-6">
