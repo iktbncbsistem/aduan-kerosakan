@@ -183,20 +183,20 @@
             document.getElementById('m-justifikasi').innerText = data.justification || 'Tiada justifikasi';
             document.getElementById('m-kos').innerText = data.estimated_cost ? 'RM ' + data.estimated_cost : 'Tidak dinyatakan';
             
+            // Jana Pautan Lampiran
             const lampiranBox = document.getElementById('m-lampiran');
             lampiranBox.innerHTML = '';
             if (data.complaint_attachments && data.complaint_attachments.length > 0) {
-                data.complaint_attachments.forEach(file => {
+                data.complaint_attachments.forEach((file, index) => {
                     const { data: urlData } = client.storage.from('attachments').getPublicUrl(file.storage_path);
-                    lampiranBox.innerHTML += `<a href="${urlData.publicUrl}" target="_blank" class="text-blue-600 hover:underline inline-block mt-1">📄 Lihat</a>`;
+                    lampiranBox.innerHTML += `
+                        <a href="${urlData.publicUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold text-xs bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md border border-blue-200 transition mb-1 mr-1">
+                            📄 Lampiran ${index + 1}
+                        </a>`;
                 });
             } else {
-                lampiranBox.innerHTML = '<span class="text-gray-400">Tiada</span>';
+                lampiranBox.innerHTML = '<span class="text-gray-400 text-xs italic">Tiada lampiran dimuat naik.</span>';
             }
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
 
         function closeModal() {
             modal.classList.add('hidden');
