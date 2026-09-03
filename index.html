@@ -271,6 +271,22 @@ window.open(`https://wa.me/${targetNumber}?text=${msg}`, '_blank');
                 btn.disabled = false;
                 btn.innerHTML = "HANTAR ADUAN";
             }
+
+// Tarik Gambar Latar dari Admin
+        async function loadBackground() {
+            const { data: settings } = await client.from('system_settings').select('bg_url').eq('id', 1).single();
+            if (settings && settings.bg_url) {
+                document.body.style.backgroundImage = `url('${settings.bg_url}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+            }
+        }
+        loadBackground();
+
+
+
+            
         });
     </script>
 
