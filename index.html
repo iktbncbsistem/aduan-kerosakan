@@ -157,6 +157,48 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
         
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Pengurusan Multi-Fail & Kamera
+        let selectedFiles = [];
+
+        function addFiles(newFiles) {
+            Array.from(newFiles).forEach(file => selectedFiles.push(file));
+            renderFileList();
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const listContainer = document.getElementById('file-list');
+            listContainer.innerHTML = '';
+            if (selectedFiles.length === 0) return;
+
+            selectedFiles.forEach((file, index) => {
+                const isImage = file.type.startsWith('image/');
+                listContainer.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded border border-gray-200 text-xs">
+                        <div class="flex items-center gap-2 truncate">
+                            <span>${isImage ? '🖼️' : '📄'}</span>
+                            <span class="font-medium text-gray-800 truncate max-w-[180px] sm:max-w-xs">${file.name}</span>
+                            <span class="text-gray-400">(${ (file.size / (1024*1024)).toFixed(2) } MB)</span>
+                        </div>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">Padam</button>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('gambar-galeri').addEventListener('change', function(e) {
+            if(e.target.files.length > 0) addFiles(e.target.files);
+            e.target.value = '';
+        });
+
+        document.getElementById('gambar-kamera').addEventListener('change', function(e) {
+            if(e.target.files.length > 0) addFiles(e.target.files);
+            e.target.value = '';
+        });
 
         // Tarik Tetapan Dinamik (Background & Lokasi)
         async function loadDynamicContent() {
