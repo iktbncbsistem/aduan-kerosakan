@@ -126,7 +126,7 @@
             }
 
             // Tarik Aduan
-            const { data, error } = await client.from('complaints').select('*').order('created_at', { ascending: false });
+            const { data, error } = await client.from('complaints').select('*, complaint_attachments(*)').order('created_at', { ascending: false });
             if (error) return console.error(error);
             
             allData = data;
@@ -178,6 +178,17 @@
                     const tarikhAduan = formatDateISO(item.created_at);
                     const tarikhSelesai = item.status === 'COMPLETED' ? formatDateISO(item.updated_at) : 'Dalam Proses';
 
+                    // -- JANA BUTANG LAMPIRAN DI SINI --
+                    let lampiranHtml = '';
+                    if (item.complaint_attachments && item.complaint_attachments.length > 0) {
+                        lampiranHtml = '<div class="mt-2 block no-print">'; // no-print supaya tak keluar masa cetak PDF
+                        item.complaint_attachments.forEach((file, idx) => {
+                            const { data: urlData } = client.storage.from('attachments').getPublicUrl(file.storage_path);
+                            lampiranHtml += `<a href="${urlData.publicUrl}" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 transition mr-1 mb-1">📎 Lampiran ${idx + 1}</a>`;
+                        });
+                        lampiranHtml += '</div>';
+                    }
+
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 print-break">
                             <td class="px-4 py-3 border-r border-gray-200 text-center font-medium text-gray-500 align-top">${index + 1}</td>
@@ -185,6 +196,7 @@
                                 <div class="font-mono text-xs font-bold text-gray-900 mb-0.5">${item.ticket_number}</div>
                                 <div class="font-semibold text-gray-700">${item.location}</div>
                                 <div class="text-[11px] text-gray-500 font-mono mt-1">📅 ${tarikhAduan}</div>
+                                ${lampiranHtml} <!-- Butang lampiran dipapar di sini -->
                             </td>
                             <td class="px-4 py-3 border-r border-gray-200 text-gray-700 text-xs italic align-top">${item.justification || '-'}</td>
                             <td class="px-4 py-3 border-r border-gray-200 text-right font-semibold text-gray-900 align-top">${kos > 0 ? kos.toLocaleString('ms-MY', { minimumFractionDigits: 2 }) : '-'}</td>
