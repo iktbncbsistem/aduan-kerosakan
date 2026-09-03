@@ -196,6 +196,17 @@
                 txtLain.removeAttribute('required');
                 txtLain.value = '';
             }
+loadDynamicContent();
+
+        // === PASTE KOD A DI SINI ===
+        let selectedFiles = [];
+
+        function addFiles(newFiles) {
+            Array.from(newFiles).forEach(file => selectedFiles.push(file));
+            renderFileList();
+        }
+        // ... (sampai penamat event listener kamera)
+            
         });
 
         // UI Logic Tunjuk nama fail
@@ -247,20 +258,24 @@
                 if (dbError) throw dbError;
                 const complaintId = dbData[0].id;
 
-                // B. Upload File
-                if (uploadedFile) {
-                    btn.innerHTML = '📎 Memuat Naik Fail...';
-                    const fileExt = uploadedFile.name.split('.').pop();
-                    const filePath = `aduan/${ticketNo}_${Date.now()}.${fileExt}`;
-                    
-                    const { error: uploadErr } = await client.storage.from('attachments').upload(filePath, uploadedFile);
-                    if (!uploadErr) {
-                        await client.from('complaint_attachments').insert([{
-                            complaint_id: complaintId,
-                            file_name: uploadedFile.name,
-                            storage_path: filePath,
-                            file_type: uploadedFile.type
-                        }]);
+                // B. Upload Multiple Files ke Storage Supabase
+                if (selectedFiles.length > 0) {
+                    for (let i = 0; i < selectedFiles.length; i++) {
+                        const file = selectedFiles[i];
+                        btn.innerHTML = `📎 Memuat Naik Fail (${i + 1}/${selectedFiles.length})...`;
+                        
+                        const fileExt = file.name.split('.').pop();
+                        const filePath = `aduan/${ticketNo}_${i + 1}_${Date.now()}.${fileExt}`;
+                        
+                        const { error: uploadErr } = await client.storage.from('attachments').upload(filePath, file);
+                        if (!uploadErr) {
+                            await client.from('complaint_attachments').insert([{
+                                complaint_id: complaintId,
+                                file_name: file.name,
+                                storage_path: filePath,
+                                file_type: file.type
+                            }]);
+                        }
                     }
                 }
 
