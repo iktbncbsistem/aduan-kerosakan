@@ -62,10 +62,11 @@
     </div>
 
     <script>
-        // 1. 
+        // 1. SETUP - Tukar nama kepada 'client' supaya tak bercanggah
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const noticeMsg = document.getElementById('notice-msg');
 
@@ -79,7 +80,7 @@
 
         // Semak Sesi
         async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await client.auth.getSession();
             if (session) window.location.href = 'cppp.html';
         }
         checkSession();
@@ -96,10 +97,10 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            // Guna client.auth
+            const { data, error } = await client.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // Tangkap ralat spesifik
                 let errMsg = "Log masuk gagal.";
                 if (error.message.includes('Invalid login')) errMsg = "Sila semak semula e-mel dan kata laluan anda.";
                 else if (error.message.includes('Email not confirmed')) errMsg = "Akaun belum disahkan. Sila semak e-mel anda.";
@@ -141,8 +142,8 @@
 
             const resetEmail = document.getElementById('reset-email').value.trim();
 
-            const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-                // URL INI PENTING UNTUK REDIRECT LEPAS KLIK LINK DI EMEL
+            // Guna client.auth
+            const { data, error } = await client.auth.resetPasswordForEmail(resetEmail, {
                 redirectTo: window.location.origin + '/login.html', 
             });
 
