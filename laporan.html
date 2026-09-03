@@ -145,6 +145,13 @@
             });
         }
 
+        function formatDateISO(dateString) {
+            if (!dateString) return '-';
+            const d = new Date(dateString);
+            return d.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' }) + 
+                   ' (' + d.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }) + ')';
+        }
+
         function renderTable() {
             const fTahun = document.getElementById('filter-tahun').value;
             const fLokasi = document.getElementById('filter-lokasi').value;
@@ -160,11 +167,14 @@
             tbody.innerHTML = '';
 
             if(filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Tiada rekod dijumpai.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tiada rekod dijumpai.</td></tr>';
             } else {
                 filtered.forEach((item, index) => {
                     const kos = item.estimated_cost ? parseFloat(item.estimated_cost) : 0;
                     totalKos += kos;
+
+                    const tarikhAduan = formatDateISO(item.created_at);
+                    const tarikhSelesai = item.status === 'COMPLETED' ? formatDateISO(item.updated_at) : '<span class="text-amber-600 font-medium">Dalam Proses</span>';
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 print-break">
@@ -172,9 +182,10 @@
                             <td class="px-4 py-3 border-r border-gray-200">
                                 <div class="font-mono text-xs font-bold text-gray-900 mb-1">${item.ticket_number}</div>
                                 <div class="font-semibold text-gray-700">${item.location}</div>
-                                <div class="text-xs text-gray-500 mt-1">${item.categories.join(', ')}</div>
                             </td>
-                            <td class="px-4 py-3 border-r border-gray-200 text-gray-700 text-sm italic">${item.justification || '-'}</td>
+                            <td class="px-4 py-3 border-r border-gray-200 text-xs text-gray-700 font-mono">${tarikhAduan}</td>
+                            <td class="px-4 py-3 border-r border-gray-200 text-xs text-gray-700 font-mono">${tarikhSelesai}</td>
+                            <td class="px-4 py-3 border-r border-gray-200 text-gray-700 text-xs italic">${item.justification || '-'}</td>
                             <td class="px-4 py-3 border-r border-gray-200 text-right font-semibold text-gray-900">${kos > 0 ? kos.toLocaleString('ms-MY', { minimumFractionDigits: 2 }) : '-'}</td>
                             <td class="px-4 py-3 text-xs font-bold text-gray-600">${item.status}</td>
                         </tr>
@@ -184,7 +195,6 @@
 
             document.getElementById('sum-aduan').innerText = filtered.length;
             document.getElementById('sum-kos').innerText = totalKos.toLocaleString('ms-MY', { minimumFractionDigits: 2 });
-        }
-    </script>
+        }    </script>
 </body>
 </html>
