@@ -63,8 +63,9 @@
         async function initAdmin() {
             const { data: { session } } = await client.auth.getSession();
             if (!session) return window.location.href = 'login.html';
-            loadSettings();
-            loadLocations();
+            
+            // Muatkan jadual RBAC bila admin buka muka surat ini
+            loadUsers();
         }
 
         async function logout() {
@@ -72,71 +73,74 @@
             window.location.href = 'login.html';
         }
 
-        async function loadSettings() {
-            const { data } = await client.from('system_settings').select('*').eq('id', 1).single();
-            if (data) {
-                document.getElementById('s-wa').value = data.whatsapp_number || '';
-                document.getElementById('s-logo').value = data.logo_url || '';
-                document.getElementById('s-bg').value = data.bg_url || '';
+        // ==========================================
+        // FUNGSI PENGURUSAN PENGGUNA BERPUSAT (RBAC)
+        // ==========================================
+        async function loadUsers() {
+            const tbody = document.getElementById('user-table-body');
+            if(!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Memuatkan senarai pengguna...</td></tr>';
+            
+            const { data, error } = await client.from('user_profiles').select('*').order('email', { ascending: true });
+            
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-semibold">Ralat: ${error.message}</td></tr>`;
+                return;
             }
-        }
 
-        document.getElementById('settings-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const wa = document.getElementById('s-wa').value;
-            const logo = document.getElementById('s-logo').value;
-            const bg = document.getElementById('s-bg').value;
-
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = 'Menyimpan...';
-
-            const { error } = await client.from('system_settings').update({
-                whatsapp_number: wa, logo_url: logo, bg_url: bg
-            }).eq('id', 1);
-
-            if (error) alert("Ralat menyimpan tetapan.");
-            else {
-                btn.classList.replace('bg-blue-600', 'bg-emerald-600');
-                btn.innerText = '✓ Disimpan';
-                setTimeout(() => {
-                    btn.classList.replace('bg-emerald-600', 'bg-blue-600');
-                    btn.innerText = originalText;
-                }, 2000);
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Tiada rekod ditemui. Staf perlu log masuk sekurang-kurangnya sekali.</td></tr>';
+                return;
             }
-        });
 
-        async function loadLocations() {
-            const { data } = await client.from('locations').select('*').order('created_at', { ascending: true });
-            const list = document.getElementById('loc-list');
-            list.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(loc => {
-                    list.innerHTML += `
-                        <li class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition group">
-                            <span class="text-sm font-medium text-gray-800">${loc.name}</span>
-                            <button onclick="deleteLocation('${loc.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold opacity-0 group-hover:opacity-100 transition px-2 py-1 border border-transparent hover:border-red-200 rounded">Padam</button>
-                        </li>`;
+            tbody.innerHTML = '';
+            data.forEach((user, index) => {
+                const roles = ['STAF', 'CPPP', 'KCPPP', 'ADMIN'];
+                let optionsHtml = '';
+                
+                roles.forEach(r => {
+                    const selected = user.role === r ? 'selected' : '';
+                    optionsHtml += `<option value="${r}" ${selected}>${r}</option>`;
                 });
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+                        <td class="py-3 px-4 text-center text-gray-500 font-medium">${index + 1}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${user.email}</td>
+                        <td class="py-3 px-4">
+                            <select id="role-${user.id}" class="w-full border border-gray-300 rounded-md p-1.5 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center cursor-pointer bg-white shadow-sm">
+                                ${optionsHtml}
+                            </select>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="updateRole('${user.id}', '${user.email}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md text-xs font-bold transition shadow-sm">
+                                Simpan
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateRole(userId, userEmail) {
+            const newRole = document.getElementById(`role-${userId}`).value;
+            const confirmUpdate = confirm(`Sahkan pertukaran pangkat:\nE-mel: ${userEmail}\nPeranan Baharu: ${newRole}`);
+            
+            if (!confirmUpdate) return;
+
+            // Update ke jadual user_profiles
+            const { error } = await client.from('user_profiles').update({ role: newRole }).eq('id', userId);
+
+            if (error) {
+                alert("Ralat mengemaskini peranan: " + error.message);
             } else {
-                list.innerHTML = '<li class="p-6 text-center text-gray-500 text-sm">Tiada lokasi didaftarkan.</li>';
+                alert(`✅ BERJAYA: ${userEmail} kini adalah ${newRole}.`);
+                loadUsers(); // Refresh jadual
             }
         }
 
-        async function addLocation() {
-            const input = document.getElementById('new-loc');
-            if (!input.value.trim()) return;
-            await client.from('locations').insert({ name: input.value.trim() });
-            input.value = '';
-            loadLocations();
-        }
-
-        async function deleteLocation(id) {
-            if (!confirm("Padam lokasi ini? Tindakan ini tidak boleh dipulihkan.")) return;
-            await client.from('locations').delete().eq('id', id);
-            loadLocations();
-        }
-
+        // Mulakan sistem admin
         initAdmin();
     </script>
 </body>
