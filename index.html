@@ -3,336 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Borang Aduan Kerosakan - IKTBN</title>
+    <title>Dashboard Staf - Sistem Pengurusan IT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 min-h-screen relative flex flex-col justify-center py-10 font-sans">
-    
-    <!-- Lapisan Gelap Background -->
-    <div id="bg-overlay" class="absolute inset-0 bg-gray-900/50 hidden z-0"></div>
+<body class="bg-gray-100 min-h-screen">
 
-    <div class="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6">
-        <div class="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
-            
-            <!-- Header Borang -->
-            <div class="bg-gray-50 px-6 py-6 border-b border-gray-200 text-center">
-                <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Borang Aduan Kerosakan</h2>
-                <p class="text-sm text-gray-500 mt-2">Sistem Pengurusan Fasiliti & Penyelenggaraan</p>
-            </div>
-
-            <!-- Muka Surat 1: Borang -->
-            <div id="form-section" class="p-6 md:p-8">
-                <form id="aduan-form" class="space-y-6">
-                    
-                    <!-- Info Pemohon -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Pemohon</label>
-                            <input type="text" id="nama" required class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">No. Telefon</label>
-                            <input type="tel" id="telefon" required pattern="^(\+?6?01)[0-46-9]-*[0-9]{7,8}$" placeholder="Contoh: 0123456789" class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        </div>
-                    </div>
-
-                    <!-- Lokasi -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Lokasi Kerosakan</label>
-                        <select id="lokasi" required class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
-                            <option value="">-- Memuatkan Lokasi... --</option>
-                        </select>
-                    </div>
-
-                    <!-- Kategori Kerosakan -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <label class="block text-sm font-semibold text-gray-700 mb-3">Kategori Kerosakan (Boleh pilih lebih dari satu)</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" name="kategori" value="Peralatan Mesin" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                                <span class="text-gray-700 font-medium">Peralatan Mesin</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" name="kategori" value="Elektrikal" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                                <span class="text-gray-700 font-medium">Elektrikal</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" name="kategori" value="Paip / Sanitari" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                                <span class="text-gray-700 font-medium">Paip / Sanitari</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" id="chk-lain" name="kategori" value="Lain-lain" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded border-gray-300">
-                                <span class="text-gray-700 font-medium">Lain-lain</span>
-                            </label>
-                        </div>
-                        <div id="lain-container" class="hidden mt-3">
-                            <input type="text" id="kategori-lain" placeholder="Sila nyatakan..." class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        </div>
-                    </div>
-
-                    <!-- Butiran -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Butiran Kerosakan</label>
-                        <textarea id="butiran" required rows="3" placeholder="Nyatakan kerosakan dengan lengkap..." class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
-                    </div>
-
-                    <!-- Kewangan / Justifikasi -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Justifikasi Pembaikan (Jika Perlu Bajet)</label>
-                            <textarea id="justifikasi" rows="2" placeholder="Mengapa ia kritikal?" class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Anggaran Kos (RM)</label>
-                            <input type="number" id="anggaran_kos" step="0.01" placeholder="Cth: 1500.00" class="block w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <p class="text-xs text-gray-400 mt-1">Biarkan kosong jika tiada anggaran kos.</p>
-                        </div>
-                    </div>
-
-                    <!-- Muat Naik -->
-                    <!-- Muat Naik Multi-Fail & Kamera -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Bukti Bergambar / Sebut Harga (Boleh muat naik > 1 fail)</label>
-                        <p class="text-xs text-gray-500 mb-3">Gambar dari pelbagai sudut amat digalakkan untuk penyediaan slide bajet PowerPoint.</p>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                            <!-- Butang Pilih Galeri / Fail -->
-                            <label class="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
-                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                <span>📁 Pilih Fail / Galeri</span>
-                                <input id="gambar-galeri" type="file" multiple accept="image/*,.pdf" class="hidden" />
-                            </label>
-
-                            <!-- Butang Kamera Telefon Direct -->
-                            <label class="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition text-sm font-medium text-blue-700">
-                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <span>📸 Tangkap Gambar</span>
-                                <input id="gambar-kamera" type="file" accept="image/*" capture="environment" class="hidden" />
-                            </label>
-                        </div>
-
-                        <!-- Senarai Fail Yang Dipilih -->
-                        <div id="file-list" class="space-y-2 mt-2"></div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="pt-4">
-                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md shadow-sm transition flex justify-center items-center gap-2">
-                            <span>Hantar Aduan</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Muka Surat 2: Success Screen -->
-            <div id="success-section" class="hidden p-10 text-center">
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Aduan Berjaya Dihantar!</h2>
-                <p class="text-gray-600 mb-6">Sila simpan No. Tiket di bawah untuk rujukan masa hadapan.</p>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 inline-block mb-6 shadow-inner">
-                    <span class="block text-xs uppercase tracking-wider text-gray-500 mb-1">No. Tiket Anda</span>
-                    <span id="display-tiket" class="text-3xl font-mono font-black text-blue-700"></span>
-                </div>
-                <div class="space-y-3">
-                    <button onclick="window.location.reload()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-4 rounded-md shadow transition">Selesai & Kembali</button>
-                    <a href="semak.html" class="block w-full text-blue-600 hover:text-blue-800 font-semibold py-2 text-sm">Semak Status Aduan Lain</a>
-                </div>
-            </div>
-
+    <!-- Header / Navibar -->
+    <nav class="bg-blue-900 text-white p-4 shadow-lg flex justify-between items-center">
+        <div>
+            <h1 class="font-bold text-xl">Sistem Pengurusan IT</h1>
+            <p class="text-xs text-blue-200">Portal Aduan Kerosakan IKTBN</p>
         </div>
+        <div class="flex items-center gap-4">
+            <span id="user-email" class="text-sm font-medium bg-blue-800 px-3 py-1 rounded">Memuatkan...</span>
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">Log Keluar</button>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <!-- Footer Menu -->
-        <div class="text-center mt-6 flex justify-center gap-4 text-sm font-medium z-10 relative">
-            <a href="semak.html" class="text-white hover:text-blue-200 drop-shadow-md transition">Semak Status</a>
-            <span class="text-white opacity-50">|</span>
-            <a href="login.html" class="text-white hover:text-blue-200 drop-shadow-md transition">Log Masuk Staf</a>
+        <!-- Borang Aduan Kerosakan -->
+        <div class="bg-white p-6 rounded-xl shadow-md md:col-span-1">
+            <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Hantar Aduan Baharu</h2>
+            <form id="complaint-form" onsubmit="submitComplaint(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Tajuk Aduan / Kerosakan</label>
+                    <input type="text" id="title" required placeholder="Cth: PC Tak Boleh On" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Kategori Kerosakan</label>
+                    <select id="category" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Pilih Kategori</option>
+                        <option value="Perkakasan (Hardware)">Perkakasan (Hardware)</option>
+                        <option value="Perisian (Software)">Perisian (Software)</option>
+                        <option value="Rangkaian / Rangkaian Wi-Fi">Rangkaian / Wi-Fi</option>
+                        <option value="Pencetak (Printer)">Pencetak (Printer)</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Lokasi / Bilik / Makmal</label>
+                    <input type="text" id="location" required placeholder="Cth: Makmal Komputer 2" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Penerangan Kerosakan</label>
+                    <textarea id="description" rows="3" required placeholder="Terangkan butiran masalah..." class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold text-sm transition">Hantar Aduan</button>
+            </form>
         </div>
+
+        <!-- Senarai Aduan Saya -->
+        <div class="bg-white p-6 rounded-xl shadow-md md:col-span-2">
+            <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Rekod Aduan Saya</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="p-2">Tajuk</th>
+                            <th class="p-2">Lokasi</th>
+                            <th class="p-2">Tarikh</th>
+                            <th class="p-2">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaints-list">
+                        <tr>
+                            <td colspan="4" class="p-4 text-center text-gray-400">Memuatkan senarai aduan...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // Pengurusan Multi-Fail & Kamera
-        let selectedFiles = [];
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function addFiles(newFiles) {
-            Array.from(newFiles).forEach(file => selectedFiles.push(file));
-            renderFileList();
-        }
+        let currentUser = null;
 
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            renderFileList();
-        }
-
-        function renderFileList() {
-            const listContainer = document.getElementById('file-list');
-            listContainer.innerHTML = '';
-            if (selectedFiles.length === 0) return;
-
-            selectedFiles.forEach((file, index) => {
-                const isImage = file.type.startsWith('image/');
-                listContainer.innerHTML += `
-                    <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded border border-gray-200 text-xs">
-                        <div class="flex items-center gap-2 truncate">
-                            <span>${isImage ? '🖼️' : '📄'}</span>
-                            <span class="font-medium text-gray-800 truncate max-w-[180px] sm:max-w-xs">${file.name}</span>
-                            <span class="text-gray-400">(${ (file.size / (1024*1024)).toFixed(2) } MB)</span>
-                        </div>
-                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">Padam</button>
-                    </div>
-                `;
-            });
-        }
-
-        document.getElementById('gambar-galeri').addEventListener('change', function(e) {
-            if(e.target.files.length > 0) addFiles(e.target.files);
-            e.target.value = '';
-        });
-
-        document.getElementById('gambar-kamera').addEventListener('change', function(e) {
-            if(e.target.files.length > 0) addFiles(e.target.files);
-            e.target.value = '';
-        });
-
-        // Tarik Tetapan Dinamik (Background & Lokasi)
-        async function loadDynamicContent() {
-            const { data: settings } = await client.from('system_settings').select('bg_url').eq('id', 1).single();
-            if (settings && settings.bg_url) {
-                document.body.style.backgroundImage = `url('${settings.bg_url}')`;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundPosition = 'center';
-                document.body.style.backgroundAttachment = 'fixed';
-                document.getElementById('bg-overlay').classList.remove('hidden');
+        // Semak Sesi Log Masuk
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
             }
-
-            const { data: locations } = await client.from('locations').select('name').order('created_at', { ascending: true });
-            const locSelect = document.getElementById('lokasi');
-            if (locations && locations.length > 0) {
-                locSelect.innerHTML = '<option value="">-- Sila Pilih Lokasi --</option>';
-                locations.forEach(loc => {
-                    locSelect.innerHTML += `<option value="${loc.name}">${loc.name}</option>`;
-                });
-            } else {
-                locSelect.innerHTML = '<option value="">-- Tiada Lokasi (Sila hubungi Admin) --</option>';
-            }
+            currentUser = session.user;
+            document.getElementById('user-email').innerText = currentUser.email;
+            loadMyComplaints();
         }
-        loadDynamicContent();
 
-        // UI Logic untuk checkbox "Lain-lain"
-        const chkLain = document.getElementById('chk-lain');
-        const containerLain = document.getElementById('lain-container');
-        const txtLain = document.getElementById('kategori-lain');
-        
-        chkLain.addEventListener('change', function() {
-            if (this.checked) {
-                containerLain.classList.remove('hidden');
-                txtLain.setAttribute('required', 'true');
-            } else {
-                containerLain.classList.add('hidden');
-                txtLain.removeAttribute('required');
-                txtLain.value = '';
-            }
-loadDynamicContent();
+        // Muat Turun Senarai Aduan Staf
+        async function loadMyComplaints() {
+            const { data, error } = await supabase
+                .from('complaints')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
 
-        // === PASTE KOD A DI SINI ===
-        let selectedFiles = [];
-
-        function addFiles(newFiles) {
-            Array.from(newFiles).forEach(file => selectedFiles.push(file));
-            renderFileList();
-        }
-        // ... (sampai penamat event listener kamera)
-            
-        });
-
-
-
-        // Proses Hantar Aduan
-        document.getElementById('aduan-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerHTML = '⚙️ Sedang Memproses...';
-
-            // Kumpul Kategori
-            let categories = [];
-            document.querySelectorAll('input[name="kategori"]:checked').forEach(cb => {
-                categories.push(cb.value);
-            });
-            if (categories.length === 0) {
-                alert("Sila pilih sekurang-kurangnya satu Kategori Kerosakan.");
-                btn.disabled = false; btn.innerHTML = 'Hantar Aduan';
+            const tbody = document.getElementById('complaints-list');
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Tiada aduan dihantar lagi.</td></tr>';
                 return;
             }
 
-            // Generate Ticket No
-            const ticketNo = 'TIC-' + Math.floor(10000 + Math.random() * 90000);
+            tbody.innerHTML = data.map(item => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-2 font-medium">${item.title}</td>
+                    <td class="p-2 text-gray-600">${item.location || '-'}</td>
+                    <td class="p-2 text-gray-500">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
+                    <td class="p-2">${getStatusBadge(item.status)}</td>
+                </tr>
+            `).join('');
+        }
 
-            try {
-                // A. Insert DB
-                const kosVal = document.getElementById('anggaran_kos').value;
-                const { data: dbData, error: dbError } = await client.from('complaints').insert([{
-                    ticket_number: ticketNo,
-                    applicant_name: document.getElementById('nama').value,
-                    applicant_phone: document.getElementById('telefon').value,
-                    location: document.getElementById('lokasi').value,
-                    categories: categories,
-                    other_category_desc: chkLain.checked ? txtLain.value : null,
-                    description: document.getElementById('butiran').value,
-                    justification: document.getElementById('justifikasi').value,
-                    estimated_cost: kosVal ? parseFloat(kosVal) : null,
-                    status: 'SUBMITTED'
-                }]).select();
-
-                if (dbError) throw dbError;
-                const complaintId = dbData[0].id;
-
-                // B. Upload Multiple Files ke Storage Supabase
-                if (selectedFiles.length > 0) {
-                    for (let i = 0; i < selectedFiles.length; i++) {
-                        const file = selectedFiles[i];
-                        btn.innerHTML = `📎 Memuat Naik Fail (${i + 1}/${selectedFiles.length})...`;
-                        
-                        const fileExt = file.name.split('.').pop();
-                        const filePath = `aduan/${ticketNo}_${i + 1}_${Date.now()}.${fileExt}`;
-                        
-                        const { error: uploadErr } = await client.storage.from('attachments').upload(filePath, file);
-                        if (!uploadErr) {
-                            await client.from('complaint_attachments').insert([{
-                                complaint_id: complaintId,
-                                file_name: file.name,
-                                storage_path: filePath,
-                                file_type: file.type
-                            }]);
-                        }
-                    }
-                }
-
-                // C. Notifikasi WhatsApp Admin
-                const { data: settingData } = await client.from('system_settings').select('whatsapp_number').eq('id', 1).single();
-                const targetNumber = (settingData && settingData.whatsapp_number) ? settingData.whatsapp_number : '601112223333'; 
-                const msg = `*SISTEM ADUAN KEROSAKAN*%0A%0AAduan baharu telah diterima.%0A%0A*No. Tiket:* ${ticketNo}%0A*Pemohon:* ${document.getElementById('nama').value}%0A*Lokasi:* ${document.getElementById('lokasi').value}%0A%0ASila semak sistem untuk maklumat lengkap.`;
-                window.open(`https://wa.me/${targetNumber}?text=${msg}`, '_blank');
-
-                // D. Papar Skrin Berjaya
-                document.getElementById('form-section').classList.add('hidden');
-                document.getElementById('success-section').classList.remove('hidden');
-                document.getElementById('display-tiket').innerText = ticketNo;
-                window.scrollTo(0, 0);
-
-            } catch (err) {
-                console.error(err);
-                alert("Berlaku ralat sistem. Sila cuba lagi.");
-                btn.disabled = false;
-                btn.innerHTML = 'Hantar Aduan';
+        // Lencana Status Aduan
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'BARU': return '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">BARU</span>';
+                case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">DALAM PROSES</span>';
+                case 'SELESAI': return '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">SELESAI</span>';
+                default: return '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">' + (status || 'BARU') + '</span>';
             }
-        });
+        }
+
+        // Hantar Aduan Baharu
+        async function submitComplaint(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = 'Menghantar...';
+
+            const newComplaint = {
+                user_id: currentUser.id,
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                status: 'BARU'
+            };
+
+            const { error } = await supabase.from('complaints').insert([newComplaint]);
+
+            if (error) {
+                alert('Gagal menghantar aduan: ' + error.message);
+            } else {
+                alert('Aduan berjaya dihantar!');
+                document.getElementById('complaint-form').reset();
+                loadMyComplaints();
+            }
+
+            btn.disabled = false;
+            btn.innerText = 'Hantar Aduan';
+        }
+
+        // Log Keluar
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        checkAuth();
     </script>
 </body>
 </html>
