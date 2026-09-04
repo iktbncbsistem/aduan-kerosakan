@@ -210,29 +210,31 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 const menuContainer = document.getElementById('dynamic-menu');
                 menuContainer.innerHTML = '';
                 
-                // Jika Admin, keluar butang panel admin
                 if (profile.role === 'ADMIN') {
                     menuContainer.innerHTML += `<a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">⚙️ Panel Admin</a>`;
                 }
-                // Jika CPPP / KCPPP / Admin, keluar butang panel CPPP
-                if (profile.role === 'CPPP' || profile.role === 'KCPPP' || profile.role === 'ADMIN') {
-                    menuContainer.innerHTML += `<a href="cppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">🔧 Panel CPPP</a>`;
+                if (profile.role === 'CPPP' || profile.role === 'ADMIN') {
+                    menuContainer.innerHTML += `<a href="cppp.html" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">🔧 Panel CPPP</a>`;
+                }
+                if (profile.role === 'KCPPP' || profile.role === 'ADMIN') {
+                    menuContainer.innerHTML += `<a href="kcppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">✅ Panel KCPPP</a>`;
                 }
                 menuContainer.classList.remove('hidden');
 
-                // Auto-Redirect ke page peranan (Hanya untuk 1st login supaya tak 'loop')
+                // Auto-Redirect ke page peranan 
                 if (!sessionStorage.getItem('sudah_redirect')) {
                     sessionStorage.setItem('sudah_redirect', 'true');
                     
-                    if (profile.role === 'CPPP' || profile.role === 'KCPPP') {
-                        window.location.href = 'cppp.html';
-                        return;
+                    if (profile.role === 'CPPP') {
+                        window.location.href = 'cppp.html'; return;
+                    } else if (profile.role === 'KCPPP') {
+                        window.location.href = 'kcppp.html'; return;
                     } else if (profile.role === 'ADMIN') {
-                        window.location.href = 'admin.html';
-                        return;
+                        window.location.href = 'admin.html'; return;
                     }
                 }
                 // ------------------------------------------------
+            
 
                 await loadMasterData();
                 loadMyComplaints();
