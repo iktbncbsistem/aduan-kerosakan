@@ -3,27 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel KCPPP - Kelulusan</title>
+    <title>Panel KCPPP - Kelulusan & Laporan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
     
+    <!-- Navbar -->
     <nav class="bg-teal-900 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-40">
         <div>
             <h1 class="font-bold text-lg sm:text-xl">Sistem Pengurusan IT</h1>
-            <p class="text-xs text-teal-200">Panel Pengesahan & Kelulusan KCPPP</p>
+            <p class="text-xs text-teal-200">Panel Pengesahan KCPPP</p>
         </div>
         <div class="flex gap-3 items-center">
-            <a href="index.html" class="bg-teal-800 hover:bg-teal-950 px-3 py-1.5 rounded text-sm font-semibold transition hidden sm:block">Laman Utama</a>
+            <a href="index.html" class="bg-teal-800 hover:bg-teal-950 px-3 py-1.5 rounded text-sm font-semibold transition hidden sm:block">Laman Utama (Borang)</a>
             <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow">Log Keluar</button>
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto p-4 sm:p-6 mt-2">
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        
+        <!-- Menu Navigasi Tabs -->
+        <div class="flex border-b-2 border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
+            <button id="btn-tab-approval" onclick="switchTab('approval')" class="flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors">
+                📝 Menunggu Kelulusan (<span id="count-pending">0</span>)
+            </button>
+            <button id="btn-tab-reports" onclick="switchTab('reports')" class="flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors">
+                📊 Laporan & Rekod
+            </button>
+        </div>
+
+        <!-- TAB 1: SENARAI MENUNGGU KELULUSAN -->
+        <div id="tab-approval" class="bg-white rounded-b-xl shadow-md border border-gray-200 overflow-hidden">
             <div class="p-5 border-b bg-teal-50 flex justify-between items-center">
-                <h2 class="text-lg font-bold text-teal-900">Senarai Menunggu Kelulusan</h2>
+                <h2 class="text-lg font-bold text-teal-900">Tindakan Pengesahan KCPPP</h2>
                 <button onclick="loadComplaints()" class="text-sm bg-teal-200 hover:bg-teal-300 text-teal-900 px-3 py-1.5 rounded font-bold transition">🔄 Refresh</button>
             </div>
             <div class="overflow-x-auto">
@@ -32,23 +45,47 @@
                         <tr>
                             <th class="p-4 w-16">No.</th>
                             <th class="p-4">Pemohon & Lokasi</th>
-                            <th class="p-4">Kerosakan & Kos</th>
+                            <th class="p-4">Kerosakan & Kos (RM)</th>
                             <th class="p-4 text-center">Status CPPP</th>
-                            <th class="p-4 text-center">Kelulusan</th>
+                            <th class="p-4 text-center">Tindakan</th>
                         </tr>
                     </thead>
-                    <tbody id="complaints-list" class="divide-y divide-gray-100">
-                        <tr><td colspan="5" class="p-8 text-center text-gray-500">Memuatkan data aduan...</td></tr>
+                    <tbody id="pending-list" class="divide-y divide-gray-100">
+                        <tr><td colspan="5" class="p-8 text-center text-gray-500">Memuatkan data...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- TAB 2: LAPORAN & REKOD KESELURUHAN -->
+        <div id="tab-reports" class="hidden bg-white rounded-b-xl shadow-md border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-gray-800">Laporan Keseluruhan Aduan</h2>
+                <button onclick="window.print()" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded font-bold shadow transition">🖨️ Cetak Laporan</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
+                    <thead class="bg-gray-100 text-gray-600 uppercase text-xs font-bold border-b">
+                        <tr>
+                            <th class="p-4 w-16">No.</th>
+                            <th class="p-4">Tarikh & Pemohon</th>
+                            <th class="p-4">Kerosakan</th>
+                            <th class="p-4 text-center">Status CPPP</th>
+                            <th class="p-4 text-center">Keputusan KCPPP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-list" class="divide-y divide-gray-100">
+                        <tr><td colspan="5" class="p-8 text-center text-gray-500">Memuatkan data laporan...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <!-- Modal Kelulusan KCPPP -->
     <div id="kcppp-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-            
             <div class="p-5 border-b flex justify-between items-center bg-teal-50">
                 <h3 class="font-bold text-lg text-teal-900">Borang Kelulusan KCPPP</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
@@ -58,7 +95,6 @@
                 <form id="approval-form" onsubmit="submitApproval(event)">
                     <input type="hidden" id="modal-id">
                     
-                    <!-- Info aduan asas -->
                     <div class="bg-gray-50 p-4 rounded-lg border mb-4 text-sm">
                         <p><strong>Pemohon:</strong> <span id="info-name"></span></p>
                         <p><strong>Kerosakan:</strong> <span id="info-damage"></span></p>
@@ -66,7 +102,6 @@
                         <div id="info-links" class="mt-2 flex gap-2"></div>
                     </div>
 
-                    <!-- Laporan dari CPPP (Read Only) -->
                     <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
                         <h4 class="text-xs font-bold text-blue-800 uppercase mb-2">Laporan Sokongan (CPPP)</h4>
                         <p class="text-sm text-gray-700"><strong>Juruteknik:</strong> <span id="info-tech">-</span></p>
@@ -74,8 +109,6 @@
                     </div>
 
                     <hr class="my-6">
-
-                    <!-- Tindakan KCPPP -->
                     <h4 class="font-bold text-teal-800 mb-4 border-l-4 border-teal-500 pl-2">Tindakan Kelulusan</h4>
                     
                     <div class="mb-4">
@@ -106,6 +139,7 @@ const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        
         let allComplaints = [];
 
         async function initKCPPP() {
@@ -120,37 +154,95 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             loadComplaints();
         }
 
+        // FUNGSI TUKAR TAB
+        function switchTab(tabId) {
+            document.getElementById('tab-approval').classList.add('hidden');
+            document.getElementById('tab-reports').classList.add('hidden');
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            const btnApproval = document.getElementById('btn-tab-approval');
+            const btnReports = document.getElementById('btn-tab-reports');
+            
+            if (tabId === 'approval') {
+                btnApproval.className = "flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors";
+                btnReports.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors";
+            } else {
+                btnReports.className = "flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors";
+                btnApproval.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors";
+            }
+        }
+
         async function loadComplaints() {
-            const tbody = document.getElementById('complaints-list');
+            const tbodyPending = document.getElementById('pending-list');
+            const tbodyReports = document.getElementById('report-list');
+            
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
             
-            if (error || !data) { tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Ralat memuatkan data.</td></tr>'; return; }
+            if (error || !data) { 
+                tbodyPending.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Ralat memuatkan data.</td></tr>'; 
+                return; 
+            }
             
             allComplaints = data;
-            if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Tiada rekod ditemui.</td></tr>'; return; }
             
-            tbody.innerHTML = data.map((item, idx) => `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="p-4 font-semibold text-gray-500">${idx + 1}</td>
-                    <td class="p-4">
-                        <div class="font-bold text-gray-800">${item.full_name || 'Tanpa Nama'}</div>
-                        <div class="text-xs text-gray-500">${item.department || '-'}</div>
-                    </td>
-                    <td class="p-4">
-                        <div class="font-semibold text-gray-700">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
-                        <div class="text-xs font-bold text-red-600">RM ${item.estimated_cost || '0.00'}</div>
-                    </td>
-                    <td class="p-4 text-center">
-                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-[10px] font-bold">${item.status || 'BARU'}</span>
-                    </td>
-                    <td class="p-4 text-center">
-                        ${item.kcppp_status ? 
-                            `<span class="bg-teal-100 text-teal-800 px-3 py-1.5 rounded text-xs font-bold">${item.kcppp_status}</span>` : 
-                            `<button onclick="openModal('${item.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded text-xs shadow-sm transition">Sahkan</button>`
-                        }
-                    </td>
-                </tr>
-            `).join('');
+            // Asingkan data: Belum lulus vs Sudah Lulus/Tolak
+            const pendingData = data.filter(item => !item.kcppp_status || item.kcppp_status === '');
+            const reportData = data.filter(item => item.kcppp_status && item.kcppp_status !== '');
+
+            document.getElementById('count-pending').innerText = pendingData.length;
+
+            // Render Tab 1 (Pending)
+            if(pendingData.length === 0) { 
+                tbodyPending.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Tiada permohonan menunggu kelulusan.</td></tr>'; 
+            } else {
+                tbodyPending.innerHTML = pendingData.map((item, idx) => `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-semibold text-gray-500">${idx + 1}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-gray-800">${item.full_name || 'Tanpa Nama'}</div>
+                            <div class="text-xs text-gray-500">${item.department || '-'}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-semibold text-gray-700">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
+                            <div class="text-xs font-bold text-red-600">RM ${item.estimated_cost || '0.00'}</div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-[10px] font-bold">${item.status || 'BARU'}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="openModal('${item.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded text-xs shadow-sm transition">Sahkan</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Render Tab 2 (Reports)
+            if(reportData.length === 0) { 
+                tbodyReports.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Tiada rekod laporan ditemui.</td></tr>'; 
+            } else {
+                tbodyReports.innerHTML = reportData.map((item, idx) => `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-semibold text-gray-500">${idx + 1}</td>
+                        <td class="p-4">
+                            <div class="text-xs text-gray-500 mb-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
+                            <div class="font-bold text-gray-800">${item.full_name || 'Tanpa Nama'}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-semibold text-gray-700">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
+                            <div class="text-xs text-gray-500 mt-1 line-clamp-1">${item.details || '-'}</div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-[10px] font-bold">${item.status || 'BARU'}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            ${item.kcppp_status === 'LULUS' ? 
+                                '<span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-xs font-bold border border-emerald-200">✅ LULUS</span>' : 
+                                '<span class="bg-red-100 text-red-800 px-3 py-1 rounded text-xs font-bold border border-red-200">❌ DITOLAK</span>'
+                            }
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function openModal(id) {
@@ -163,8 +255,8 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             document.getElementById('info-cost').innerText = item.estimated_cost || '0.00';
             
             let links = '';
-            if(item.image_url) links += `<a href="${item.image_url}" target="_blank" class="text-xs text-blue-600 underline">Lihat Gambar</a>`;
-            if(item.quotation_url) links += `<a href="${item.quotation_url}" target="_blank" class="text-xs text-blue-600 underline ml-3">Lihat Sebutharga</a>`;
+            if(item.image_url) links += `<a href="${item.image_url}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 underline">Lihat Gambar</a>`;
+            if(item.quotation_url) links += `<a href="${item.quotation_url}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 underline ml-3">Lihat Sebutharga</a>`;
             document.getElementById('info-links').innerHTML = links;
 
             document.getElementById('info-tech').innerText = item.technician_name || 'Belum dilantik';
@@ -193,7 +285,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 .eq('id', id);
 
             if (error) { alert('Ralat: ' + error.message); } 
-            else { alert('Kelulusan berjaya direkodkan!'); closeModal(); loadComplaints(); }
+            else { alert('Keputusan berjaya direkodkan!'); closeModal(); loadComplaints(); }
             
             btn.disabled = false; btn.innerText = 'Simpan Keputusan';
         }
