@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel KCPPP - Kelulusan & Laporan</title>
+    <title>Panel KCPPP - Kelulusan & Laporan Analitik</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tambahan library untuk Graf/Carta -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
     
-    <!-- Navbar -->
     <nav class="bg-teal-900 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-40">
         <div>
             <h1 class="font-bold text-lg sm:text-xl">Sistem Pengurusan IT</h1>
-            <p class="text-xs text-teal-200">Panel Pengesahan KCPPP</p>
+            <p class="text-xs text-teal-200">Panel Pengesahan KCPPP & Analitik</p>
         </div>
         <div class="flex gap-3 items-center">
             <a href="index.html" class="bg-teal-800 hover:bg-teal-950 px-3 py-1.5 rounded text-sm font-semibold transition hidden sm:block">Laman Utama (Borang)</a>
@@ -23,13 +24,12 @@
 
     <div class="max-w-7xl mx-auto p-4 sm:p-6 mt-2">
         
-        <!-- Menu Navigasi Tabs -->
-        <div class="flex border-b-2 border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
+        <div class="flex border-b-2 border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-2 shadow-sm">
             <button id="btn-tab-approval" onclick="switchTab('approval')" class="flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors">
                 📝 Menunggu Kelulusan (<span id="count-pending">0</span>)
             </button>
             <button id="btn-tab-reports" onclick="switchTab('reports')" class="flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors">
-                📊 Laporan & Rekod
+                📊 Laporan & Analitik
             </button>
         </div>
 
@@ -37,7 +37,7 @@
         <div id="tab-approval" class="bg-white rounded-b-xl shadow-md border border-gray-200 overflow-hidden">
             <div class="p-5 border-b bg-teal-50 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-teal-900">Tindakan Pengesahan KCPPP</h2>
-                <button onclick="loadComplaints()" class="text-sm bg-teal-200 hover:bg-teal-300 text-teal-900 px-3 py-1.5 rounded font-bold transition">🔄 Refresh</button>
+                <button onclick="loadComplaints()" class="text-sm bg-teal-200 hover:bg-teal-300 text-teal-900 px-3 py-1.5 rounded font-bold transition shadow-sm">🔄 Refresh</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
@@ -57,30 +57,64 @@
             </div>
         </div>
 
-        <!-- TAB 2: LAPORAN & REKOD KESELURUHAN -->
+        <!-- TAB 2: LAPORAN & ANALITIK -->
         <div id="tab-reports" class="hidden bg-white rounded-b-xl shadow-md border border-gray-200 overflow-hidden">
-            <div class="p-5 border-b bg-gray-50 flex justify-between items-center">
-                <h2 class="text-lg font-bold text-gray-800">Laporan Keseluruhan Aduan</h2>
-                <button onclick="window.print()" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded font-bold shadow transition">🖨️ Cetak Laporan</button>
+            <div class="p-5 border-b bg-gray-50 flex flex-wrap justify-between items-center gap-4">
+                <h2 class="text-lg font-bold text-gray-800">Analitik Trend & Laporan Rekod</h2>
+                <button onclick="window.print()" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold shadow transition">🖨️ Cetak / PDF</button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
-                    <thead class="bg-gray-100 text-gray-600 uppercase text-xs font-bold border-b">
-                        <tr>
-                            <th class="p-4 w-16">No.</th>
-                            <th class="p-4">Tarikh & Pemohon</th>
-                            <th class="p-4">Kerosakan</th>
-                            <th class="p-4 text-center">Status CPPP</th>
-                            <th class="p-4 text-center">Keputusan KCPPP</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-list" class="divide-y divide-gray-100">
-                        <tr><td colspan="5" class="p-8 text-center text-gray-500">Memuatkan data laporan...</td></tr>
-                    </tbody>
-                </table>
+            
+            <div class="p-5 bg-white">
+                <!-- Panel Tapisan (Filter) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tapis Lokasi</label>
+                        <select id="filter-dept" onchange="applyFilters()" class="w-full border rounded p-2 text-sm outline-none focus:border-teal-500">
+                            <option value="">Semua Lokasi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tapis Kategori Kerosakan</label>
+                        <select id="filter-damage" onchange="applyFilters()" class="w-full border rounded p-2 text-sm outline-none focus:border-teal-500">
+                            <option value="">Semua Kerosakan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tahun Permohonan</label>
+                        <select id="filter-year" onchange="applyFilters()" class="w-full border rounded p-2 text-sm outline-none focus:border-teal-500">
+                            <option value="">Semua Tahun</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Graf Analitik -->
+                <div class="mb-8 p-4 border rounded-xl shadow-sm bg-white">
+                    <h3 class="text-sm font-bold text-gray-700 text-center mb-4">Trend Kerosakan Keseluruhan</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Jadual Laporan Lengkap -->
+                <div class="overflow-x-auto rounded-lg border">
+                    <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-xs font-bold border-b">
+                            <tr>
+                                <th class="p-3 w-12">No.</th>
+                                <th class="p-3">Tarikh (Mohon ➔ Selesai)</th>
+                                <th class="p-3">Pemohon & Lokasi</th>
+                                <th class="p-3">Kerosakan & Butiran</th>
+                                <th class="p-3 text-center">Keputusan</th>
+                                <th class="p-3 text-center">Lampiran</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-list" class="divide-y divide-gray-100">
+                            <tr><td colspan="6" class="p-8 text-center text-gray-500">Memuatkan rekod...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
     </div>
 
     <!-- Modal Kelulusan KCPPP -->
@@ -99,7 +133,6 @@
                         <p><strong>Pemohon:</strong> <span id="info-name"></span></p>
                         <p><strong>Kerosakan:</strong> <span id="info-damage"></span></p>
                         <p><strong>Kos Anggaran:</strong> RM <span id="info-cost"></span></p>
-                        <div id="info-links" class="mt-2 flex gap-2"></div>
                     </div>
 
                     <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
@@ -109,7 +142,6 @@
                     </div>
 
                     <hr class="my-6">
-                    <h4 class="font-bold text-teal-800 mb-4 border-l-4 border-teal-500 pl-2">Tindakan Kelulusan</h4>
                     
                     <div class="mb-4">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Keputusan</label>
@@ -141,6 +173,8 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         
         let allComplaints = [];
+        let reportData = [];
+        let analyticsChart = null;
 
         async function initKCPPP() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -148,50 +182,40 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             
             const { data: profile } = await _supabase.from('user_profiles').select('role').eq('email', session.user.email).single();
             if (!profile || !['KCPPP', 'ADMIN'].includes(profile.role)) {
-                alert('Akses Ditolak! Panel ini khas untuk KCPPP.');
-                window.location.href = 'index.html'; return;
+                alert('Akses Ditolak!'); window.location.href = 'index.html'; return;
             }
             loadComplaints();
         }
 
-        // FUNGSI TUKAR TAB
         function switchTab(tabId) {
             document.getElementById('tab-approval').classList.add('hidden');
             document.getElementById('tab-reports').classList.add('hidden');
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
-            const btnApproval = document.getElementById('btn-tab-approval');
-            const btnReports = document.getElementById('btn-tab-reports');
+            const btnApp = document.getElementById('btn-tab-approval');
+            const btnRep = document.getElementById('btn-tab-reports');
             
             if (tabId === 'approval') {
-                btnApproval.className = "flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors";
-                btnReports.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors";
+                btnApp.className = "flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors";
+                btnRep.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors";
             } else {
-                btnReports.className = "flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors";
-                btnApproval.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors";
+                btnRep.className = "flex-1 py-3 text-sm sm:text-base font-bold text-teal-700 border-b-4 border-teal-700 transition-colors";
+                btnApp.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-teal-600 transition-colors";
+                applyFilters(); // Render chart bila buka tab reports
             }
         }
 
         async function loadComplaints() {
-            const tbodyPending = document.getElementById('pending-list');
-            const tbodyReports = document.getElementById('report-list');
-            
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
-            
-            if (error || !data) { 
-                tbodyPending.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Ralat memuatkan data.</td></tr>'; 
-                return; 
-            }
+            if (error || !data) return;
             
             allComplaints = data;
             
-            // Asingkan data: Belum lulus vs Sudah Lulus/Tolak
-            const pendingData = data.filter(item => !item.kcppp_status || item.kcppp_status === '');
-            const reportData = data.filter(item => item.kcppp_status && item.kcppp_status !== '');
-
-            document.getElementById('count-pending').innerText = pendingData.length;
-
             // Render Tab 1 (Pending)
+            const pendingData = data.filter(item => !item.kcppp_status || item.kcppp_status === '');
+            document.getElementById('count-pending').innerText = pendingData.length;
+            const tbodyPending = document.getElementById('pending-list');
+            
             if(pendingData.length === 0) { 
                 tbodyPending.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Tiada permohonan menunggu kelulusan.</td></tr>'; 
             } else {
@@ -206,9 +230,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                             <div class="font-semibold text-gray-700">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
                             <div class="text-xs font-bold text-red-600">RM ${item.estimated_cost || '0.00'}</div>
                         </td>
-                        <td class="p-4 text-center">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-[10px] font-bold">${item.status || 'BARU'}</span>
-                        </td>
+                        <td class="p-4 text-center"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-[10px] font-bold">${item.status || 'BARU'}</span></td>
                         <td class="p-4 text-center">
                             <button onclick="openModal('${item.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded text-xs shadow-sm transition">Sahkan</button>
                         </td>
@@ -216,55 +238,142 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 `).join('');
             }
 
-            // Render Tab 2 (Reports)
-            if(reportData.length === 0) { 
-                tbodyReports.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Tiada rekod laporan ditemui.</td></tr>'; 
-            } else {
-                tbodyReports.innerHTML = reportData.map((item, idx) => `
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-semibold text-gray-500">${idx + 1}</td>
-                        <td class="p-4">
-                            <div class="text-xs text-gray-500 mb-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
-                            <div class="font-bold text-gray-800">${item.full_name || 'Tanpa Nama'}</div>
-                        </td>
-                        <td class="p-4">
-                            <div class="font-semibold text-gray-700">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
-                            <div class="text-xs text-gray-500 mt-1 line-clamp-1">${item.details || '-'}</div>
-                        </td>
-                        <td class="p-4 text-center">
-                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-[10px] font-bold">${item.status || 'BARU'}</span>
-                        </td>
-                        <td class="p-4 text-center">
-                            ${item.kcppp_status === 'LULUS' ? 
-                                '<span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-xs font-bold border border-emerald-200">✅ LULUS</span>' : 
-                                '<span class="bg-red-100 text-red-800 px-3 py-1 rounded text-xs font-bold border border-red-200">❌ DITOLAK</span>'
-                            }
-                        </td>
-                    </tr>
-                `).join('');
-            }
+            // Siapkan data untuk Laporan & Filter Options
+            reportData = data.filter(item => item.kcppp_status && item.kcppp_status !== '');
+            populateFilterOptions(reportData);
+            applyFilters();
         }
 
+        // ================= BAHAGIAN ANALITIK & LAPORAN =================
+        function populateFilterOptions(data) {
+            const depts = new Set(); const damages = new Set(); const years = new Set();
+            
+            data.forEach(item => {
+                if(item.department) depts.add(item.department);
+                if(item.created_at) years.add(new Date(item.created_at).getFullYear());
+                
+                let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types || 'Lain-lain'];
+                dmgs.forEach(d => damages.add(d));
+            });
+
+            const selDept = document.getElementById('filter-dept');
+            const selDamage = document.getElementById('filter-damage');
+            const selYear = document.getElementById('filter-year');
+
+            selDept.innerHTML = '<option value="">Semua Lokasi</option>' + Array.from(depts).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+            selDamage.innerHTML = '<option value="">Semua Kerosakan</option>' + Array.from(damages).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+            selYear.innerHTML = '<option value="">Semua Tahun</option>' + Array.from(years).sort((a,b)=>b-a).map(y => `<option value="${y}">${y}</option>`).join('');
+        }
+
+        function applyFilters() {
+            const fDept = document.getElementById('filter-dept').value;
+            const fDamage = document.getElementById('filter-damage').value;
+            const fYear = document.getElementById('filter-year').value;
+
+            const filteredData = reportData.filter(item => {
+                let match = true;
+                if(fDept && item.department !== fDept) match = false;
+                if(fYear && new Date(item.created_at).getFullYear().toString() !== fYear) match = false;
+                
+                if(fDamage) {
+                    let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types];
+                    if(!dmgs.includes(fDamage)) match = false;
+                }
+                return match;
+            });
+
+            renderReportTable(filteredData);
+            updateChart(filteredData);
+        }
+
+        function renderReportTable(data) {
+            const tbody = document.getElementById('report-list');
+            if(data.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">Tiada rekod menepati carian.</td></tr>'; return; 
+            }
+            
+            tbody.innerHTML = data.map((item, idx) => {
+                const dateMohon = new Date(item.created_at).toLocaleDateString('ms-MY');
+                // Andaian tarikh kemaskini kelulusan adalah tarikh selesai
+                const dateSelesai = item.updated_at ? new Date(item.updated_at).toLocaleDateString('ms-MY') : '-';
+                
+                let lampiran = '';
+                if(item.image_url) lampiran += `<a href="${item.image_url}" target="_blank" class="block text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded mb-1 text-center font-semibold">📸 Gambar</a>`;
+                if(item.quotation_url) lampiran += `<a href="${item.quotation_url}" target="_blank" class="block text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded text-center font-semibold">📄 Sebutharga</a>`;
+                if(!lampiran) lampiran = '<span class="text-xs text-gray-400">Tiada</span>';
+
+                return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="p-3 font-semibold text-gray-500">${idx + 1}</td>
+                    <td class="p-3">
+                        <div class="text-xs font-bold text-gray-700">Mohon: ${dateMohon}</div>
+                        <div class="text-xs text-teal-600 font-semibold mt-1">Selesai: ${dateSelesai}</div>
+                    </td>
+                    <td class="p-3">
+                        <div class="font-bold text-gray-800">${item.full_name || 'Tanpa Nama'}</div>
+                        <div class="text-xs text-gray-500">${item.department || '-'}</div>
+                    </td>
+                    <td class="p-3">
+                        <div class="font-semibold text-gray-800">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
+                        <div class="text-[11px] text-gray-500 mt-1 line-clamp-2">${item.details || '-'}</div>
+                    </td>
+                    <td class="p-3 text-center">
+                        ${item.kcppp_status === 'LULUS' ? 
+                            '<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-[10px] font-bold border border-emerald-200">✅ LULUS</span>' : 
+                            '<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-[10px] font-bold border border-red-200">❌ DITOLAK</span>'
+                        }
+                    </td>
+                    <td class="p-3">${lampiran}</td>
+                </tr>
+            `}).join('');
+        }
+
+        function updateChart(data) {
+            const damageCounts = {};
+            data.forEach(item => {
+                let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types || 'Lain-lain'];
+                dmgs.forEach(d => { damageCounts[d] = (damageCounts[d] || 0) + 1; });
+            });
+
+            const labels = Object.keys(damageCounts);
+            const values = Object.values(damageCounts);
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (analyticsChart) analyticsChart.destroy();
+            
+            analyticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Kerosakan',
+                        data: values,
+                        backgroundColor: 'rgba(20, 184, 166, 0.6)', // Teal
+                        borderColor: 'rgba(13, 148, 136, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // ================= KELULUSAN (MODAL) =================
         function openModal(id) {
             const item = allComplaints.find(c => c.id === id);
             if(!item) return;
-
             document.getElementById('modal-id').value = item.id;
             document.getElementById('info-name').innerText = item.full_name || '-';
             document.getElementById('info-damage').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
             document.getElementById('info-cost').innerText = item.estimated_cost || '0.00';
-            
-            let links = '';
-            if(item.image_url) links += `<a href="${item.image_url}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 underline">Lihat Gambar</a>`;
-            if(item.quotation_url) links += `<a href="${item.quotation_url}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 underline ml-3">Lihat Sebutharga</a>`;
-            document.getElementById('info-links').innerHTML = links;
-
             document.getElementById('info-tech').innerText = item.technician_name || 'Belum dilantik';
             document.getElementById('info-cppp-remarks').innerText = item.action_remarks || 'Tiada catatan CPPP';
-
-            document.getElementById('kcppp-status').value = item.kcppp_status || '';
-            document.getElementById('kcppp-remarks').value = item.kcppp_remarks || '';
-
             document.getElementById('kcppp-modal').classList.remove('hidden');
         }
 
@@ -279,13 +388,18 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             const newStatus = document.getElementById('kcppp-status').value;
             const remarks = document.getElementById('kcppp-remarks').value;
 
+            // Updated_at automatik dikemaskini oleh Supabase (jika ada trigger), atau kita boleh paksa masuk tarikh sekarang
             const { error } = await _supabase
                 .from('complaints')
-                .update({ kcppp_status: newStatus, kcppp_remarks: remarks })
+                .update({ 
+                    kcppp_status: newStatus, 
+                    kcppp_remarks: remarks,
+                    updated_at: new Date().toISOString()
+                })
                 .eq('id', id);
 
-            if (error) { alert('Ralat: ' + error.message); } 
-            else { alert('Keputusan berjaya direkodkan!'); closeModal(); loadComplaints(); }
+            if (error) alert('Ralat: ' + error.message);
+            else { alert('Keputusan direkodkan!'); closeModal(); loadComplaints(); }
             
             btn.disabled = false; btn.innerText = 'Simpan Keputusan';
         }
