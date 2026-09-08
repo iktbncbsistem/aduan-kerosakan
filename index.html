@@ -377,7 +377,22 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             });
         }
 
-// --- KOD UPLOAD GAMBAR BARU (MULTIPLE) ---
+async function submitComplaint(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true; 
+            btn.innerText = 'Memproses Permohonan...';
+            
+            try {
+                const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
+                if (selectedDamageTypes.length === 0) { 
+                    alert('Sila pilih kategori kerosakan.'); 
+                    btn.disabled = false; 
+                    btn.innerText = 'Hantar Permohonan Penyenggaraan'; 
+                    return; 
+                }
+                
+                // --- KOD UPLOAD GAMBAR BARU (MULTIPLE) ---
                 let imageUrls = [];
                 const imgFiles = document.getElementById('image-file').files;
                 
@@ -404,15 +419,19 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     if (!error) quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
                 }
 
-                // PASTIKAN object newComplaint menggunakan finalImageUrl untuk image_url
                 const newComplaint = {
-                    user_id: currentUser.id, full_name: userProfile.full_name,
-                    email: currentUser.email, phone: document.getElementById('phone').value,
-                    department: document.getElementById('department').value, damage_types: selectedDamageTypes,
-                    details: document.getElementById('details').value, justification: document.getElementById('justification').value,
+                    user_id: currentUser.id, 
+                    full_name: userProfile.full_name,
+                    email: currentUser.email, 
+                    phone: document.getElementById('phone').value,
+                    department: document.getElementById('department').value, 
+                    damage_types: selectedDamageTypes,
+                    details: document.getElementById('details').value, 
+                    justification: document.getElementById('justification').value,
                     estimated_cost: parseFloat(document.getElementById('estimated-cost').value || 0),
-                    image_url: finalImageUrl, /* Ini line yang penting */
-                    quotation_url: quotationUrl, status: 'BARU'
+                    image_url: finalImageUrl, 
+                    quotation_url: quotationUrl, 
+                    status: 'BARU'
                 };
 
                 const { error } = await _supabase.from('complaints').insert([newComplaint]);
@@ -426,10 +445,15 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 }
                 
                 document.getElementById('complaint-form').reset();
-                switchTab('records'); // Lompat terus ke tab rekod selepas berjaya hantar
+                document.getElementById('image-preview').innerHTML = ''; // Clear preview
+                switchTab('records');
 
-            } catch (err) { alert('Ralat: ' + err.message); }
-            finally { btn.disabled = false; btn.innerText = 'Hantar Permohonan Penyenggaraan'; }
+            } catch (err) { 
+                alert('Ralat: ' + err.message); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = 'Hantar Permohonan Penyenggaraan'; 
+            }
         }
 
         async function loadMyComplaints() {
