@@ -250,12 +250,26 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             document.getElementById('modal-technician').value = item.technician_name || '';
             document.getElementById('modal-remarks').value = item.action_remarks || '';
 
-            // Lampiran
+           // Lampiran
             let attachHTML = '';
-            if(item.image_url) attachHTML += `<a href="${item.image_url}" target="_blank" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-xs font-bold inline-flex items-center gap-1 hover:bg-blue-200">🖼️ Lihat Gambar</a>`;
-            if(item.quotation_url) attachHTML += `<a href="${item.quotation_url}" target="_blank" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-bold inline-flex items-center gap-1 hover:bg-gray-300">📄 Lihat Sebutharga (RM ${item.estimated_cost || '0'})</a>`;
+            
+            // Sistem pecahkan URL gambar jika lebih dari satu
+            if (item.image_url) {
+                const urls = item.image_url.split(','); 
+                urls.forEach((url, i) => {
+                    attachHTML += `<a href="${url.trim()}" target="_blank" class="block w-full text-left text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded mb-1 font-semibold truncate">🖼️ Gambar_Kerosakan_${i + 1}</a>`;
+                });
+            }
+            
+            // Paparkan sebutharga jika ada
+            if (item.quotation_url) {
+                attachHTML += `<a href="${item.quotation_url}" target="_blank" class="block w-full text-left text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded mt-2 font-semibold truncate">📄 Sebutharga_Lampiran</a>`;
+            }
+            
             if(!attachHTML) attachHTML = '<span class="text-xs text-gray-400">Tiada lampiran.</span>';
-            document.getElementById('modal-attachments').innerHTML = attachHTML;
+            
+            // Masukkan ke dalam HTML
+            document.getElementById('modal-attachments').innerHTML = `<div class="flex flex-col w-full mt-2">${attachHTML}</div>`;
 
             document.getElementById('action-modal').classList.remove('hidden');
         }
