@@ -377,38 +377,42 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             });
         }
 
-        async function submitComplaint(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerText = 'Memproses Permohonan...';
-            
-            try {
-                const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
-                if (selectedDamageTypes.length === 0) { alert('Sila pilih kategori kerosakan.'); btn.disabled = false; btn.innerText = 'Hantar Permohonan Penyenggaraan'; return; }
+// --- KOD UPLOAD GAMBAR BARU (MULTIPLE) ---
+                let imageUrls = [];
+                const imgFiles = document.getElementById('image-file').files;
                 
-                let imageUrl = null, quotationUrl = null;
-                const imgFile = document.getElementById('image-file').files[0];
-                if (imgFile) {
-                    const compFile = await compressImage(imgFile);
-                    const path = `images/${Date.now()}_${compFile.name}`;
-                    const { error } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
-                    if (!error) imageUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
+                if (imgFiles.length > 0) {
+                    for (let i = 0; i < imgFiles.length; i++) {
+                        const compFile = await compressImage(imgFiles[i]);
+                        const path = `images/${Date.now()}_${i}_${compFile.name}`;
+                        const { error } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
+                        if (!error) {
+                            const url = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
+                            imageUrls.push(url);
+                        }
+                    }
                 }
+                // Gabungkan semua URL gambar menjadi satu teks (dipisahkan dengan koma)
+                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
+                // ------------------------------------------
                 
                 const quoteFile = document.getElementById('quotation-file').files[0];
+                let quotationUrl = null;
                 if (quoteFile) {
                     const path = `quotations/${Date.now()}_${quoteFile.name}`;
                     const { error } = await _supabase.storage.from('complaint_attachments').upload(path, quoteFile);
                     if (!error) quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
                 }
 
+                // PASTIKAN object newComplaint menggunakan finalImageUrl untuk image_url
                 const newComplaint = {
                     user_id: currentUser.id, full_name: userProfile.full_name,
                     email: currentUser.email, phone: document.getElementById('phone').value,
                     department: document.getElementById('department').value, damage_types: selectedDamageTypes,
                     details: document.getElementById('details').value, justification: document.getElementById('justification').value,
                     estimated_cost: parseFloat(document.getElementById('estimated-cost').value || 0),
-                    image_url: imageUrl, quotation_url: quotationUrl, status: 'BARU'
+                    image_url: finalImageUrl, /* Ini line yang penting */
+                    quotation_url: quotationUrl, status: 'BARU'
                 };
 
                 const { error } = await _supabase.from('complaints').insert([newComplaint]);
