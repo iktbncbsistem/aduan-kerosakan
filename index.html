@@ -105,10 +105,12 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 bg-gray-50 p-4 rounded-lg border">
                     <div class="md:col-span-1">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Gambar Kerosakan <span class="text-xs text-gray-400 font-normal">(Boleh pelbagai)</span></label>
-                        <input type="file" id="image-file" accept="image/*" multiple class="w-full border bg-white rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-blue-100 file:text-blue-700 file:font-semibold hover:file:bg-blue-200" onchange="previewImages()">
-                        <div id="image-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Gambar Kerosakan <span class="text-xs text-gray-400 font-normal">(Boleh tambah banyak)</span></label>
+                        <input type="file" id="image-file" accept="image/*" multiple class="w-full border bg-white rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-blue-100 file:text-blue-700 file:font-semibold hover:file:bg-blue-200" onchange="handleFileSelection(event)">
+                        <div id="file-name-preview" class="flex flex-col gap-1 mt-2"></div>
                     </div>
+                     
+                                    
                     <div class="md:col-span-1">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Upload Sebutharga</label>
                         <input type="file" id="quotation-file" accept=".pdf,.doc,.docx,image/*" class="w-full border bg-white rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-gray-200 file:text-gray-700 file:font-semibold">
@@ -340,22 +342,32 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
 // Fungsi baru untuk preview gambar yang dipilih
-        function previewImages() {
-            const preview = document.getElementById('image-preview');
-            preview.innerHTML = '';
-            const files = document.getElementById('image-file').files;
+        let selectedAttachmentFiles = []; // Simpan semua gambar di sini
+
+        function handleFileSelection(event) {
+            const files = event.target.files;
             if (files) {
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'w-12 h-12 object-cover rounded border border-gray-300 shadow-sm';
-                        preview.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
-                });
+                Array.from(files).forEach(file => selectedAttachmentFiles.push(file));
             }
+            renderFilePreview();
+            event.target.value = ''; // Reset input supaya boleh tambah gambar lain lagi
+        }
+
+        function renderFilePreview() {
+            const preview = document.getElementById('file-name-preview');
+            preview.innerHTML = '';
+            selectedAttachmentFiles.forEach((file, index) => {
+                preview.innerHTML += `
+                    <div class="flex items-center justify-between bg-gray-100 px-2 py-1.5 rounded border text-xs">
+                        <span class="truncate text-gray-700 font-semibold">📄 ${file.name}</span>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 font-bold hover:text-red-700 px-2">&times;</button>
+                    </div>`;
+            });
+        }
+
+        function removeFile(index) {
+            selectedAttachmentFiles.splice(index, 1);
+            renderFilePreview();
         }
 
         // Fungsi compress yang dikemaskini (Kekalkan Px, Kurangkan Saiz Fail)
@@ -394,7 +406,7 @@ async function submitComplaint(e) {
                 
                 // --- KOD UPLOAD GAMBAR BARU (MULTIPLE) ---
                 let imageUrls = [];
-                const imgFiles = document.getElementById('image-file').files;
+                const imgFiles = selectedAttachmentFiles;
                 
                 if (imgFiles.length > 0) {
                     for (let i = 0; i < imgFiles.length; i++) {
