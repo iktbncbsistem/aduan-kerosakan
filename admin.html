@@ -132,10 +132,11 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
 
             // Tapis dan buang peranan pengurusan daripada jadual
-                const senaraiDibenarkan = (data || []).filter(user => {
-                const peranan = user.role ? user.role.toUpperCase() : '';
-                return !['STAF', 'CPPP', 'KCPPP', 'ADMIN'].includes(peranan);
-            });
+                // Tapis dan sembunyikan akaun ADMIN sahaja dari jadual RBAC
+        const senaraiDibenarkan = (data || []).filter(user => {
+            const peranan = user.role ? user.role.trim().toUpperCase() : '';
+            return peranan !== 'ADMIN'; // Staf, CPPP, dan KCPPP kekal dipaparkan
+        });
 
             allUsers = senaraiDibenarkan;
             renderTable(allUsers);
