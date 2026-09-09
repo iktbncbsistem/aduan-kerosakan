@@ -282,7 +282,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 if (extIndex !== -1) {
                     const nama = rawName.substring(0, extIndex);
                     const ext = rawName.substring(extIndex);
-                    if (nama.length > 10) shortName = nama.substring(0, 10) + '...' + ext;
+                    if (nama.length > 50) shortName = nama.substring(0, 10) + '...' + ext;
                 }
                 return { rawName, shortName };
             };
