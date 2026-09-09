@@ -446,10 +446,22 @@ async function submitComplaint(e) {
                 
                 alert('Berjaya dihantar!');
                 
-                if (whatsappSettings.enabled && whatsappSettings.phone) {
-                    const msg = `*PERMOHONAN PENYENGGARAAN BARU*%0A*Pemohon:* ${newComplaint.full_name}%0A*Lokasi:* ${newComplaint.department}%0A*Kerosakan:* ${selectedDamageTypes.join(', ')}`;
-                    window.open(`https://wa.me/${whatsappSettings.phone}?text=${msg}`, '_blank');
-                }
+                // --- KOD HANTAR KE WHATSAPP (DINAMIK) ---
+            const dept = document.getElementById('department').value;
+            const details = document.getElementById('details').value || 'Tiada butiran';
+            const nama = document.getElementById('display-name').innerText;
+            
+            // Ambil nombor dari database
+            const { data: settingData } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
+            let noAdmin = settingData ? settingData.setting_value : "60123456789";
+            
+            // Buang tanda '+' atau '-' jika ada, pastikan mula dengan 60
+            noAdmin = noAdmin.replace(/[^0-9]/g, ''); 
+            
+            const mesejWA = `*ADUAN BARU (Sistem IT)*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}\n\n_Sila log masuk ke sistem untuk tindakan lanjut._`;
+            const linkWA = `https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`;
+            window.open(linkWA, '_blank');
+            // ----------------------------------------
                 
                 document.getElementById('complaint-form').reset();
                 selectedAttachmentFiles = [];
