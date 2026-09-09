@@ -274,8 +274,6 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             // Lampiran
             let attachHTML = '';
-           // Lampiran
-            let attachHTML = '';
             
             // Sistem pecahkan URL gambar jika lebih dari satu
             if (item.image_url) {
@@ -323,8 +321,13 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 })
                 .eq('id', id);
 
-            if (error) { alert('Ralat: ' + error.message); } 
-            else { alert('Tindakan berjaya disimpan!'); closeActionModal(); loadComplaints(); }
+            if (error) { 
+                alert('Ralat: ' + error.message); 
+            } else { 
+                alert('Tindakan berjaya disimpan!'); 
+                closeModal(); // Ditukar dari closeActionModal() kepada closeModal()
+                loadComplaints(); 
+            }
             
             btn.disabled = false; btn.innerText = 'Simpan Tindakan';
         }
