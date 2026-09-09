@@ -131,7 +131,13 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 return;
             }
 
-            allUsers = data || [];
+            // Tapis dan buang peranan pengurusan daripada jadual
+                const senaraiDibenarkan = (data || []).filter(user => {
+                const peranan = user.role ? user.role.toUpperCase() : '';
+                return !['STAF', 'CPPP', 'KCPPP', 'ADMIN'].includes(peranan);
+            });
+
+            allUsers = senaraiDibenarkan;
             renderTable(allUsers);
         }
 
