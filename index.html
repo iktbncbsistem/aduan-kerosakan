@@ -204,9 +204,14 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
                 updateProfileUI();
 
-                // --- SISTEM HALA TUJU (ROUTING) & MENU DINAMIK ---
-                const roleUpper = profile.role ? profile.role.trim().toUpperCase() : '';
+               // --- SISTEM HALA TUJU (ROUTING) & MENU DINAMIK ---
+                const menuContainer = document.getElementById('dynamic-menu');
+                menuContainer.innerHTML = '';
+                
+                // Ambil peranan dan ubah ke huruf besar
+                const roleUpper = profile && profile.role ? profile.role.trim().toUpperCase() : 'STAF';
 
+                // Paparkan butang panel mengikut peranan spesifik
                 if (roleUpper === 'ADMIN') {
                     menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">⚙️ Panel Admin</a>`;
                 } else if (roleUpper === 'CPPP') {
@@ -214,20 +219,18 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 } else if (roleUpper === 'KCPPP') {
                     menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">✅ Panel KCPPP</a>`;
                 }
-                if (profile.role === 'KCPPP' || profile.role === 'ADMIN') {
-                    menuContainer.innerHTML += `<a href="kcppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">✅ Panel KCPPP</a>`;
-                }
+                
                 menuContainer.classList.remove('hidden');
 
-                // Auto-Redirect ke page peranan 
+                // Auto-Redirect ke laman peranan (jika baru log masuk)
                 if (!sessionStorage.getItem('sudah_redirect')) {
                     sessionStorage.setItem('sudah_redirect', 'true');
                     
-                    if (profile.role === 'CPPP') {
+                    if (roleUpper === 'CPPP') {
                         window.location.href = 'cppp.html'; return;
-                    } else if (profile.role === 'KCPPP') {
+                    } else if (roleUpper === 'KCPPP') {
                         window.location.href = 'kcppp.html'; return;
-                    } else if (profile.role === 'ADMIN') {
+                    } else if (roleUpper === 'ADMIN') {
                         window.location.href = 'admin.html'; return;
                     }
                 }
