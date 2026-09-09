@@ -282,6 +282,27 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
         }
 
+async function loadWhatsappSetting() {
+            const { data } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
+            if(data) document.getElementById('whatsapp-input').value = data.setting_value;
+        }
+
+        async function saveWhatsapp() {
+    const val = document.getElementById('whatsapp-input').value.trim();
+    if(!val) return alert('Sila masukkan nombor.');
+    
+    const { error } = await _supabase.from('system_settings').upsert({ 
+        setting_key: 'whatsapp_no', 
+        setting_value: val 
+    });
+    
+    if(error) alert('Ralat: ' + error.message);
+    else alert('Nombor WhatsApp berjaya dikemaskini!');
+}
+        
+        // Panggil fungsi ini semasa page load
+        loadWhatsappSetting();
+
         async function logout() {
             await _supabase.auth.signOut();
             window.location.href = 'login.html';
