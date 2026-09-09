@@ -307,18 +307,20 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             const id = document.getElementById('modal-id').value;
             const remarks = document.getElementById('modal-remarks').value;
+            const namaCPPP = userProfile?.full_name || currentUser.email.split('@')[0];
 
             // Gabungkan semua kotak yang ditandai menjadi satu teks panjang
             const selectedKategori = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
 
             const { error } = await _supabase
                 .from('complaints')
-                .update({ 
-                    cppp_kategori: selectedKategori, 
-                    action_remarks: remarks, 
-                    status: 'PROSES', // Status automatik bertukar PROSES bila CPPP ambil tindakan
-                    updated_at: new Date().toISOString()
-                })
+                .update({
+                cppp_kategori: selectedKategori,
+                action_remarks: remarks,
+                cppp_name: namaCPPP, // <-- TAMBAH BARIS INI DI SINI
+                status: 'PROSES', // Status automatik bertukar PROSES bila CPPP ambil tindakan
+                updated_at: new Date().toISOString()
+            })
                 .eq('id', id);
 
             if (error) { 
