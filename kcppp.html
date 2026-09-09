@@ -454,6 +454,31 @@ function openModal(id) {
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         
         initKCPPP();
+
+
+// Fungsi muat tahun secara automatik (Dinamik)
+        async function populateYearFilter() {
+            // Cari elemen dropdown tahun (sesuaikan ID jika di HTML bos guna nama lain)
+            const yearSelect = document.getElementById('filter-year') || document.querySelector('select[id*="year"]');
+            if (!yearSelect) return;
+
+            const { data } = await _supabase.from('complaints').select('created_at');
+            if (!data || data.length === 0) return;
+
+            // Ambil semua tahun unik dari rekod aduan
+            const years = [...new Set(data.map(item => new Date(item.created_at).getFullYear()))].sort((a, b) => b - a);
+
+            // Simpan pilihan semasa pengguna jika ada
+            const currentSelected = yearSelect.value;
+
+            yearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+            years.forEach(year => {
+                yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+
+            if (currentSelected) yearSelect.value = currentSelected;
+        }
+        
     </script>
 </body>
 </html>
