@@ -205,14 +205,14 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 updateProfileUI();
 
                 // --- SISTEM HALA TUJU (ROUTING) & MENU DINAMIK ---
-                const menuContainer = document.getElementById('dynamic-menu');
-                menuContainer.innerHTML = '';
-                
-                if (profile.role === 'ADMIN') {
-                    menuContainer.innerHTML += `<a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">⚙️ Panel Admin</a>`;
-                }
-                if (profile.role === 'CPPP' || profile.role === 'ADMIN') {
-                    menuContainer.innerHTML += `<a href="cppp.html" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">🔧 Panel CPPP</a>`;
+                const roleUpper = profile.role ? profile.role.trim().toUpperCase() : '';
+
+                if (roleUpper === 'ADMIN') {
+                    menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">⚙️ Panel Admin</a>`;
+                } else if (roleUpper === 'CPPP') {
+                    menuContainer.innerHTML = `<a href="cppp.html" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">🔧 Panel CPPP</a>`;
+                } else if (roleUpper === 'KCPPP') {
+                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">✅ Panel KCPPP</a>`;
                 }
                 if (profile.role === 'KCPPP' || profile.role === 'ADMIN') {
                     menuContainer.innerHTML += `<a href="kcppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">✅ Panel KCPPP</a>`;
