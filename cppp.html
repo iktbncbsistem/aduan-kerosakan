@@ -257,14 +257,23 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             document.getElementById('modal-details').innerText = item.details || 'Tiada butiran direkodkan.';
             document.getElementById('modal-justification').innerText = item.justification || 'Tiada justifikasi.';
             
-            // Set input borang
-            let currentStatus = item.status || 'BARU';
-            if(currentStatus === 'SEDANG DIPROSES') currentStatus = 'PROSES';
-            document.getElementById('modal-status').value = currentStatus;
             
-            document.getElementById('modal-technician').value = item.technician_name || '';
             document.getElementById('modal-remarks').value = item.action_remarks || '';
+          
+            // --- KOD CHECKBOX KATEGORI ---
+            // Kosongkan semua kotak (reset)
+            document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => cb.checked = false);
+            // Tandakan semula kotak berdasarkan rekod pangkalan data
+            if (item.cppp_kategori) {
+                const savedKategori = item.cppp_kategori.split(', ');
+                document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => {
+                    if (savedKategori.includes(cb.value)) cb.checked = true;
+                });
+            }
+            // -----------------------------
 
+            // Lampiran
+            let attachHTML = '';
            // Lampiran
             let attachHTML = '';
             
@@ -299,29 +308,26 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             btn.disabled = true; btn.innerText = 'Menyimpan...';
 
             const id = document.getElementById('modal-id').value;
-            const newStatus = document.getElementById('modal-status').value;
-            const techName = document.getElementById('modal-technician').value;
             const remarks = document.getElementById('modal-remarks').value;
+
+            // Gabungkan semua kotak yang ditandai menjadi satu teks panjang
+            const selectedKategori = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
 
             const { error } = await _supabase
                 .from('complaints')
                 .update({ 
-                    status: newStatus, 
-                    technician_name: techName, 
-                    action_remarks: remarks 
+                    cppp_kategori: selectedKategori, 
+                    action_remarks: remarks, 
+                    status: 'PROSES', // Status automatik bertukar PROSES bila CPPP ambil tindakan
+                    updated_at: new Date().toISOString()
                 })
                 .eq('id', id);
 
-            if (error) {
-                alert('Gagal menyimpan tindakan: ' + error.message);
-            } else {
-                alert('Tindakan berjaya dikemaskini!');
-                closeModal();
-                loadComplaints(); // Refresh table
-            }
+            if (error) { alert('Ralat: ' + error.message); } 
+            else { alert('Tindakan berjaya disimpan!'); closeActionModal(); loadComplaints(); }
+            
             btn.disabled = false; btn.innerText = 'Simpan Tindakan';
         }
-
         async function logout() { 
             sessionStorage.clear(); 
             await _supabase.auth.signOut(); 
