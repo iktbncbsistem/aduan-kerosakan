@@ -410,16 +410,37 @@ const cpppName = item.cppp_name ? item.cppp_name : 'Tidak Diketahui';
             document.getElementById('info-justification').innerText = item.justification || 'Tiada justifikasi diberikan.';
 
             // --- KOD LAMPIRAN GAMBAR MULTIPLE ---
+            // --- KOD LAMPIRAN BARU (AUTO-DOWNLOAD & NAMA PENDEK) ---
             let links = '';
+            
+            // Fungsi pembantu untuk potong nama fail jadi kemas
+            const formatName = (url) => {
+                let rawName = decodeURIComponent(url.split('/').pop()).replace(/^[0-9]+(_[0-9]+)?_/, '');
+                let shortName = rawName;
+                const extIndex = rawName.lastIndexOf('.');
+                if (extIndex !== -1) {
+                    const nama = rawName.substring(0, extIndex);
+                    const ext = rawName.substring(extIndex);
+                    if (nama.length > 10) shortName = nama.substring(0, 10) + '...' + ext;
+                }
+                return { rawName, shortName };
+            };
+
+            // 1. Gelung untuk Gambar Kerosakan
             if (item.image_url) {
                 const urls = item.image_url.split(','); 
-                urls.forEach((url, i) => {
-                    links += `<a href="${url.trim()}" target="_blank" class="block w-full text-left text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded mb-1 font-semibold truncate">🖼️ Gambar_Kerosakan_${i + 1}</a>`;
+                urls.forEach((url) => {
+                    let cleanUrl = url.trim();
+                    let file = formatName(cleanUrl);
+                    links += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="block w-full text-left text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded mb-1 font-semibold truncate cursor-pointer transition-colors">⬇️ 🖼️ ${file.shortName}</button>`;
                 });
             }
             
+            // 2. Untuk Fail Sebutharga (jika ada)
             if (item.quotation_url) {
-                links += `<a href="${item.quotation_url}" target="_blank" class="block w-full text-left text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded mt-2 font-semibold truncate">📄 Sebutharga_Lampiran</a>`;
+                let cleanUrl = item.quotation_url.trim();
+                let file = formatName(cleanUrl);
+                links += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="block w-full text-left text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded mt-2 font-semibold truncate cursor-pointer transition-colors">⬇️ 📄 ${file.shortName}</button>`;
             }
             
             // Auto-bina ruang lampiran jika belum ada dalam HTML
@@ -433,8 +454,7 @@ const cpppName = item.cppp_name ? item.cppp_name : 'Tidak Diketahui';
             linksContainer.innerHTML = `<div class="flex flex-col w-full">${links || '<span class="text-xs text-gray-500 font-semibold">Tiada lampiran disediakan.</span>'}</div>`;
             // ------------------------------------
 
-            document.getElementById('kcppp-modal').classList.remove('hidden');
-        }
+            document.getElementById('kcppp-modal').classList.remove('hidden');        }
 
         function closeModal() { document.getElementById('kcppp-modal').classList.add('hidden'); }
 
@@ -491,6 +511,36 @@ const cpppName = item.cppp_name ? item.cppp_name : 'Tidak Diketahui';
             if (currentSelected) yearSelect.value = currentSelected;
         }
         populateYearFilter();
+
+// FUNGSI PAKSA MUAT TURUN (AUTO-DOWNLOAD)
+        async function forceDownload(url, fileName) {
+            try {
+                // Tunjuk alert ringkas supaya user tahu sistem sedang proses
+                console.log('Memuat turun:', fileName);
+                
+                const response = await fetch(url);
+                const blob = await response.blob();
+                
+                // Cipta link memori sementara
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = fileName; // Paksa letak nama fail
+                
+                // Tekan link tersebut secara senyap
+                document.body.appendChild(a);
+                a.click();
+                
+                // Bersihkan semula
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (error) {
+                alert('Gagal memuat turun fail. Sila cuba lagi.');
+                // Fallback: buka di tab baru jika gagal
+                window.open(url, '_blank'); 
+            }
+        }
+        
     </script>
 </body>
 </html>
