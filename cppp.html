@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel CPPP - Sistem Pengurusan IT</title>
+    <title>Dashboard CPPP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -272,26 +272,41 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
             // -----------------------------
 
-            // Lampiran
+            // --- KOD LAMPIRAN BARU (AUTO-DOWNLOAD & NAMA PENDEK) ---
             let attachHTML = '';
             
-            // Sistem pecahkan URL gambar jika lebih dari satu
+            const formatName = (url) => {
+                let rawName = decodeURIComponent(url.split('/').pop()).replace(/^[0-9]+(_[0-9]+)?_/, '');
+                let shortName = rawName;
+                const extIndex = rawName.lastIndexOf('.');
+                if (extIndex !== -1) {
+                    const nama = rawName.substring(0, extIndex);
+                    const ext = rawName.substring(extIndex);
+                    if (nama.length > 10) shortName = nama.substring(0, 10) + '...' + ext;
+                }
+                return { rawName, shortName };
+            };
+
             if (item.image_url) {
                 const urls = item.image_url.split(','); 
-                urls.forEach((url, i) => {
-                    attachHTML += `<a href="${url.trim()}" target="_blank" class="block w-full text-left text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded mb-1 font-semibold truncate">🖼️ Gambar_Kerosakan_${i + 1}</a>`;
+                urls.forEach((url) => {
+                    let cleanUrl = url.trim();
+                    let file = formatName(cleanUrl);
+                    attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="block w-full text-left text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded mb-1 font-semibold truncate cursor-pointer transition-colors">⬇️ 🖼️ ${file.shortName}</button>`;
                 });
             }
             
-            // Paparkan sebutharga jika ada
             if (item.quotation_url) {
-                attachHTML += `<a href="${item.quotation_url}" target="_blank" class="block w-full text-left text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded mt-2 font-semibold truncate">📄 Sebutharga_Lampiran</a>`;
+                let cleanUrl = item.quotation_url.trim();
+                let file = formatName(cleanUrl);
+                attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="block w-full text-left text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded mt-2 font-semibold truncate cursor-pointer transition-colors">⬇️ 📄 ${file.shortName}</button>`;
             }
             
-            if(!attachHTML) attachHTML = '<span class="text-xs text-gray-400">Tiada lampiran.</span>';
-            
-            // Masukkan ke dalam HTML
-            document.getElementById('modal-attachments').innerHTML = `<div class="flex flex-col w-full mt-2">${attachHTML}</div>`;
+            const modalAttachments = document.getElementById('modal-attachments');
+            if (modalAttachments) {
+                modalAttachments.innerHTML = `<div class="flex flex-col w-full">${attachHTML || '<span class="text-xs text-gray-500 font-semibold">Tiada lampiran disediakan.</span>'}</div>`;
+            }
+            // -----------------------------------------------------------
 
             document.getElementById('action-modal').classList.remove('hidden');
         }
@@ -340,6 +355,29 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
         initCPPP();
+
+// FUNGSI PAKSA MUAT TURUN (AUTO-DOWNLOAD)
+        async function forceDownload(url, fileName) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = fileName; 
+                
+                document.body.appendChild(a);
+                a.click();
+                
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (error) {
+                alert('Gagal memuat turun fail. Sila cuba lagi.');
+                window.open(url, '_blank'); 
+            }
+        }
+        
     </script>
 </body>
 </html>
