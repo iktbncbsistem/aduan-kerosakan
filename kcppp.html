@@ -333,42 +333,66 @@
         }
 
         async function loadSystemData() {
-            // Load WhatsApp
-            const { data: wa } = await _supabase.from('settings').select('value').eq('key', 'whatsapp_admin').single();
-            if(wa) document.getElementById('wa-number').value = wa.value;
+            try {
+                // 1. Load WhatsApp (Letak error handler supaya tak ganggu proses lain)
+                const { data: wa, error: waErr } = await _supabase.from('settings').select('value').eq('key', 'whatsapp_admin').single();
+                if (wa) document.getElementById('wa-number').value = wa.value;
 
-            // Load Departments
-            const { data: depts } = await _supabase.from('departments').select('*').order('name');
-            if(depts) {
-                allDepts = depts;
-                document.getElementById('dept-list').innerHTML = depts.map((d, i) => `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="p-3 text-center">${i+1}</td><td class="p-3 font-semibold">${d.name}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="editLocation('${d.id}', '${d.name}')" class="text-blue-500 hover:text-blue-700 mx-1"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteLocation('${d.id}')" class="text-red-500 hover:text-red-700 mx-1"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
+                // 2. Load Departments & Bina Butang Tindakan
+                const { data: depts, error: deptErr } = await _supabase.from('departments').select('*').order('name');
+                const deptList = document.getElementById('dept-list');
+                
+                if (deptErr) {
+                    deptList.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-bold">Ralat: ${deptErr.message}</td></tr>`;
+                } else if (depts && depts.length > 0) {
+                    allDepts = depts;
+                    deptList.innerHTML = depts.map((d, i) => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+                            <td class="p-3 text-center font-semibold text-slate-500">${i+1}</td>
+                            <td class="p-3 font-bold text-slate-800 uppercase tracking-wide">${d.name || d.department_name || '-'}</td>
+                            <td class="p-3 text-center">
+                                <div class="flex justify-center gap-2">
+                                    <button onclick="editLocation('${d.id}', '${d.name}')" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-3 py-1.5 rounded text-[11px] font-bold transition shadow-sm">
+                                        <i class="fa-solid fa-pen mr-1"></i> Edit
+                                    </button>
+                                    <button onclick="deleteLocation('${d.id}')" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-3 py-1.5 rounded text-[11px] font-bold transition shadow-sm">
+                                        <i class="fa-solid fa-trash mr-1"></i> Padam
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    // Paparan jika data lokasi masih kosong
+                    deptList.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-400 font-medium italic"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>Tiada lokasi didaftarkan. Sila tambah di atas.</td></tr>';
+                }
 
-            // Load Users (RBAC)
-            const { data: users } = await _supabase.from('user_profiles').select('*').order('full_name');
-            if(users) {
-                document.getElementById('user-list').innerHTML = users.map((u, i) => `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="p-3 text-center">${i+1}</td>
-                        <td class="p-3"><div class="font-bold">${u.full_name || '-'}</div><div class="text-[11px] text-slate-500">${u.email}</div></td>
-                        <td class="p-3">
-                            <select id="role-${u.id}" class="border border-slate-300 rounded p-1.5 text-xs font-bold w-full focus:border-orange-500 outline-none">
-                                <option value="USER" ${u.role==='USER'?'selected':''}>PEMOHON BIASA (USER)</option>
-                                <option value="CPPP" ${u.role==='CPPP'?'selected':''}>PEGAWAI PENYEMAK (CPPP)</option>
-                                <option value="KCPPP" ${u.role==='KCPPP'?'selected':''}>SUPER ADMIN (KCPPP)</option>
-                            </select>
-                        </td>
-                        <td class="p-3 text-center"><button onclick="updateRole('${u.id}', '${u.email}')" class="bg-slate-800 text-white text-xs px-3 py-1.5 rounded hover:bg-slate-900 shadow-sm">Simpan</button></td>
-                    </tr>
-                `).join('');
+                // 3. Load Users (RBAC)
+                const { data: users, error: userErr } = await _supabase.from('user_profiles').select('*').order('full_name');
+                const userList = document.getElementById('user-list');
+                
+                if (userErr) {
+                    userList.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500 font-bold">Ralat: ${userErr.message}</td></tr>`;
+                } else if (users && users.length > 0) {
+                    userList.innerHTML = users.map((u, i) => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+                            <td class="p-3 text-center font-semibold text-slate-500">${i+1}</td>
+                            <td class="p-3"><div class="font-bold text-slate-800 uppercase">${u.full_name || 'Tanpa Nama'}</div><div class="text-[11px] text-slate-500">${u.email}</div></td>
+                            <td class="p-3">
+                                <select id="role-${u.id}" class="border border-slate-300 rounded-md p-2 text-xs font-bold w-full focus:border-orange-500 outline-none">
+                                    <option value="USER" ${u.role==='USER'?'selected':''}>PEMOHON BIASA (USER)</option>
+                                    <option value="CPPP" ${u.role==='CPPP'?'selected':''}>PEGAWAI PENYEMAK (CPPP)</option>
+                                    <option value="KCPPP" ${u.role==='KCPPP'?'selected':''}>SUPER ADMIN (KCPPP)</option>
+                                </select>
+                            </td>
+                            <td class="p-3 text-center">
+                                <button onclick="updateRole('${u.id}', '${u.email}')" class="bg-slate-800 text-white text-xs px-4 py-2 rounded-md hover:bg-slate-900 shadow-sm transition"><i class="fa-solid fa-floppy-disk mr-1"></i>Simpan</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Ralat tidak dijangka:", err);
             }
         }
 
