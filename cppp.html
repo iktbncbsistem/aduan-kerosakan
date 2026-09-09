@@ -322,15 +322,17 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             const id = document.getElementById('modal-id').value;
             const remarks = document.getElementById('modal-remarks').value;
+            // Cara rasmi ambil e-mel/nama dari sesi log masuk Supabase
             let namaCPPP = 'Pegawai CPPP';
-try {
-    // Cuba ambil nama dari local/session storage yang bos dah set masa login
-    const profile = JSON.parse(sessionStorage.getItem('userProfile') || localStorage.getItem('userProfile') || '{}');
-    const email = sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
-    namaCPPP = profile.full_name || (email ? email.split('@')[0] : 'Pegawai CPPP');
-} catch (err) {
-    console.log('Gagal ambil nama:', err);
-}
+            try {
+                const { data: authData } = await _supabase.auth.getUser();
+                if (authData && authData.user) {
+                    const email = authData.user.email || '';
+                    namaCPPP = authData.user.user_metadata?.full_name || email.split('@')[0];
+                }
+            } catch (err) {
+                console.log('Ralat ambil pengguna:', err);
+            }
 
             // Gabungkan semua kotak yang ditandai menjadi satu teks panjang
             const selectedKategori = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
