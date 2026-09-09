@@ -203,24 +203,42 @@
             loadComplaints();
         }
 
-        async function loadComplaints() {
+       async function loadComplaints() {
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
             if (error || !data) return;
-            allComplaints = data; reportData = data; 
-            populateFilterOptions(reportData); applyFilters();
+            
+            allComplaints = data; 
+            reportData = data; 
+            
+            // --- KOD TAMBAHAN: Tarik senarai rasmi dari jadual departments ---
+            const { data: deptData } = await _supabase.from('departments').select('name').order('name');
+            let officialDepts = deptData ? deptData.map(d => d.name) : [];
+            
+            // Hantar senarai rasmi ke dalam fungsi filter
+            populateFilterOptions(reportData, officialDepts); 
+            applyFilters();
         }
 
-        function populateFilterOptions(data) {
-            const depts = new Set(), damages = new Set(), years = new Set();
+        function populateFilterOptions(data, officialDepts) {
+            const damages = new Set(); const years = new Set();
+            
             data.forEach(item => {
-                if(item.department) depts.add(item.department);
                 if(item.created_at) years.add(new Date(item.created_at).getFullYear());
+                
                 let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types || 'Lain-lain'];
                 dmgs.forEach(d => damages.add(d));
             });
-            document.getElementById('filter-dept').innerHTML = '<option value="">Semua Lokasi</option>' + Array.from(depts).sort().map(d => `<option value="${d}">${d}</option>`).join('');
-            document.getElementById('filter-damage').innerHTML = '<option value="">Semua Kerosakan</option>' + Array.from(damages).sort().map(d => `<option value="${d}">${d}</option>`).join('');
-            document.getElementById('filter-year').innerHTML = '<option value="">Semua Tahun</option>' + Array.from(years).sort((a,b)=>b-a).map(y => `<option value="${y}">${y}</option>`).join('');
+
+            // 1. Dropdown Lokasi kini menggunakan senarai rasmi dari tetapan Admin/KCPPP
+            const selDept = document.getElementById('filter-dept');
+            selDept.innerHTML = '<option value="">Semua Lokasi</option>' + officialDepts.map(d => `<option value="${d}">${d}</option>`).join('');
+            
+            // 2. Dropdown Kerosakan & Tahun kekal dinamik mengikut rekod sedia ada
+            const selDamage = document.getElementById('filter-damage');
+            const selYear = document.getElementById('filter-year');
+            
+            selDamage.innerHTML = '<option value="">Semua Kerosakan</option>' + Array.from(damages).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+            selYear.innerHTML = '<option value="">Semua Tahun</option>' + Array.from(years).sort((a,b)=>b-a).map(y => `<option value="${y}">${y}</option>`).join('');
         }
 
         function applyFilters() {
