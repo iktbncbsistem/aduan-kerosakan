@@ -118,18 +118,33 @@
                     <!-- Borang Tindakan CPPP -->
                     <h4 class="font-bold text-emerald-800 mb-4 border-l-4 border-emerald-500 pl-2">Tindakan Pegawai (CPPP)</h4>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Kemaskini Status</label>
-                            <select id="modal-status" class="w-full border-2 border-gray-200 rounded p-2 text-sm font-bold focus:border-emerald-500 outline-none">
-                                <option value="BARU">BARU</option>
-                                <option value="PROSES">SEDANG DIPROSES</option>
-                                <option value="SELESAI">SELESAI</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Juruteknik Bertugas</label>
-                            <input type="text" id="modal-technician" placeholder="Nama Juruteknik..." class="w-full border-2 border-gray-200 rounded p-2 text-sm focus:border-emerald-500 outline-none">
+                    <div class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <label class="block text-sm font-bold text-teal-900 mb-3 border-b pb-2">Kategori Kerosakan (Tindakan CPPP)</label>
+                        <div class="space-y-2.5">
+                            <label class="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki dengan kadar segera" class="mt-0.5 w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 leading-tight">a. Kerosakan yang perlu dibaiki dengan kadar segera</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki terus" class="mt-0.5 w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 leading-tight">b. Kerosakan yang boleh dibaiki terus</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti" class="mt-0.5 w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 leading-tight">c. Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki oleh pembekal luar" class="mt-0.5 w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 leading-tight">d. Kerosakan yang perlu dibaiki oleh pembekal luar</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang tidak ekonomi untuk dibaiki" class="mt-0.5 w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 leading-tight">e. Kerosakan yang tidak ekonomi untuk dibaiki</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Lain-lain" class="mt-0.5 w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 leading-tight">f. Lain-lain (Sila nyatakan dalam ruangan catatan)</span>
+                            </label>
                         </div>
                     </div>
                     
