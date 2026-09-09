@@ -17,11 +17,20 @@
         </div>
         <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold transition">Log Keluar</button>
     </nav>
-
+    <!-- Tetapan WhatsApp Admin -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 mb-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                📱 Tetapan Nombor WhatsApp Admin
+            </h2>
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <input type="text" id="whatsapp-input" placeholder="Cth: 60123456789" class="w-full sm:w-80 border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="button" onclick="saveWhatsapp()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition">Simpan Nombor</button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Pastikan nombor bermula dengan kod negara (contoh: <strong>60</strong> untuk Malaysia) tanpa sebarang tanda + atau jarak.</p>
+        </div>
     <div class="max-w-7xl mx-auto p-6">
         
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">            
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4 mb-4">
                 <div>
                     <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
