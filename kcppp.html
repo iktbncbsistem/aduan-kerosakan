@@ -129,11 +129,18 @@
                 <form id="approval-form" onsubmit="submitApproval(event)">
                     <input type="hidden" id="modal-id">
                     
-                    <div class="bg-gray-50 p-4 rounded-lg border mb-4 text-sm">
-                        <p><strong>Pemohon:</strong> <span id="info-name"></span></p>
-                        <p><strong>Kerosakan:</strong> <span id="info-damage"></span></p>
-                        <p><strong>Kos Anggaran:</strong> RM <span id="info-cost"></span></p>
-                    </div>
+                   <div class="bg-gray-50 p-4 rounded-lg border mb-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                <p><strong>Pemohon:</strong> <span id="info-name"></span></p>
+                <p><strong>Kerosakan:</strong> <span id="info-damage"></span></p>
+                <p><strong>Kos Anggaran:</strong> RM <span id="info-cost"></span></p>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-3 space-y-2">
+                <p><strong>Butiran Kerosakan:</strong> <br><span id="info-details" class="text-gray-700 font-medium"></span></p>
+                <p><strong>Justifikasi Keperluan:</strong> <br><span id="info-justification" class="text-gray-700 font-medium"></span></p>
+            </div>
+        </div>
 
                     <!-- Laporan Sokongan CPPP -->
                     <div class="bg-blue-50 p-4 rounded-lg mb-5 border-l-4 border-blue-600">
@@ -386,6 +393,9 @@ function openModal(id) {
             document.getElementById('info-cost').innerText = item.estimated_cost || '0.00';
             document.getElementById('info-cppp-kategori').innerText = item.cppp_kategori || 'Tiada kategori ditandakan';
             document.getElementById('info-cppp-remarks').innerText = item.action_remarks || 'Tiada catatan CPPP';
+
+            document.getElementById('info-details').innerText = item.details || 'Tiada butiran direkodkan.';
+            document.getElementById('info-justification').innerText = item.justification || 'Tiada justifikasi diberikan.';
 
             // --- KOD LAMPIRAN GAMBAR MULTIPLE ---
             let links = '';
