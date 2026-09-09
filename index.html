@@ -11,17 +11,40 @@
 
     <!-- Header / Navibar -->
     <!-- Header / Navibar -->
-    <nav class="bg-blue-900 text-white p-4 shadow-lg flex justify-between items-center">
-        <div>
-            <h1 class="font-bold text-xl">Sistem Pengurusan IT</h1>
-            <p class="text-xs text-blue-200">Portal Aduan Kerosakan IKTBN</p>
+    <!-- Header / Navibar -->
+    <nav class="bg-blue-900 text-white p-4 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50">
+        <span id="user-email-header" class="hidden"></span> <!-- Penting untuk elak ralat JS -->
+        
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <!-- Avatar Pemohon dipindah ke Navbar -->
+            <div class="relative group cursor-pointer flex-shrink-0" onclick="document.getElementById('avatar-upload').click()" title="Klik untuk tukar gambar">
+                <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-blue-300 shadow">
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
+                    <span class="text-white text-[10px] font-bold">Tukar</span>
+                </div>
+                <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+            </div>
+            
+            <!-- Nama Pemohon & Title -->
+            <div class="flex-1 text-left">
+                <h1 class="font-bold text-lg sm:text-xl leading-tight">Sistem Pengurusan IT</h1>
+                
+                <div id="name-view-mode" class="flex items-center gap-2 mt-0.5">
+                    <span id="display-name" class="text-xs sm:text-sm text-blue-200 font-semibold truncate max-w-[150px] sm:max-w-[200px]">Memuatkan...</span>
+                    <button type="button" onclick="toggleEditName(true)" class="text-[10px] bg-blue-800 hover:bg-blue-700 px-1.5 py-0.5 rounded text-white transition shadow-sm">✏️ Edit</button>
+                </div>
+                
+                <div id="name-edit-mode" class="hidden flex items-center gap-1 mt-0.5">
+                    <input type="text" id="edit-name-input" placeholder="Nama..." class="text-black text-xs px-2 py-1 rounded w-32 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="button" onclick="saveProfileName()" class="bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">OK</button>
+                    <button type="button" onclick="toggleEditName(false)" class="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded font-bold">X</button>
+                </div>
+            </div>
         </div>
-        <div class="flex items-center gap-3">
-            
-            <!-- Tempat Letak Butang Menu Dinamik (Keluar ikut peranan) -->
-            <div id="dynamic-menu" class="hidden sm:flex gap-2"></div>
-            
-            <span id="user-email-header" class="text-sm font-medium bg-blue-800 px-3 py-1 rounded hidden md:block">Memuatkan...</span>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <!-- Tempat Letak Butang Menu Dinamik -->
+            <div id="dynamic-menu" class="hidden flex flex-wrap gap-2"></div>
             <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow">Log Keluar</button>
         </div>
     </nav>
@@ -38,51 +61,24 @@
             </button>
         </div>
 
-        <!-- TAB 1: Borang Aduan (Skrin Penuh) -->
+<!-- TAB 1: Borang Aduan (Skrin Penuh) -->
         <div id="tab-form" class="bg-white p-6 sm:p-8 rounded-xl shadow-md border border-gray-100">
-            <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-3">Hantar Permohonan Penyenggaraan Baharu</h2>
+            <!-- Tajuk di tengah (Centered) -->
+            <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-3 text-center">Hantar Permohonan Penyenggaraan Baharu</h2>
             
             <form id="complaint-form" onsubmit="submitComplaint(event)">
                 
-                <!-- Profil Pemohon -->
-                <div class="mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-sm">
-                    <div class="relative group cursor-pointer flex-shrink-0" onclick="document.getElementById('avatar-upload').click()" title="Klik untuk tukar gambar">
-                        <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">
-                        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
-                            <span class="text-white text-xs font-bold">Tukar</span>
-                        </div>
-                        <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
-                    </div>
-                    
-                    <div class="flex-1 text-center sm:text-left mt-2 sm:mt-0 w-full">
-                        <label class="block text-xs font-bold text-blue-800 uppercase mb-1 tracking-wider">Nama Pemohon</label>
-                        
-                        <div id="name-view-mode" class="flex flex-col sm:flex-row items-center sm:items-center gap-3">
-                            <span id="display-name" class="font-bold text-gray-800 text-lg sm:text-xl break-all">Memuatkan...</span>
-                            <button type="button" onclick="toggleEditName(true)" class="text-blue-700 hover:text-blue-900 text-xs bg-blue-200 hover:bg-blue-300 px-3 py-1.5 rounded-full font-semibold transition flex items-center gap-1 shadow-sm">✏️ Kemaskini</button>
-                        </div>
-                        
-                        <div id="name-edit-mode" class="hidden flex flex-col sm:flex-row items-center gap-2 mt-2">
-                            <input type="text" id="edit-name-input" placeholder="Taip nama penuh..." class="border-2 border-blue-200 rounded px-3 py-2 text-sm font-semibold text-gray-800 focus:border-blue-500 focus:ring-0 outline-none w-full sm:max-w-[250px]">
-                            <div class="flex gap-2">
-                                <button type="button" onclick="saveProfileName()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2.5 rounded font-bold shadow">Simpan</button>
-                                <button type="button" onclick="toggleEditName(false)" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-4 py-2.5 rounded font-bold">Batal</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Input Grid Utama -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">No. Telefon <span class="text-red-500">*</span></label>
-                        <input type="tel" id="phone" required placeholder="Cth: 0123456789" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
-                    </div>
+                <!-- Input Lokasi & Telefon diletak di baris paling atas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-blue-50 p-4 rounded-xl border border-blue-100">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Jabatan / Lokasi <span class="text-red-500">*</span></label>
-                        <select id="department" required class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                        <select id="department" required class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm">
                             <option value="">Pilih Jabatan</option>
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">No. Telefon <span class="text-red-500">*</span></label>
+                        <input type="tel" id="phone" required placeholder="Cth: 0123456789" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm">
                     </div>
                 </div>
 
