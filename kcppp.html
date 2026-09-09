@@ -135,10 +135,13 @@
                         <p><strong>Kos Anggaran:</strong> RM <span id="info-cost"></span></p>
                     </div>
 
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
-                        <h4 class="text-xs font-bold text-blue-800 uppercase mb-2">Laporan Sokongan (CPPP)</h4>
-                        <p class="text-sm text-gray-700"><strong>Juruteknik:</strong> <span id="info-tech">-</span></p>
-                        <p class="text-sm text-gray-700 mt-1"><strong>Catatan CPPP:</strong> <span id="info-cppp-remarks">-</span></p>
+                    <!-- Laporan Sokongan CPPP -->
+                    <div class="bg-blue-50 p-4 rounded-lg mb-5 border-l-4 border-blue-600">
+                        <p class="text-xs font-bold text-blue-800 uppercase mb-2 tracking-wider">Laporan Sokongan (CPPP)</p>
+                        <div class="space-y-1.5">
+                            <p class="text-sm text-gray-700 leading-relaxed"><span class="font-bold text-gray-900">Kategori Tindakan:</span> <br><span id="info-cppp-kategori" class="font-medium">-</span></p>
+                            <p class="text-sm text-gray-700 leading-relaxed"><span class="font-bold text-gray-900">Catatan CPPP:</span> <br><span id="info-cppp-remarks" class="font-medium">-</span></p>
+                        </div>
                     </div>
 
                     <hr class="my-6">
@@ -381,7 +384,7 @@ function openModal(id) {
             document.getElementById('info-name').innerText = item.full_name || '-';
             document.getElementById('info-damage').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
             document.getElementById('info-cost').innerText = item.estimated_cost || '0.00';
-            document.getElementById('info-tech').innerText = item.technician_name || 'Belum dilantik';
+            document.getElementById('info-cppp-kategori').innerText = item.cppp_kategori || 'Tiada kategori ditandakan';
             document.getElementById('info-cppp-remarks').innerText = item.action_remarks || 'Tiada catatan CPPP';
 
             // --- KOD LAMPIRAN GAMBAR MULTIPLE ---
