@@ -12,6 +12,14 @@
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
+    
+<link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+    
 </head>
 <body class="bg-slate-100 min-h-screen p-2 sm:p-4 md:p-6">
 
