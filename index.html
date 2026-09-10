@@ -3,286 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Penyenggaraan - Lapor Aduan</title>
+    <title>Borang Permohonan Penyenggaraan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .slide-up { animation: slideUp 0.3s ease-out forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-100 min-h-screen p-2 sm:p-4 md:p-6">
 
-    <!-- ========================================== -->
-    <!-- VERSI 1: PAPARAN TELEFON PINTAR (OCTO STYLE) -->
-    <!-- ========================================== -->
-    <div class="block lg:hidden w-full h-[100dvh] bg-slate-50 relative flex flex-col overflow-hidden no-scrollbar">
+    <!-- Container Utama Dalam 1 Frame Bersatu -->
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl relative overflow-hidden border border-slate-200">
         
-        <!-- HEADER BERTINDIH (Biru Gelap) -->
-        <div class="bg-gradient-to-br from-slate-900 to-blue-900 pt-10 pb-16 px-6 text-white relative flex-shrink-0">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-[11px] text-blue-200 mb-0.5">Selamat datang,</p>
-                    <h1 id="mob-user-name" class="text-base font-bold leading-tight uppercase truncate max-w-[200px]">Pengguna</h1>
-                    <p class="text-[9px] bg-blue-800/50 inline-block px-2 py-0.5 rounded-full mt-1.5 font-medium border border-blue-700/50 tracking-wider">STAF ILKBS</p>
-                </div>
-                <button onclick="logout()" class="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition border border-white/20"><i class="fa-solid fa-right-from-bracket text-xs"></i></button>
-            </div>
-        </div>
+        <!-- Header Ringkas (Logo + Profil + Ikon Log Keluar Sebaris) -->
+        <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 py-2.5 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+            <span id="user-email-header" class="hidden"></span>
 
-        <!-- KAD UTAMA (-mt-6 untuk tindih header) -->
-        <div class="bg-slate-50 -mt-6 rounded-t-3xl flex-1 overflow-y-auto px-5 pt-6 pb-24 relative z-10 no-scrollbar">
-            <h2 class="text-xs font-extrabold text-slate-800 mb-3 tracking-wide">LAPOR PANTAS</h2>
-            <div class="grid grid-cols-4 gap-2 mb-6">
-                <button onclick="openMobModal('Perkakasan IT')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-orange-500 active:scale-95"><div class="text-orange-500 text-lg"><i class="fa-solid fa-desktop"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perkakasan</span></button>
-                <button onclick="openMobModal('Perisian & Sistem')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-blue-500 active:scale-95"><div class="text-blue-500 text-lg"><i class="fa-solid fa-code"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perisian</span></button>
-                <button onclick="openMobModal('Elektrik')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-emerald-500 active:scale-95"><div class="text-emerald-500 text-lg"><i class="fa-solid fa-plug"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Elektrik</span></button>
-                <button onclick="openMobModal('Sivil & Bangunan')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-amber-500 active:scale-95"><div class="text-amber-500 text-lg"><i class="fa-solid fa-house-crack"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Sivil</span></button>
-            </div>
-
-            <div class="flex justify-between items-end mb-3 border-b border-slate-200 pb-2">
-                <h2 class="text-xs font-extrabold text-slate-800 tracking-wide">STATUS ADUAN SAYA</h2>
-                <span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="mob-total">0 Rekod</span>
-            </div>
-            <div id="mob-list" class="space-y-3 pb-4">
-                <div class="text-center p-6 text-slate-400 text-xs font-medium bg-white rounded-xl border border-slate-100">Memuatkan data...</div>
-            </div>
-        </div>
-
-        <!-- BOTTOM NAV BAR (TERAPUNG) -->
-        <div class="absolute bottom-0 w-full bg-slate-900 text-slate-400 rounded-t-3xl pt-2 pb-6 px-6 z-40 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.1)]">
-            <button onclick="closeMobModal()" class="flex flex-col items-center gap-1 text-white"><i class="fa-solid fa-house text-lg"></i><span class="text-[9px] font-bold">Utama</span></button>
-            <button class="flex flex-col items-center gap-1 opacity-50 mr-4"><i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">Sejarah</span></button>
-            <button onclick="openMobModal('')" class="absolute left-1/2 -translate-x-1/2 -top-6 w-16 h-16 bg-red-600 text-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-slate-50 hover:bg-red-700 hover:scale-105 transition-transform"><i class="fa-solid fa-qrcode text-xl mb-0.5"></i><span class="text-[8px] font-bold tracking-widest">LAPOR</span></button>
-            <button class="flex flex-col items-center gap-1 opacity-50 ml-4"><i class="fa-solid fa-bell text-lg"></i><span class="text-[9px] font-bold">Notis</span></button>
-            <button onclick="logout()" class="flex flex-col items-center gap-1"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px] font-bold">Profil</span></button>
-        </div>
-
-        <!-- MODAL BORANG (Meluncur) -->
-        <div id="mob-modal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex flex-col justify-end backdrop-blur-sm">
-            <div class="bg-white rounded-t-3xl h-[85%] w-full flex flex-col shadow-2xl slide-up">
-                <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 rounded-t-3xl">
-                    <h3 class="font-extrabold text-sm text-slate-800"><i class="fa-solid fa-file-pen text-red-500 mr-1.5"></i> Borang Aduan</h3>
-                    <button onclick="closeMobModal()" class="w-7 h-7 bg-slate-200 text-slate-600 rounded-full font-bold">&times;</button>
-                </div>
-                <div class="p-5 overflow-y-auto flex-1 bg-white">
-                    <form onsubmit="submitComplaint(event, 'mob')" class="space-y-4 text-xs">
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label><select id="mob-dept" required class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"><option value="">-- Pilih --</option></select></div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label><select id="mob-cat" required class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"><option value="">-- Pilih --</option></select></div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Butiran</label><textarea id="mob-det" required rows="3" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"></textarea></div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gambar</label>
-                            <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer"><input type="file" id="mob-img" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?this.files[0].name:'Pilih gambar'"><i class="fa-solid fa-camera text-xl text-slate-400 mb-1"></i><p class="text-[10px] font-bold text-slate-600" id="mob-img-lbl">Klik untuk pilih gambar</p></div>
-                        </div>
-                        <button type="submit" id="mob-btn" class="w-full bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-lg mt-4"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Aduan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ========================================== -->
-    <!-- VERSI 2: PAPARAN WEB / PC (TVET STYLE) -->
-    <!-- ========================================== -->
-    <div class="hidden lg:flex flex-col min-h-screen">
-        
-        <!-- Navbar Web -->
-        <nav class="bg-white border-b border-slate-200 py-3 px-6 flex justify-between items-center sticky top-0 z-40 shadow-sm">
-            <div class="flex items-center gap-3">
-                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-8 h-8 object-contain">
-                <div><h1 class="font-bold text-base text-slate-900 leading-none">Sistem Penyenggaraan</h1><span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold uppercase">Portal Staf</span></div>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center"><i class="fa-solid fa-user"></i></div><span id="web-user-name" class="text-sm font-bold text-slate-700">Pengguna</span></div>
-                <button onclick="logout()" class="p-2 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg transition" title="Log Keluar"><i class="fa-solid fa-right-from-bracket"></i></button>
-            </div>
-        </nav>
-
-        <!-- Main Content Web -->
-        <div class="flex-1 max-w-[1400px] w-full mx-auto p-6 grid grid-cols-3 gap-6 items-start">
-            
-            <!-- Borang Kiri -->
-            <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-20">
-                <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-3 mb-4"><i class="fa-solid fa-file-pen text-red-500 mr-2"></i> Borang Aduan Baru</h2>
-                <form onsubmit="submitComplaint(event, 'web')" class="space-y-4 text-xs">
-                    <div><label class="block font-bold text-slate-600 mb-1">Lokasi / Jabatan</label><select id="web-dept" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-red-500 transition"><option value="">-- Pilih Lokasi --</option></select></div>
-                    <div><label class="block font-bold text-slate-600 mb-1">Kategori Kerosakan</label><select id="web-cat" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-red-500 transition"><option value="">-- Pilih Kategori --</option></select></div>
-                    <div><label class="block font-bold text-slate-600 mb-1">Butiran Kerosakan</label><textarea id="web-det" required rows="4" class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-red-500 transition"></textarea></div>
-                    <div>
-                        <label class="block font-bold text-slate-600 mb-1">Muat Naik Gambar</label>
-                        <div class="relative border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50"><input type="file" id="web-img" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('web-img-lbl').innerText=this.files[0]?this.files[0].name:'Pilih gambar'"><i class="fa-solid fa-upload text-xl text-slate-400 mb-1"></i><p class="text-xs font-medium text-slate-600" id="web-img-lbl">Klik untuk muat naik</p></div>
+            <!-- Bahagian Kiri: Logo & Nama Pengguna -->
+            <div class="flex items-center gap-2.5">
+                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="w-7 h-7 object-contain sys-logo">
+                <div class="flex flex-col">
+                    <h1 class="font-bold text-xs sm:text-sm leading-tight text-slate-900">Aduan Kerosakan</h1>
+                    <div id="name-view-mode" class="flex items-center gap-1">
+                        <span id="display-name" class="text-[10px] text-slate-500 font-medium truncate max-w-[120px]">Memuatkan...</span>
+                        <button type="button" onclick="toggleEditName(true)" class="text-[9px] text-blue-600 hover:underline font-bold bg-blue-50 px-1 py-0.5 rounded">Edit</button>
                     </div>
-                    <button type="submit" id="web-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-sm mt-2 transition"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Aduan</button>
+                    <div id="name-edit-mode" class="hidden flex items-center gap-1 mt-0.5">
+                        <input type="text" id="edit-name-input" class="text-[10px] px-1.5 py-0.5 border border-slate-300 rounded focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="saveProfileName()" class="bg-green-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">OK</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bahagian Kanan: Menu Dinamik + Avatar + Ikon Log Keluar -->
+            <div class="flex items-center gap-2">
+                <div id="dynamic-menu" class="hidden mr-1"></div>
+                
+                <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm" id="user-avatar">
+                    <i class="fa-solid fa-user text-[11px]"></i>
+                </div>
+
+                <!-- Butang Ikon Log Keluar (Sebaris dengan Avatar) -->
+                <button onclick="logout()" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1" title="Log Keluar">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                </button>
+            </div>
+        </nav> 
+
+        <!-- KANDUNGAN UTAMA - GABUNGAN MOBILE DAN WEB -->
+        <div class="p-4 sm:p-6">
+            
+            <!-- Pill Tabs (Sama macam asal) -->
+            <div class="flex bg-slate-100 p-1 rounded-xl mb-5 sm:mb-6 max-w-md mx-auto border border-slate-200">
+                <button id="btn-tab-form" onclick="switchTab('form')" class="flex-1 py-2 text-xs sm:text-sm font-bold text-slate-800 bg-white rounded-lg shadow-sm transition-all">
+                    📋 Borang
+                </button>
+                <button id="btn-tab-records" onclick="switchTab('records')" class="flex-1 py-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all">
+                    📂 Rekod
+                </button>
+            </div>
+
+            <!-- TAB 1: BORANG ADUAN -->
+            <div id="tab-form" class="space-y-4 sm:space-y-5">
+                
+                <!-- MOBILE UI KATEGORI PANTAS (Hanya Muncul di Skrin Telefon Kecil) -->
+                <div class="block sm:hidden bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 shadow-inner">
+                    <h2 class="text-[10px] font-extrabold text-slate-800 mb-3 tracking-wide uppercase border-b border-slate-200 pb-1.5">Lapor Pantas</h2>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setMobileCategory('Perkakasan')" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-orange-500 transition active:scale-95">
+                            <div class="text-orange-500 text-lg"><i class="fa-solid fa-desktop"></i></div>
+                            <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perkakasan</span>
+                        </button>
+                        <button onclick="setMobileCategory('Perisian')" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition active:scale-95">
+                            <div class="text-blue-500 text-lg"><i class="fa-solid fa-code"></i></div>
+                            <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perisian</span>
+                        </button>
+                        <button onclick="setMobileCategory('Elektrik')" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-emerald-500 transition active:scale-95">
+                            <div class="text-emerald-500 text-lg"><i class="fa-solid fa-plug"></i></div>
+                            <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Elektrik</span>
+                        </button>
+                        <button onclick="setMobileCategory('Sivil')" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-amber-500 transition active:scale-95">
+                            <div class="text-amber-500 text-lg"><i class="fa-solid fa-house-crack"></i></div>
+                            <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Sivil</span>
+                        </button>
+                    </div>
+                </div>
+
+                <form id="complaint-form" onsubmit="submitComplaint(event)">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Jabatan / Lokasi</label>
+                            <select id="department" required class="w-full border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm outline-none focus:border-orange-500 bg-white shadow-sm transition">
+                                <option value="">Pilih Lokasi...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">No. Telefon</label>
+                            <input type="tel" id="phone" required placeholder="0123456789" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm outline-none focus:border-orange-500 bg-white shadow-sm transition">
+                        </div>
+                    </div>
+
+                    <!-- Kategori Kerosakan (Kekal Seperti Asal, tetapi disorok di Mobile jika 'Lapor Pantas' dipilih) -->
+                    <div class="mb-4" id="category-container">
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Kategori Kerosakan</label>
+                        <div id="damage-types-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                            <span class="text-xs text-slate-400">Memuatkan kategori...</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Butiran Kerosakan</label>
+                            <textarea id="details" rows="3" required placeholder="Terangkan masalah secara terperinci..." class="w-full border border-slate-300 rounded-xl p-3 text-xs sm:text-sm outline-none focus:border-orange-500 bg-slate-50 transition"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Justifikasi</label>
+                            <textarea id="justification" rows="3" required placeholder="Sebab munasabah memohon penyenggaraan..." class="w-full border border-slate-300 rounded-xl p-3 text-xs sm:text-sm outline-none focus:border-orange-500 bg-slate-50 transition"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Lampiran Layout (Kekal Seperti Asal) -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Gambar Kerosakan</label>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 py-2 rounded-lg text-center text-xs font-bold shadow-sm cursor-pointer transition">
+                                        <input type="file" id="camera-upload" accept="image/*" capture="environment" multiple class="hidden" onchange="handleFileSelection(event)">
+                                        📷 Kamera
+                                    </label>
+                                    <label class="flex-1 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 py-2 rounded-lg text-center text-xs font-bold shadow-sm cursor-pointer transition">
+                                        <input type="file" id="gallery-upload" accept="image/*" multiple class="hidden" onchange="handleFileSelection(event)">
+                                        🖼️ Galeri
+                                    </label>
+                                </div>
+                                <div id="file-name-preview" class="flex flex-col gap-1 mt-2"></div>
+                            </div>
+
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sebutharga (Pilihan)</label>
+                                <input type="file" id="quotation-file" accept=".pdf,.doc,.docx,image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-white file:border file:border-slate-300 file:text-slate-700 file:font-semibold hover:file:bg-slate-100 cursor-pointer">
+                            </div>
+                            
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Anggaran Kos (RM)</label>
+                                <input type="number" step="0.01" id="estimated-cost" placeholder="0.00" class="w-full border border-slate-300 rounded-lg p-2 text-xs sm:text-sm outline-none focus:border-orange-500 bg-white transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-sm shadow-md transition active:scale-[0.99]"><i class="fa-solid fa-paper-plane mr-1.5"></i> Hantar Permohonan</button>
                 </form>
             </div>
 
-            <!-- Jadual Kanan -->
-            <div class="col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-                    <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> Sejarah Aduan Saya</h2>
-                    <span id="web-total" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">0 Rekod</span>
-                </div>
-                <div class="overflow-x-auto border border-slate-200 rounded-lg">
-                    <table class="w-full text-left text-xs whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200">
-                            <tr><th class="p-3 w-10 text-center">Bil</th><th class="p-3">Kategori & Butiran</th><th class="p-3 w-32">Lokasi</th><th class="p-3 w-28 text-center">Tarikh</th><th class="p-3 w-24 text-center">Status</th></tr>
-                        </thead>
-                        <tbody id="web-list" class="divide-y divide-slate-100">
-                            <tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan data...</td></tr>
-                        </tbody>
-                    </table>
+            <!-- TAB 2: REKOD ADUAN -->
+            <div id="tab-records" class="hidden space-y-4">
+                <div id="complaints-list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div class="p-6 text-center text-slate-400 font-medium border rounded-xl bg-slate-50 md:col-span-2 text-xs">Memuatkan senarai...</div>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- SCRIPT (Dikongsi untuk Web & Mobile) -->
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let currentUser = null; let userProfile = null;
 
-        async function initIndex() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { window.location.href = 'login.html'; return; }
-            currentUser = session.user;
+        let currentUser = null;
+        let userProfile = null;
+
+        function switchTab(tabId) {
+            document.getElementById('tab-form').classList.add('hidden');
+            document.getElementById('tab-records').classList.add('hidden');
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            const btnForm = document.getElementById('btn-tab-form');
+            const btnRecords = document.getElementById('btn-tab-records');
             
-            const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
-            if(profile) {
-                userProfile = profile;
-                const nameStr = profile.full_name || currentUser.email.split('@')[0];
-                document.getElementById('mob-user-name').innerText = nameStr;
-                document.getElementById('web-user-name').innerText = nameStr;
+            const activeClass = "flex-1 py-2 text-xs sm:text-sm font-bold text-slate-800 bg-white rounded-lg shadow-sm transition-all";
+            const inactiveClass = "flex-1 py-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all";
+            
+            if (tabId === 'form') {
+                btnForm.className = activeClass;
+                btnRecords.className = inactiveClass;
+            } else {
+                btnRecords.className = activeClass;
+                btnForm.className = inactiveClass;
+                loadMyComplaints(); 
             }
+        }
 
-            loadMasterData();
-            loadMyComplaints();
+        async function checkAuth() {
+            try {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (!session) { window.location.href = 'login.html'; return; }
+                currentUser = session.user;
+                
+                const emailHeader = document.getElementById('user-email-header');
+                if(emailHeader) emailHeader.innerText = currentUser.email;
+
+                const fullNameFallback = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+                let { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).maybeSingle();
+                
+                if (!profile) {
+                    const { data: newProfile } = await _supabase.from('user_profiles').insert([{
+                        email: currentUser.email, full_name: fullNameFallback, role: 'PENDING', is_blocked: false
+                    }]).select().single();
+                    profile = newProfile;
+                }
+                userProfile = profile;
+
+                if (profile.role === 'PENDING' || profile.role === 'TIADA' || profile.is_blocked) {
+                    document.body.innerHTML = `
+                        <div class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+                            <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center border border-slate-200">
+                                <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">⚠️</div>
+                                <h2 class="text-xl font-bold text-slate-800 mb-2">Menunggu Pengesahan</h2>
+                                <p class="text-slate-600 text-xs mb-6 leading-relaxed">Akaun anda telah didaftarkan. Sila tunggu kelulusan daripada Pentadbir.</p>
+                                <button onclick="logout()" class="w-full bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-lg font-bold text-sm shadow transition">Log Keluar</button>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                updateProfileUI();
+
+                const menuContainer = document.getElementById('dynamic-menu');
+                menuContainer.innerHTML = '';
+                const roleUpper = profile && profile.role ? profile.role.trim().toUpperCase() : 'STAF';
+
+                if (roleUpper === 'ADMIN') {
+                    menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-purple-100 transition"><i class="fa-solid fa-gear mr-1"></i> Admin</a>`;
+                } else if (roleUpper === 'CPPP') {
+                    menuContainer.innerHTML = `<a href="cppp.html" class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-100 transition"><i class="fa-solid fa-wrench mr-1"></i> CPPP</a>`;
+                } else if (roleUpper === 'KCPPP') {
+                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-emerald-100 transition"><i class="fa-solid fa-sliders mr-1"></i> KCPPP</a>`;
+                }
+                
+                menuContainer.classList.remove('hidden');
+
+                if (!sessionStorage.getItem('sudah_redirect')) {
+                    sessionStorage.setItem('sudah_redirect', 'true');
+                    if (roleUpper === 'CPPP') { window.location.href = 'cppp.html'; return; } 
+                    else if (roleUpper === 'KCPPP') { window.location.href = 'kcppp.html'; return; } 
+                    else if (roleUpper === 'ADMIN') { window.location.href = 'admin.html'; return; }
+                }
+
+                await loadMasterData();
+                loadMyComplaints();
+            } catch (error) {
+                console.error("Ralat Auth:", error);
+            }
+        }
+
+        function updateProfileUI() {
+            const displayName = userProfile?.full_name || currentUser?.email?.split('@')[0] || 'Pengguna';
+            
+            const nameEl = document.getElementById('display-name');
+            if (nameEl) nameEl.innerText = displayName;
+            
+            const inputEl = document.getElementById('edit-name-input');
+            if (inputEl) inputEl.value = displayName;
+
+            const avatarEl = document.getElementById('user-avatar');
+            if (avatarEl) {
+                avatarEl.innerHTML = `<span class="uppercase font-bold">${displayName.charAt(0)}</span>`;
+            }
+        }
+
+        function toggleEditName(show) {
+            const viewMode = document.getElementById('name-view-mode');
+            const editMode = document.getElementById('name-edit-mode');
+            if (viewMode) viewMode.classList.toggle('hidden', show);
+            if (editMode) editMode.classList.toggle('hidden', !show);
+            if (show) {
+                const inputEl = document.getElementById('edit-name-input');
+                if (inputEl) inputEl.focus();
+            }
+        }
+
+        async function saveProfileName() {
+            const newName = document.getElementById('edit-name-input').value.trim();
+            if (!newName) return;
+            const { error } = await _supabase.from('user_profiles').update({ full_name: newName }).eq('email', currentUser.email);
+            if (!error) {
+                if (userProfile) userProfile.full_name = newName;
+                updateProfileUI();
+                toggleEditName(false);
+            }
         }
 
         async function loadMasterData() {
             const { data: locations } = await _supabase.from('departments').select('*').order('name');
-            if (locations) {
-                const opt = '<option value="">-- Pilih --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
-                document.getElementById('mob-dept').innerHTML = opt; document.getElementById('web-dept').innerHTML = opt;
+            const deptSelect = document.getElementById('department');
+            if (locations && locations.length > 0) {
+                deptSelect.innerHTML = '<option value="">Pilih Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
             }
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
+            let damageTypes = ["Perkakasan", "Perisian", "Elektrik", "Sivil", "Lain-lain"];
+            
             if (settings) {
                 const typesSetting = settings.find(s => s.key === 'damage_types');
-                if (typesSetting && typesSetting.value) {
-                    const types = JSON.parse(typesSetting.value);
-                    const opt = '<option value="">-- Pilih --</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
-                    document.getElementById('mob-cat').innerHTML = opt; document.getElementById('web-cat').innerHTML = opt;
-                }
-                const logoSetting = settings.find(s => s.key === 'system_logo');
-                if (logoSetting && logoSetting.value) document.querySelectorAll('.sys-logo').forEach(img => img.src = logoSetting.value);
+                if (typesSetting && typesSetting.value) damageTypes = JSON.parse(typesSetting.value);
             }
+
+            document.getElementById('damage-types-container').innerHTML = damageTypes.map(type => `
+                <label class="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-orange-300 transition">
+                    <input type="checkbox" name="damage_types" value="${type}" class="w-3.5 h-3.5 text-orange-500 rounded">
+                    <span class="text-xs font-bold text-slate-700 truncate">${type}</span>
+                </label>
+            `).join('');
+        }
+
+        // FUNGSI AUTO-TICK KATEGORI UNTUK MOBILE MENU
+        function setMobileCategory(catName) {
+            // Uncheck semua dulu
+            document.querySelectorAll('input[name="damage_types"]').forEach(cb => cb.checked = false);
+            
+            // Semak dan tick checkbox yang sepadan
+            let isFound = false;
+            document.querySelectorAll('input[name="damage_types"]').forEach(cb => {
+                if (cb.value.includes(catName) || catName.includes(cb.value)) {
+                    cb.checked = true;
+                    isFound = true;
+                }
+            });
+
+            // Jika dah tick, sorok kotak checkbox (nampak lebih clean). Jika tiada padanan, biar dipaparkan.
+            if(isFound) {
+                document.getElementById('category-container').classList.add('hidden');
+            }
+            
+            // Skrol terus ke bahagian borang Details
+            document.getElementById('details').focus();
+        }
+
+        let selectedAttachmentFiles = [];
+        function handleFileSelection(event) {
+            const files = event.target.files;
+            if (files) Array.from(files).forEach(file => selectedAttachmentFiles.push(file));
+            renderFilePreview();
+            event.target.value = ''; 
+        }
+
+        function renderFilePreview() {
+            const preview = document.getElementById('file-name-preview');
+            preview.innerHTML = '';
+            selectedAttachmentFiles.forEach((file, index) => {
+                preview.innerHTML += `
+                    <div class="flex items-center justify-between bg-orange-50 px-2 py-1 rounded text-xs border border-orange-100">
+                        <span class="truncate text-orange-700 font-bold">📷 ${file.name}</span>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 bg-red-100 rounded px-1.5 font-bold transition">&times;</button>
+                    </div>`;
+            });
+        }
+
+        function removeFile(index) {
+            selectedAttachmentFiles.splice(index, 1);
+            renderFilePreview();
+        }
+
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader(); 
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image(); 
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width; 
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+                        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                        canvas.toBlob(blob => {
+                            resolve(new File([blob], file.name, { type: mimeType }));
+                        }, mimeType, 0.8);
+                    };
+                };
+            });
+        }
+
+        async function submitComplaint(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true; btn.innerText = 'Memproses...';
+            
+            try {
+                const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
+                if (selectedDamageTypes.length === 0) { alert('Sila pilih kategori kerosakan.'); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Hantar Permohonan'; return; }
+                
+                let imageUrls = [];
+                if (selectedAttachmentFiles.length > 0) {
+                    for (let i = 0; i < selectedAttachmentFiles.length; i++) {
+                        const compFile = await compressImage(selectedAttachmentFiles[i]);
+                        const path = `images/${Date.now()}_${i}_${compFile.name}`;
+                        const { error } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
+                        if (!error) imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
+                    }
+                }
+                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
+                
+                const quoteFile = document.getElementById('quotation-file').files[0];
+                let quotationUrl = null;
+                if (quoteFile) {
+                    const path = `quotations/${Date.now()}_${quoteFile.name}`;
+                    const { error } = await _supabase.storage.from('complaint_attachments').upload(path, quoteFile);
+                    if (!error) quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
+                }
+
+                const newComplaint = {
+                    user_id: currentUser.id, full_name: userProfile.full_name, email: currentUser.email, 
+                    phone: document.getElementById('phone').value, department: document.getElementById('department').value, 
+                    damage_types: selectedDamageTypes, details: document.getElementById('details').value, 
+                    justification: document.getElementById('justification').value,
+                    estimated_cost: parseFloat(document.getElementById('estimated-cost').value || 0),
+                    image_url: finalImageUrl, quotation_url: quotationUrl, status: 'BARU'
+                };
+
+                const { error } = await _supabase.from('complaints').insert([newComplaint]);
+                if (error) throw error;
+                
+                alert('Berjaya dihantar!');
+                
+                const dept = document.getElementById('department').value;
+                const details = document.getElementById('details').value || '-';
+                const nama = document.getElementById('display-name').innerText;
+                const { data: settingData } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
+                let noAdmin = settingData ? settingData.setting_value.replace(/[^0-9]/g, '') : "60123456789";
+                
+                const mesejWA = `*ADUAN BARU*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}`;
+                window.open(`https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`, '_blank');
+                
+                document.getElementById('complaint-form').reset();
+                document.getElementById('category-container').classList.remove('hidden');
+                selectedAttachmentFiles = []; renderFilePreview();
+                switchTab('records');
+
+            } catch (err) { alert('Ralat: ' + err.message); } 
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Hantar Permohonan'; }
         }
 
         async function loadMyComplaints() {
-            const { data, error } = await _supabase.from('complaints').select('*').eq('email', currentUser.email).order('created_at', { ascending: false }).limit(15);
-            
-            const mobList = document.getElementById('mob-list'); const webList = document.getElementById('web-list');
-            const totalStr = error || !data ? '0 Rekod' : `${data.length} Rekod`;
-            document.getElementById('mob-total').innerText = totalStr; document.getElementById('web-total').innerText = totalStr;
-
-            if (error || !data || data.length === 0) {
-                mobList.innerHTML = '<div class="text-center p-6 text-slate-400 text-xs">Tiada rekod.</div>';
-                webList.innerHTML = '<tr><td colspan="5" class="text-center p-6 text-slate-400">Tiada rekod.</td></tr>';
-                return;
+            const { data, error } = await _supabase.from('complaints').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+            const tbody = document.getElementById('complaints-list');
+            if (error || !data || data.length === 0) { 
+                tbody.innerHTML = '<div class="p-6 text-center text-slate-400 font-medium border rounded-xl bg-slate-50 md:col-span-2 text-xs">Belum ada aduan.</div>'; return; 
             }
-
-            // Render Mobile
-            mobList.innerHTML = data.map(item => {
-                let icon = 'fa-file-lines'; let color = 'text-slate-600 bg-slate-50';
-                if(item.damage_types && item.damage_types.includes('Elektrik')) { icon = 'fa-plug'; color = 'text-emerald-600 bg-emerald-50'; }
-                else if(item.damage_types && item.damage_types.includes('Perisian')) { icon = 'fa-code'; color = 'text-blue-600 bg-blue-50'; }
-                else if(item.damage_types && item.damage_types.includes('Perkakasan')) { icon = 'fa-desktop'; color = 'text-orange-600 bg-orange-50'; }
-                else if(item.damage_types && item.damage_types.includes('Sivil')) { icon = 'fa-house-crack'; color = 'text-amber-600 bg-amber-50'; }
-
-                return `<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
-                    <div class="w-10 h-10 rounded-xl ${color} flex items-center justify-center text-lg flex-shrink-0"><i class="fa-solid ${icon}"></i></div>
-                    <div class="flex-1 overflow-hidden"><h3 class="text-[11px] font-bold text-slate-800 truncate">${item.damage_types}</h3><p class="text-[9px] text-slate-500 truncate">${item.department} • ${new Date(item.created_at).toLocaleDateString('ms-MY')}</p></div>
-                    <div class="flex-shrink-0">${getStatusBadge(item.status)}</div>
-                </div>`;
-            }).join('');
-
-            // Render Web
-            webList.innerHTML = data.map((item, i) => `
-                <tr class="hover:bg-slate-50 border-b border-slate-50">
-                    <td class="p-3 text-center font-bold text-slate-400 align-top">${i+1}</td>
-                    <td class="p-3 align-top whitespace-normal"><span class="font-bold text-slate-800 block">${item.damage_types}</span><span class="text-[10px] text-slate-500 line-clamp-2">${item.details}</span></td>
-                    <td class="p-3 align-top font-medium text-slate-600">${item.department}</td>
-                    <td class="p-3 align-top text-center text-slate-500">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
-                    <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
-                </tr>
+            
+            tbody.innerHTML = data.map(item => `
+                <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-2.5">
+                        <span class="text-[11px] text-slate-400 font-bold"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</span>
+                        ${getStatusBadge(item.status)}
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-800 mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
+                    <p class="text-xs text-slate-500 line-clamp-2">${item.details || ''}</p>
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 text-[11px] font-bold text-slate-600 uppercase flex items-center">
+                        <i class="fa-solid fa-location-dot mr-1.5 text-red-500"></i> ${item.department || '-'}
+                    </div>
+                </div>
             `).join('');
         }
 
         function getStatusBadge(status) {
             switch(status) {
-                case 'BARU': return '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[9px] font-bold uppercase">BARU</span>';
-                case 'PROSES': case 'SEDANG DIPROSES': return '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[9px] font-bold uppercase">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[9px] font-bold uppercase">SELESAI</span>';
-                default: return `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[9px] font-bold uppercase">${status}</span>`;
+                case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md text-[10px] font-bold">BARU</span>';
+                case 'PROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-bold">PROSES</span>';
+                case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-bold">SELESAI</span>';
+                default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded-md text-[10px] font-bold">${status || 'BARU'}</span>`;
             }
         }
 
-        function openMobModal(cat) { 
-            document.getElementById('mob-modal').classList.remove('hidden'); 
-            if(cat) {
-                const s = document.getElementById('mob-cat');
-                for(let i=0; i<s.options.length; i++) { if(s.options[i].value.includes(cat) || cat.includes(s.options[i].value)) { s.selectedIndex = i; break; } }
+        async function logout() { await _supabase.auth.signOut(); window.location.href = 'login.html'; }
+        
+        checkAuth();
+
+        async function loadSystemTheme() {
+            const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['system_logo', 'login_bg']);
+            if(data) {
+                const logo = data.find(d => d.setting_key === 'system_logo');
+                const sysLogoEls = document.querySelectorAll('.sys-logo');
+                if(logo && logo.setting_value && sysLogoEls.length > 0) {
+                    sysLogoEls.forEach(img => img.src = logo.setting_value);
+                }
             }
         }
-        function closeMobModal() { document.getElementById('mob-modal').classList.add('hidden'); }
-
-        async function submitComplaint(e, type) {
-            e.preventDefault();
-            const btn = document.getElementById(`${type}-btn`); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hantar...';
-
-            let imageUrl = null; const fileInput = document.getElementById(`${type}-img`);
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0]; const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
-                const { error: upErr } = await _supabase.storage.from('complaint-files').upload(fileName, file);
-                if (!upErr) imageUrl = _supabase.storage.from('complaint-files').getPublicUrl(fileName).data.publicUrl;
-            }
-
-            const { error } = await _supabase.from('complaints').insert([{
-                email: currentUser.email,
-                full_name: userProfile?.full_name || currentUser.email,
-                phone: userProfile?.phone || '-',
-                department: document.getElementById(`${type}-dept`).value,
-                damage_types: document.getElementById(`${type}-cat`).value,
-                details: document.getElementById(`${type}-det`).value,
-                image_url: imageUrl,
-                status: 'BARU'
-            }]);
-
-            if (error) alert('Ralat: ' + error.message);
-            else { 
-                alert('Aduan berjaya dihantar!'); 
-                if(type === 'mob') closeMobModal(); 
-                e.target.reset(); 
-                document.getElementById(`${type}-img-lbl`).innerText = type==='mob'?'Pilih gambar':'Klik untuk muat naik';
-                loadMyComplaints(); 
-            }
-            btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i> Hantar Aduan`;
-        }
-
-        async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
-        initIndex();
+        loadSystemTheme(); 
     </script>
 </body>
 </html>
