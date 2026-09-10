@@ -92,31 +92,25 @@
             if (session) window.location.href = 'index.html';
         }
 
-        document.getElementById('btn-google').addEventListener('click', loginGoogle);
-        checkSession();
-
         async function loadSystemTheme() {
-            const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['system_', 'login_bg']);
+            const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['system_logo', 'login_bg']);
             if(data) {
-                const  = data.find(d => d.setting_key === 'system_');
-                const sysEls = document.querySelectorAll('.sys-');
+                const logo = data.find(d => d.setting_key === 'system_logo');
+                const sysLogoEls = document.querySelectorAll('.sys-logo');
                 if(logo && logo.setting_value && sysLogoEls.length > 0) {
                     sysLogoEls.forEach(img => img.src = logo.setting_value);
                 }
                 
                 const bg = data.find(d => d.setting_key === 'login_bg');
-                if(bg && bg.setting_value && document.body.classList.contains('sys-bg')) {
+                if(bg && bg.setting_value) {
                     document.body.style.backgroundImage = `url('${bg.setting_value}')`;
                 }
             }
         }
-        loadSystemTheme(); 
 
-    </script>
-</body>
-</html>
-
-        
-    </script>
+        document.getElementById('btn-google').addEventListener('click', loginGoogle);
+        loadSystemTheme();
+        checkSession();
+     </script>
 </body>
 </html>
