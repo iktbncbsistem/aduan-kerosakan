@@ -2,512 +2,114 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permohonan Penyenggaraan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Borang Aduan Kerosakan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* Hilangkan scrollbar untuk paparan lebih ala-app */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-50 pb-20">
 
-    <!-- Header / Navibar -->
-    <nav class="bg-blue-900 text-white p-4 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50">
-        <span id="user-email-header" class="hidden"></span> <!-- Penting untuk elak ralat JS -->
+    <!-- Header Ala WhatsApp / Social Media -->
+    <nav class="bg-white border-b border-slate-200 p-3 sticky top-0 z-50 shadow-sm flex items-center gap-3">
+        <!-- Logo Kecil -->
+        <img src="https://via.placeholder.com/60x60.png?text=Logo" alt="Logo" class="w-10 h-10 rounded-lg object-contain bg-slate-100 p-1 border border-slate-200">
         
-        <div class="flex items-center gap-3 w-full sm:w-auto">
-            <!-- Avatar Pemohon dipindah ke Navbar -->
-            <div class="relative group cursor-pointer flex-shrink-0" onclick="document.getElementById('avatar-upload').click()" title="Klik untuk tukar gambar">
-                <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-blue-300 shadow">
-                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
-                    <span class="text-white text-[10px] font-bold">Tukar</span>
-                </div>
-                <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
-            </div>
-            
-            <!-- Nama Pemohon & Title -->
-            <div class="flex-1 text-left">
-                <h1 class="font-bold text-lg sm:text-xl leading-tight">Sistem Pengurusan Penyenggaraan</h1>
-                
-                <div id="name-view-mode" class="flex items-center gap-2 mt-0.5">
-                    <span id="display-name" class="text-xs sm:text-sm text-blue-200 font-semibold truncate max-w-[150px] sm:max-w-[200px]">Memuatkan...</span>
-                    <button type="button" onclick="toggleEditName(true)" class="text-[10px] bg-blue-800 hover:bg-blue-700 px-1.5 py-0.5 rounded text-white transition shadow-sm">✏️ Edit</button>
-                </div>
-                
-                <div id="name-edit-mode" class="hidden flex items-center gap-1 mt-0.5">
-                    <input type="text" id="edit-name-input" placeholder="Nama..." class="text-black text-xs px-2 py-1 rounded w-32 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="button" onclick="saveProfileName()" class="bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">OK</button>
-                    <button type="button" onclick="toggleEditName(false)" class="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded font-bold">X</button>
-                </div>
-            </div>
+        <div class="flex-1">
+            <h1 class="font-bold text-sm text-slate-900 leading-tight">E-Aduan Kerosakan</h1>
+            <p class="text-[10px] text-emerald-600 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Sistem Dalam Talian</p>
         </div>
-
-        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <!-- Tempat Letak Butang Menu Dinamik -->
-            <div id="dynamic-menu" class="hidden flex flex-wrap gap-2"></div>
-            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow">Log Keluar</button>
-        </div>
+        
+        <!-- Gambar Profil Pengguna / Ikon Lalai -->
+        <img src="https://via.placeholder.com/60x60.png?text=User" alt="Profil" class="w-9 h-9 rounded-full object-cover border-2 border-slate-200">
     </nav>
 
-    <div class="max-w-5xl mx-auto p-4 sm:p-6 mt-4">
-        
-        <!-- Menu Navigasi Tabs -->
-        <div class="flex border-b-2 border-gray-200 mb-6">
-            <button id="btn-tab-form" onclick="switchTab('form')" class="flex-1 py-3 text-sm sm:text-base font-bold text-blue-700 border-b-4 border-blue-700 transition-colors">
-                📝 Borang Aduan
-            </button>
-            <button id="btn-tab-records" onclick="switchTab('records')" class="flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-blue-600 transition-colors">
-                📂 Rekod Aduan Saya
-            </button>
-        </div>
-
-<!-- TAB 1: Borang Aduan (Skrin Penuh) -->
-        <div id="tab-form" class="bg-white p-6 sm:p-8 rounded-xl shadow-md border border-gray-100">
-            <!-- Tajuk di tengah (Centered) -->
-            <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-3 text-center">Hantar Permohonan Penyenggaraan Baharu</h2>
+    <!-- Kandungan Borang -->
+    <div class="p-4 max-w-md mx-auto">
+        <form id="aduan-form" class="space-y-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
             
-            <form id="complaint-form" onsubmit="submitComplaint(event)">
-                
-                <!-- Input Lokasi & Telefon diletak di baris paling atas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Jabatan / Lokasi <span class="text-red-500">*</span></label>
-                        <select id="department" required class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm">
-                            <option value="">Pilih Jabatan</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">No. Telefon <span class="text-red-500">*</span></label>
-                        <input type="tel" id="phone" required placeholder="Cth: 0123456789" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm">
-                    </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Nama Penuh</label>
+                <div class="relative">
+                    <i class="fa-regular fa-user absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                    <input type="text" id="fullname" required class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-orange-500 outline-none" placeholder="Masukkan nama...">
                 </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Kategori Kerosakan <span class="text-red-500">*</span></label>
-                    <div id="damage-types-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg border text-sm max-h-48 overflow-y-auto">
-                        <span class="text-xs text-gray-400 col-span-full">Memuatkan kategori...</span>
-                    </div>
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Butiran Kerosakan <span class="text-red-500">*</span></label>
-                    <textarea id="details" rows="3" required placeholder="Terangkan masalah atau kerosakan secara spesifik..." class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"></textarea>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Justifikasi Keperluan Penyenggaraan <span class="text-red-500">*</span></label>
-                    <textarea id="justification" rows="3" required placeholder="Sebab mendesak penyenggaraan ini perlu dijalankan..." class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 bg-gray-50 p-4 rounded-lg border">
-                    <div class="md:col-span-1">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Gambar Kerosakan <span class="text-xs text-gray-400 font-normal">(Boleh tambah banyak)</span></label>
-                        <input type="file" id="image-file" accept="image/*" multiple class="w-full border bg-white rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-blue-100 file:text-blue-700 file:font-semibold hover:file:bg-blue-200" onchange="handleFileSelection(event)">
-                        <div id="file-name-preview" class="flex flex-col gap-1 mt-2"></div>
-                    </div>
-                     
-                                    
-                    <div class="md:col-span-1">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Upload Sebutharga</label>
-                        <input type="file" id="quotation-file" accept=".pdf,.doc,.docx,image/*" class="w-full border bg-white rounded p-1.5 text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-gray-200 file:text-gray-700 file:font-semibold">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Anggaran Kos (RM)</label>
-                        <!-- Tambahan class [appearance:textfield] dan pemadam spin-button untuk hilangkan anak panah -->
-                        <input type="number" step="0.01" id="estimated-cost" placeholder="" class="w-full border bg-white rounded p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    </div>
-                </div>
-
-                <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-base shadow-lg transition-transform transform hover:-translate-y-0.5">Hantar Permohonan Penyenggaraan</button>
-            </form>
-        </div>
-
-        <!-- TAB 2: Rekod Aduan (Skrin Penuh) -->
-        <div id="tab-records" class="hidden bg-white p-6 sm:p-8 rounded-xl shadow-md border border-gray-100">
-            <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-3">Rekod Aduan Saya</h2>
-            <div class="overflow-x-auto rounded-lg border">
-                <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
-                    <thead class="bg-gray-100 border-b text-gray-700 uppercase text-xs font-bold">
-                        <tr>
-                            <th class="p-4 w-1/2">Butiran Kerosakan</th>
-                            <th class="p-4">Lokasi</th>
-                            <th class="p-4">Tarikh</th>
-                            <th class="p-4 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="complaints-list" class="divide-y">
-                        <tr><td colspan="4" class="p-6 text-center text-gray-400 font-medium">Memuatkan senarai aduan...</td></tr>
-                    </tbody>
-                </table>
             </div>
-        </div>
 
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Lokasi / Jabatan</label>
+                <div class="relative">
+                    <i class="fa-solid fa-location-dot absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                    <select id="department" required class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-orange-500 outline-none appearance-none">
+                        <option value="">Pilih Lokasi...</option>
+                        <!-- Pilihan akan dimuat dari Supabase -->
+                        <option value="Blok Pentadbiran">Blok Pentadbiran</option>
+                        <option value="Bilik Kuliah">Bilik Kuliah</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Kategori Kerosakan</label>
+                <div class="relative">
+                    <i class="fa-solid fa-wrench absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                    <select id="damage-type" required class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-orange-500 outline-none appearance-none">
+                        <option value="">Pilih Kategori...</option>
+                        <option value="Perisian (Software)">Perisian (Software)</option>
+                        <option value="Perkakasan (Hardware)">Perkakasan (Hardware)</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Butiran Kerosakan</label>
+                <textarea id="details" rows="3" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-orange-500 outline-none" placeholder="Terangkan masalah kerosakan..."></textarea>
+            </div>
+
+            <!-- Bahagian Muat Naik Gambar Ala App -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-2">Lampiran Gambar</label>
+                <div class="flex gap-3">
+                    <!-- Butang Kamera Sahaja -->
+                    <label class="flex-1 bg-orange-50 border border-orange-200 text-orange-600 py-3 rounded-xl text-center text-xs font-bold shadow-sm active:bg-orange-100 transition cursor-pointer">
+                        <input type="file" id="camera-upload" accept="image/*" capture="environment" class="hidden">
+                        <i class="fa-solid fa-camera text-xl mb-1 block"></i> Buka Kamera
+                    </label>
+                    
+                    <!-- Butang Galeri Fail -->
+                    <label class="flex-1 bg-slate-50 border border-slate-300 text-slate-600 py-3 rounded-xl text-center text-xs font-bold shadow-sm active:bg-slate-100 transition cursor-pointer">
+                        <input type="file" id="gallery-upload" accept="image/*" class="hidden">
+                        <i class="fa-regular fa-image text-xl mb-1 block"></i> Buka Galeri
+                    </label>
+                </div>
+                <div id="file-name-display" class="text-[10px] text-slate-500 mt-2 font-medium italic text-center">Tiada gambar dipilih</div>
+            </div>
+
+            <hr class="border-slate-100 my-2">
+
+            <button type="submit" id="submit-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-md transition transform active:scale-95 flex justify-center items-center gap-2 text-sm">
+                <i class="fa-solid fa-paper-plane"></i> Hantar Aduan
+            </button>
+        </form>
     </div>
 
     <script>
-const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Papar nama fail apabila gambar dipilih (Kamera atau Galeri)
+        const displayFileName = (e) => {
+            const file = e.target.files[0];
+            if(file) document.getElementById('file-name-display').innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check mr-1"></i> ${file.name} sedia untuk dihantar</span>`;
+        };
 
-        let currentUser = null;
-        let userProfile = null;
-        let whatsappSettings = { enabled: false, phone: '' };
+        document.getElementById('camera-upload').addEventListener('change', displayFileName);
+        document.getElementById('gallery-upload').addEventListener('change', displayFileName);
 
-        // FUNGSI TUKAR TAB
-        function switchTab(tabId) {
-            document.getElementById('tab-form').classList.add('hidden');
-            document.getElementById('tab-records').classList.add('hidden');
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            const btnForm = document.getElementById('btn-tab-form');
-            const btnRecords = document.getElementById('btn-tab-records');
-            
-            if (tabId === 'form') {
-                btnForm.className = "flex-1 py-3 text-sm sm:text-base font-bold text-blue-700 border-b-4 border-blue-700 transition-colors";
-                btnRecords.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-blue-600 transition-colors";
-            } else {
-                btnRecords.className = "flex-1 py-3 text-sm sm:text-base font-bold text-blue-700 border-b-4 border-blue-700 transition-colors";
-                btnForm.className = "flex-1 py-3 text-sm sm:text-base font-bold text-gray-500 border-b-4 border-transparent hover:text-blue-600 transition-colors";
-                loadMyComplaints(); // Refresh data bila buka tab rekod
-            }
-        }
-
-        async function checkAuth() {
-            try {
-                const { data: { session } } = await _supabase.auth.getSession();
-                if (!session) { window.location.href = 'login.html'; return; }
-                currentUser = session.user;
-                
-                document.getElementById('user-email-header').innerText = currentUser.email;
-
-                const fullNameFallback = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
-                let { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).maybeSingle();
-                
-                if (!profile) {
-                    const { data: newProfile } = await _supabase.from('user_profiles').insert([{
-                        email: currentUser.email, full_name: fullNameFallback, role: 'PENDING', is_blocked: false
-                    }]).select().single();
-                    profile = newProfile;
-                }
-                userProfile = profile;
-
-                if (profile.role === 'PENDING' || profile.role === 'TIADA' || profile.is_blocked) {
-                    document.body.innerHTML = `
-                        <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                            <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-200">
-                                <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl shadow-inner">⏳</div>
-                                <h2 class="text-2xl font-bold text-gray-800 mb-3">Menunggu Pengesahan</h2>
-                                <p class="text-gray-600 text-sm mb-6 leading-relaxed">Akaun anda (<span class="font-bold text-gray-800">${currentUser.email}</span>) telah didaftarkan. Sila tunggu kelulusan akses daripada Pentadbir Sistem (Admin).</p>
-                                <button onclick="logout()" class="w-full bg-gray-800 hover:bg-gray-900 text-white px-5 py-3 rounded-lg font-bold text-sm shadow transition">Log Keluar</button>
-                            </div>
-                        </div>`;
-                    return;
-                }
-
-                updateProfileUI();
-
-               // --- SISTEM HALA TUJU (ROUTING) & MENU DINAMIK ---
-                const menuContainer = document.getElementById('dynamic-menu');
-                menuContainer.innerHTML = '';
-                
-                // Ambil peranan dan ubah ke huruf besar
-                const roleUpper = profile && profile.role ? profile.role.trim().toUpperCase() : 'STAF';
-
-                // Paparkan butang panel mengikut peranan spesifik
-                if (roleUpper === 'ADMIN') {
-                    menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">⚙️ Panel Admin</a>`;
-                } else if (roleUpper === 'CPPP') {
-                    menuContainer.innerHTML = `<a href="cppp.html" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">🔧 Panel CPPP</a>`;
-                } else if (roleUpper === 'KCPPP') {
-                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition">✅ Panel KCPPP</a>`;
-                }
-                
-                menuContainer.classList.remove('hidden');
-
-                // Auto-Redirect ke laman peranan (jika baru log masuk)
-                if (!sessionStorage.getItem('sudah_redirect')) {
-                    sessionStorage.setItem('sudah_redirect', 'true');
-                    
-                    if (roleUpper === 'CPPP') {
-                        window.location.href = 'cppp.html'; return;
-                    } else if (roleUpper === 'KCPPP') {
-                        window.location.href = 'kcppp.html'; return;
-                    } else if (roleUpper === 'ADMIN') {
-                        window.location.href = 'admin.html'; return;
-                    }
-                }
-                // ------------------------------------------------
-            
-
-                await loadMasterData();
-                loadMyComplaints();
-            } catch (error) {
-                console.error("Ralat Auth:", error);
-                alert("Ralat sistem. Sila muat semula halaman.");
-            }
-        }
-        // ================= KEMASKINI PROFIL & GAMBAR =================
-        function updateProfileUI() {
-            const displayName = userProfile.full_name || currentUser.email.split('@')[0];
-            document.getElementById('display-name').innerText = displayName;
-            document.getElementById('edit-name-input').value = displayName;
-            
-            const avatarImg = document.getElementById('profile-avatar');
-            if (userProfile.avatar_url) {
-                avatarImg.src = userProfile.avatar_url;
-            } else {
-                avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff&size=128&bold=true`;
-            }
-        }
-
-        function toggleEditName(show) {
-            document.getElementById('name-view-mode').classList.toggle('hidden', show);
-            document.getElementById('name-edit-mode').classList.toggle('hidden', !show);
-            if (show) document.getElementById('edit-name-input').focus();
-        }
-
-        async function saveProfileName() {
-            const newName = document.getElementById('edit-name-input').value.trim();
-            if (!newName) return alert("Sila masukkan nama.");
-            
-            const btn = document.querySelector('#name-edit-mode button');
-            btn.innerText = 'Menyimpan...'; btn.disabled = true;
-
-            const { error } = await _supabase.from('user_profiles').update({ full_name: newName }).eq('email', currentUser.email);
-            
-            if (!error) {
-                userProfile.full_name = newName;
-                updateProfileUI();
-                toggleEditName(false);
-            } else {
-                alert("Gagal mengemaskini nama: " + error.message);
-            }
-            btn.innerText = 'Simpan'; btn.disabled = false;
-        }
-
-        async function uploadAvatar(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            document.getElementById('profile-avatar').style.opacity = '0.5';
-
-            try {
-                const compressedImage = await compressImage(file, 400); 
-                const filePath = `avatars/${currentUser.id}_${Date.now()}.jpg`;
-                
-                const { error: uploadError } = await _supabase.storage.from('complaint_attachments').upload(filePath, compressedImage, { upsert: true });
-                if (uploadError) throw uploadError;
-
-                const publicUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(filePath).data.publicUrl;
-                
-                const { error: updateError } = await _supabase.from('user_profiles').update({ avatar_url: publicUrl }).eq('email', currentUser.email);
-                if (updateError) throw updateError;
-
-                userProfile.avatar_url = publicUrl;
-                updateProfileUI();
-            } catch (err) {
-                alert("Ralat muat naik gambar: " + err.message);
-            } finally {
-                document.getElementById('profile-avatar').style.opacity = '1';
-                event.target.value = '';
-            }
-        }
-
-        // ================= FUNGSI ADUAN =================
-        async function loadMasterData() {
-            const { data: locations } = await _supabase.from('locations').select('*').order('name');
-            const deptSelect = document.getElementById('department');
-            if (locations && locations.length > 0) {
-                deptSelect.innerHTML = '<option value="">Pilih Jabatan / Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
-            }
-
-            const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Perkakasan (Hardware)", "Perisian (Software)", "Rangkaian / Wi-Fi", "Pencetak (Printer)", "Lain-lain"];
-            
-            if (settings) {
-                const typesSetting = settings.find(s => s.key === 'damage_types');
-                if (typesSetting && typesSetting.value) damageTypes = JSON.parse(typesSetting.value);
-                const waEnabled = settings.find(s => s.key === 'whatsapp_enabled');
-                const waPhone = settings.find(s => s.key === 'whatsapp_number');
-                whatsappSettings.enabled = waEnabled ? waEnabled.value === 'true' : false;
-                whatsappSettings.phone = waPhone ? waPhone.value : '';
-            }
-
-            document.getElementById('damage-types-container').innerHTML = damageTypes.map(type => `
-                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white rounded border border-transparent hover:border-gray-200 transition">
-                    <input type="checkbox" name="damage_types" value="${type}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                    <span class="text-sm font-medium text-gray-700">${type}</span>
-                </label>
-            `).join('');
-        }
-
-// Fungsi baru untuk preview gambar yang dipilih
-        let selectedAttachmentFiles = []; // Simpan semua gambar di sini
-
-        function handleFileSelection(event) {
-            const files = event.target.files;
-            if (files) {
-                Array.from(files).forEach(file => selectedAttachmentFiles.push(file));
-            }
-            renderFilePreview();
-            event.target.value = ''; // Reset input supaya boleh tambah gambar lain lagi
-        }
-
-        function renderFilePreview() {
-            const preview = document.getElementById('file-name-preview');
-            preview.innerHTML = '';
-            selectedAttachmentFiles.forEach((file, index) => {
-                preview.innerHTML += `
-                    <div class="flex items-center justify-between bg-gray-100 px-2 py-1.5 rounded border text-xs">
-                        <span class="truncate text-gray-700 font-semibold">📄 ${file.name}</span>
-                        <button type="button" onclick="removeFile(${index})" class="text-red-500 font-bold hover:text-red-700 px-2">&times;</button>
-                    </div>`;
-            });
-        }
-
-        function removeFile(index) {
-            selectedAttachmentFiles.splice(index, 1);
-            renderFilePreview();
-        }
-
-        // Fungsi compress yang dikemaskini (Kekalkan Px, Kurangkan Saiz Fail)
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader(); reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image(); img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        // Kekalkan resolusi px yang asal 100%
-                        canvas.width = img.width; 
-                        canvas.height = img.height;
-                        canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
-                        // Compress kualiti ke 80% (0.8) supaya saiz MB turun, tapi gambar masih tajam
-                        canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.8);
-                    };
-                };
-            });
-        }
-
-async function submitComplaint(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true; 
-            btn.innerText = 'Memproses Permohonan...';
-            
-            try {
-                const selectedDamageTypes = Array.from(document.querySelectorAll('input[name="damage_types"]:checked')).map(cb => cb.value);
-                if (selectedDamageTypes.length === 0) { 
-                    alert('Sila pilih kategori kerosakan.'); 
-                    btn.disabled = false; 
-                    btn.innerText = 'Hantar Permohonan Penyenggaraan'; 
-                    return; 
-                }
-                
-                // --- KOD UPLOAD GAMBAR BARU (MULTIPLE) ---
-                let imageUrls = [];
-                const imgFiles = selectedAttachmentFiles;
-                
-                if (imgFiles.length > 0) {
-                    for (let i = 0; i < imgFiles.length; i++) {
-                        const compFile = await compressImage(imgFiles[i]);
-                        const path = `images/${Date.now()}_${i}_${compFile.name}`;
-                        const { error } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
-                        if (!error) {
-                            const url = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
-                            imageUrls.push(url);
-                        }
-                    }
-                }
-                // Gabungkan semua URL gambar menjadi satu teks (dipisahkan dengan koma)
-                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
-                // ------------------------------------------
-                
-                const quoteFile = document.getElementById('quotation-file').files[0];
-                let quotationUrl = null;
-                if (quoteFile) {
-                    const path = `quotations/${Date.now()}_${quoteFile.name}`;
-                    const { error } = await _supabase.storage.from('complaint_attachments').upload(path, quoteFile);
-                    if (!error) quotationUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
-                }
-
-                const newComplaint = {
-                    user_id: currentUser.id, 
-                    full_name: userProfile.full_name,
-                    email: currentUser.email, 
-                    phone: document.getElementById('phone').value,
-                    department: document.getElementById('department').value, 
-                    damage_types: selectedDamageTypes,
-                    details: document.getElementById('details').value, 
-                    justification: document.getElementById('justification').value,
-                    estimated_cost: parseFloat(document.getElementById('estimated-cost').value || 0),
-                    image_url: finalImageUrl, 
-                    quotation_url: quotationUrl, 
-                    status: 'BARU'
-                };
-
-                const { error } = await _supabase.from('complaints').insert([newComplaint]);
-                if (error) throw error;
-                
-                alert('Berjaya dihantar!');
-                
-                // --- KOD HANTAR KE WHATSAPP (DINAMIK) ---
-            const dept = document.getElementById('department').value;
-            const details = document.getElementById('details').value || 'Tiada butiran';
-            const nama = document.getElementById('display-name').innerText;
-            
-            // Ambil nombor dari database
-            const { data: settingData } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
-            let noAdmin = settingData ? settingData.setting_value : "60123456789";
-            
-            // Buang tanda '+' atau '-' jika ada, pastikan mula dengan 60
-            noAdmin = noAdmin.replace(/[^0-9]/g, ''); 
-            
-            const mesejWA = `*ADUAN BARU (Sistem IT)*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}\n\n_Sila log masuk ke sistem untuk tindakan lanjut._`;
-            const linkWA = `https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`;
-            window.open(linkWA, '_blank');
-            // ----------------------------------------
-                
-                document.getElementById('complaint-form').reset();
-                selectedAttachmentFiles = [];
-                renderFilePreview();
-                switchTab('records');
-
-            } catch (err) { 
-                alert('Ralat: ' + err.message); 
-            } finally { 
-                btn.disabled = false; 
-                btn.innerText = 'Hantar Permohonan Penyenggaraan'; 
-            }
-        }
-
-        async function loadMyComplaints() {
-            const { data, error } = await _supabase.from('complaints').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-            const tbody = document.getElementById('complaints-list');
-            if (error || !data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500 font-medium bg-gray-50">Belum ada sebarang rekod permohonan dihantar.</td></tr>'; return; }
-            tbody.innerHTML = data.map(item => `
-                <tr class="hover:bg-blue-50 transition-colors">
-                    <td class="p-4">
-                        <div class="font-bold text-gray-800">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
-                        <div class="text-sm text-gray-500 mt-1 line-clamp-2">${item.details || ''}</div>
-                    </td>
-                    <td class="p-4 font-medium text-gray-700">${item.department || '-'}</td>
-                    <td class="p-4 text-gray-600 text-sm font-medium">${new Date(item.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                    <td class="p-4 text-center">${getStatusBadge(item.status)}</td>
-                </tr>
-            `).join('');
-        }
-
-        function getStatusBadge(status) {
-            switch(status) {
-                case 'BARU': return '<span class="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">BARU</span>';
-                case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">SELESAI</span>';
-                default: return `<span class="bg-gray-100 text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">${status || 'BARU'}</span>`;
-            }
-        }
-
-        async function logout() { await _supabase.auth.signOut(); window.location.href = 'login.html'; }
-        
-        checkAuth();
+        // Skrip Supabase bos diletakkan di sini (insert aduan & upload storage)
     </script>
 </body>
 </html>
