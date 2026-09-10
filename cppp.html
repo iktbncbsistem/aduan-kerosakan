@@ -404,6 +404,34 @@ async function loadSystemTheme() {
             }
         }
         loadSystemTheme(); 
+
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader(); 
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image(); 
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width; 
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Bersihkan canvas supaya kekal lutsinar (transparent)
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+                        
+                        // Mengekalkan format PNG asal jika fail jenis PNG
+                        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                        
+                        canvas.toBlob(blob => {
+                            resolve(new File([blob], file.name, { type: mimeType }));
+                        }, mimeType, 0.8);
+                    };
+                };
+            });
+        }
         
     </script>
 </body>
