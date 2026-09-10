@@ -2,139 +2,138 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport diset untuk pengalaman mobile-app (menghalang zoom yang tidak perlu) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Permohonan Penyenggaraan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
-        /* Sembunyikan scrollbar untuk rupa aplikasi yang kemas */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen sm:p-4 md:p-6">
 
-    <!-- Container Utama (Mengehadkan saiz 9:16) -->
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative pb-20">
+    <!-- Container Utama (Responsif: Penuh di mobile, Kad lebar di desktop) -->
+    <div class="max-w-4xl mx-auto bg-white min-h-screen sm:min-h-0 sm:rounded-2xl shadow-2xl relative pb-20 overflow-hidden border border-gray-100">
         
         <!-- Header Social Media Style -->
-        <nav class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <nav class="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-50">
             <span id="user-email-header" class="hidden"></span>
             
-            <div class="flex items-center gap-3">
-                <!-- Ruang Logo Kecil -->
-                <img src="https://via.placeholder.com/60x60.png?text=Logo" alt="Logo" class="w-10 h-10 object-contain rounded bg-gray-50 border border-gray-100 p-1">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <!-- Ruang Logo -->
+                <img src="https://via.placeholder.com/80x80.png?text=Logo" alt="Logo" class="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-lg bg-gray-50 border border-gray-100 p-1">
                 
                 <div class="flex flex-col">
-                    <h1 class="font-bold text-[13px] leading-tight text-gray-900">E-Aduan Kerosakan</h1>
+                    <h1 class="font-bold text-[13px] sm:text-base leading-tight text-gray-900">E-Aduan Kerosakan</h1>
                     
-                    <!-- Ruang Nama & Edit Mod -->
-                    <div id="name-view-mode" class="flex items-center gap-1 mt-0.5">
-                        <span id="display-name" class="text-[11px] text-gray-500 font-medium truncate max-w-[120px]">Memuatkan...</span>
-                        <button type="button" onclick="toggleEditName(true)" class="text-[9px] text-blue-600 hover:underline font-bold">Edit</button>
+                    <div id="name-view-mode" class="flex items-center gap-2 mt-0.5">
+                        <span id="display-name" class="text-[11px] sm:text-xs text-gray-500 font-medium truncate max-w-[150px] sm:max-w-xs">Memuatkan...</span>
+                        <button type="button" onclick="toggleEditName(true)" class="text-[9px] sm:text-[10px] text-blue-600 hover:underline font-bold bg-blue-50 px-1.5 py-0.5 rounded">Edit</button>
                     </div>
                     
                     <div id="name-edit-mode" class="hidden flex items-center gap-1 mt-0.5">
-                        <input type="text" id="edit-name-input" class="text-[10px] px-1.5 py-0.5 border rounded w-24 focus:outline-none focus:border-blue-500">
-                        <button type="button" onclick="saveProfileName()" class="bg-green-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">OK</button>
+                        <input type="text" id="edit-name-input" class="text-[10px] sm:text-xs px-2 py-1 border rounded w-32 focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="saveProfileName()" class="bg-green-500 text-white text-[10px] px-2 py-1 rounded font-bold">OK</button>
                     </div>
                 </div>
             </div>
 
             <!-- Avatar Pemohon di sebelah Kanan -->
             <div class="flex items-center gap-3">
-                <div id="dynamic-menu" class="hidden flex flex-wrap gap-1"></div>
+                <div id="dynamic-menu" class="hidden flex flex-wrap gap-2"></div>
                 <div class="relative cursor-pointer flex-shrink-0" onclick="document.getElementById('avatar-upload').click()">
-                    <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm">
+                    <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200 shadow-sm transition hover:border-blue-400">
                     <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
                 </div>
             </div>
         </nav>
 
-        <div class="p-4">
+        <div class="p-4 sm:p-8">
             <!-- Pill Tabs -->
-            <div class="flex bg-gray-100 p-1 rounded-lg mb-6">
-                <button id="btn-tab-form" onclick="switchTab('form')" class="flex-1 py-2 text-[13px] font-bold text-gray-800 bg-white rounded-md shadow-sm transition-all">
+            <div class="flex bg-gray-100 p-1.5 rounded-lg mb-6 sm:mb-8 max-w-lg mx-auto">
+                <button id="btn-tab-form" onclick="switchTab('form')" class="flex-1 py-2 sm:py-2.5 text-[13px] sm:text-sm font-bold text-gray-800 bg-white rounded-md shadow-sm transition-all">
                     📝 Borang
                 </button>
-                <button id="btn-tab-records" onclick="switchTab('records')" class="flex-1 py-2 text-[13px] font-bold text-gray-500 hover:text-gray-800 rounded-md transition-all">
+                <button id="btn-tab-records" onclick="switchTab('records')" class="flex-1 py-2 sm:py-2.5 text-[13px] sm:text-sm font-bold text-gray-500 hover:text-gray-800 rounded-md transition-all">
                     📂 Rekod
                 </button>
             </div>
 
             <!-- TAB 1: Borang Aduan -->
-            <div id="tab-form" class="space-y-4">
+            <div id="tab-form" class="space-y-4 sm:space-y-6">
                 <form id="complaint-form" onsubmit="submitComplaint(event)">
                     
-                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-blue-50 p-4 sm:p-5 rounded-xl border border-blue-100 mb-4 sm:mb-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase">Jabatan / Lokasi</label>
-                            <select id="department" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 bg-white shadow-sm">
+                            <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 uppercase">Jabatan / Lokasi</label>
+                            <select id="department" required class="w-full border border-gray-300 rounded-lg p-2.5 sm:p-3 text-sm outline-none focus:border-blue-500 bg-white shadow-sm transition">
                                 <option value="">Pilih Lokasi...</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase">No. Telefon</label>
-                            <input type="tel" id="phone" required placeholder="0123456789" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 bg-white shadow-sm">
+                            <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 uppercase">No. Telefon</label>
+                            <input type="tel" id="phone" required placeholder="0123456789" class="w-full border border-gray-300 rounded-lg p-2.5 sm:p-3 text-sm outline-none focus:border-blue-500 bg-white shadow-sm transition">
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-2 uppercase">Kategori Kerosakan</label>
-                        <div id="damage-types-container" class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-lg border">
+                    <div class="mb-4 sm:mb-6">
+                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-2 uppercase">Kategori Kerosakan</label>
+                        <div id="damage-types-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-xl border">
                             <span class="text-xs text-gray-400">Memuatkan kategori...</span>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase">Butiran Kerosakan</label>
-                        <textarea id="details" rows="3" required placeholder="Terangkan masalah..." class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 bg-gray-50"></textarea>
-                    </div>
-
-                    <div class="mb-5">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase">Justifikasi</label>
-                        <textarea id="justification" rows="2" required placeholder="Sebab munasabah..." class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 bg-gray-50"></textarea>
-                    </div>
-
-                    <!-- Lampiran Mobile Layout -->
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-5">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2 uppercase">Gambar Kerosakan</label>
-                            <div class="flex gap-2">
-                                <!-- Capture Environment (Kamera Belakang) -->
-                                <label class="flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 py-2.5 rounded-lg text-center text-xs font-bold shadow-sm cursor-pointer transition">
-                                    <input type="file" id="camera-upload" accept="image/*" capture="environment" multiple class="hidden" onchange="handleFileSelection(event)">
-                                    📸 Kamera
-                                </label>
-                                <!-- Galeri -->
-                                <label class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 py-2.5 rounded-lg text-center text-xs font-bold shadow-sm cursor-pointer transition">
-                                    <input type="file" id="gallery-upload" accept="image/*" multiple class="hidden" onchange="handleFileSelection(event)">
-                                    🖼️ Galeri
-                                </label>
+                            <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 uppercase">Butiran Kerosakan</label>
+                            <textarea id="details" rows="3" required placeholder="Terangkan masalah secara terperinci..." class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-500 bg-gray-50 transition"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 uppercase">Justifikasi</label>
+                            <textarea id="justification" rows="3" required placeholder="Sebab munasabah memohon penyenggaraan..." class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-500 bg-gray-50 transition"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Lampiran Layout (Responsif) -->
+                    <div class="bg-gray-50 p-4 sm:p-6 rounded-xl border border-gray-200 mb-6 sm:mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                            
+                            <div class="md:col-span-1">
+                                <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-2 uppercase">Gambar Kerosakan</label>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 py-2.5 rounded-lg text-center text-xs sm:text-sm font-bold shadow-sm cursor-pointer transition">
+                                        <input type="file" id="camera-upload" accept="image/*" capture="environment" multiple class="hidden" onchange="handleFileSelection(event)">
+                                        📸 Kamera
+                                    </label>
+                                    <label class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 py-2.5 rounded-lg text-center text-xs sm:text-sm font-bold shadow-sm cursor-pointer transition">
+                                        <input type="file" id="gallery-upload" accept="image/*" multiple class="hidden" onchange="handleFileSelection(event)">
+                                        🖼️ Galeri
+                                    </label>
+                                </div>
+                                <div id="file-name-preview" class="flex flex-col gap-1 mt-2"></div>
                             </div>
-                            <div id="file-name-preview" class="flex flex-col gap-1 mt-2"></div>
-                        </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase">Sebutharga (Opsional)</label>
-                            <input type="file" id="quotation-file" accept=".pdf,.doc,.docx,image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-200 file:text-gray-700 file:font-semibold">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase">Anggaran Kos (RM)</label>
-                            <input type="number" step="0.01" id="estimated-cost" placeholder="0.00" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 bg-white">
+                            <div class="md:col-span-1">
+                                <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 uppercase">Sebutharga (Pilihan)</label>
+                                <input type="file" id="quotation-file" accept=".pdf,.doc,.docx,image/*" class="w-full text-xs sm:text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-white file:border file:border-gray-300 file:text-gray-700 file:font-semibold hover:file:bg-gray-100 cursor-pointer">
+                            </div>
+                            
+                            <div class="md:col-span-1">
+                                <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 uppercase">Anggaran Kos (RM)</label>
+                                <input type="number" step="0.01" id="estimated-cost" placeholder="0.00" class="w-full border border-gray-300 rounded-lg p-2.5 sm:p-3 text-sm outline-none focus:border-blue-500 bg-white transition">
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition active:scale-95">Hantar Permohonan</button>
+                    <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base shadow-lg transition active:scale-95">Hantar Permohonan</button>
                 </form>
             </div>
 
             <!-- TAB 2: Rekod Aduan -->
             <div id="tab-records" class="hidden space-y-4">
-                <div id="complaints-list" class="space-y-3">
-                    <div class="p-6 text-center text-gray-400 font-medium border rounded-lg bg-gray-50">Memuatkan senarai...</div>
+                <div id="complaints-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-6 text-center text-gray-400 font-medium border rounded-lg bg-gray-50 md:col-span-2">Memuatkan senarai...</div>
                 </div>
             </div>
 
@@ -142,8 +141,9 @@
     </div>
 
     <!-- Sticky Bottom Bar Log Keluar -->
-    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-3 z-40">
-        <button onclick="logout()" class="w-full bg-red-50 text-red-600 border border-red-100 py-2 rounded-lg font-bold text-xs shadow-sm hover:bg-red-100 transition">Log Keluar</button>
+    <div class="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-white border-t border-gray-200 p-3 z-40 sm:rounded-b-2xl sm:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <button onclick="logout()" class="w-full sm:w-auto sm:float-right bg-red-50 text-red-600 border border-red-100 py-2 sm:px-6 rounded-lg font-bold text-xs sm:text-sm shadow-sm hover:bg-red-100 transition">Log Keluar</button>
+        <div class="clear-both"></div>
     </div>
 
     <script>
@@ -163,12 +163,15 @@
             const btnForm = document.getElementById('btn-tab-form');
             const btnRecords = document.getElementById('btn-tab-records');
             
+            const activeClass = "flex-1 py-2 sm:py-2.5 text-[13px] sm:text-sm font-bold text-gray-800 bg-white rounded-md shadow-sm transition-all";
+            const inactiveClass = "flex-1 py-2 sm:py-2.5 text-[13px] sm:text-sm font-bold text-gray-500 hover:text-gray-800 rounded-md transition-all";
+            
             if (tabId === 'form') {
-                btnForm.className = "flex-1 py-2 text-[13px] font-bold text-gray-800 bg-white rounded-md shadow-sm transition-all";
-                btnRecords.className = "flex-1 py-2 text-[13px] font-bold text-gray-500 hover:text-gray-800 rounded-md transition-all";
+                btnForm.className = activeClass;
+                btnRecords.className = inactiveClass;
             } else {
-                btnRecords.className = "flex-1 py-2 text-[13px] font-bold text-gray-800 bg-white rounded-md shadow-sm transition-all";
-                btnForm.className = "flex-1 py-2 text-[13px] font-bold text-gray-500 hover:text-gray-800 rounded-md transition-all";
+                btnRecords.className = activeClass;
+                btnForm.className = inactiveClass;
                 loadMyComplaints(); 
             }
         }
@@ -212,11 +215,11 @@
                 const roleUpper = profile && profile.role ? profile.role.trim().toUpperCase() : 'STAF';
 
                 if (roleUpper === 'ADMIN') {
-                    menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-[10px] font-bold shadow-sm">Admin</a>`;
+                    menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm hover:bg-purple-200 transition">⚙️ Admin</a>`;
                 } else if (roleUpper === 'CPPP') {
-                    menuContainer.innerHTML = `<a href="cppp.html" class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold shadow-sm">CPPP</a>`;
+                    menuContainer.innerHTML = `<a href="cppp.html" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm hover:bg-blue-200 transition">🔧 CPPP</a>`;
                 } else if (roleUpper === 'KCPPP') {
-                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold shadow-sm">KCPPP</a>`;
+                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm hover:bg-emerald-200 transition">✅ KCPPP</a>`;
                 }
                 
                 menuContainer.classList.remove('hidden');
@@ -286,29 +289,25 @@
         }
 
         async function loadMasterData() {
-            // Tukar dari 'locations' kepada 'departments'
+            // TALLY LOKASI: Mengambil data dari jadual 'departments'
             const { data: locations } = await _supabase.from('departments').select('*').order('name');
             const deptSelect = document.getElementById('department');
             if (locations && locations.length > 0) {
-                deptSelect.innerHTML = '<option value="">Pilih Jabatan / Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+                deptSelect.innerHTML = '<option value="">Pilih Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
             }
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Perkakasan (Hardware)", "Perisian (Software)", "Rangkaian / Wi-Fi", "Pencetak (Printer)", "Lain-lain"];
+            let damageTypes = ["Perkakasan", "Perisian", "Rangkaian", "Pencetak", "Lain-lain"];
             
             if (settings) {
                 const typesSetting = settings.find(s => s.key === 'damage_types');
                 if (typesSetting && typesSetting.value) damageTypes = JSON.parse(typesSetting.value);
-                const waEnabled = settings.find(s => s.key === 'whatsapp_enabled');
-                const waPhone = settings.find(s => s.key === 'whatsapp_number');
-                whatsappSettings.enabled = waEnabled ? waEnabled.value === 'true' : false;
-                whatsappSettings.phone = waPhone ? waPhone.value : '';
             }
 
             document.getElementById('damage-types-container').innerHTML = damageTypes.map(type => `
-                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white rounded border border-transparent hover:border-gray-200 transition">
-                    <input type="checkbox" name="damage_types" value="${type}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                    <span class="text-sm font-medium text-gray-700">${type}</span>
+                <label class="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 transition">
+                    <input type="checkbox" name="damage_types" value="${type}" class="w-4 h-4 text-blue-600 rounded">
+                    <span class="text-xs sm:text-sm font-bold text-gray-700 truncate">${type}</span>
                 </label>
             `).join('');
         }
@@ -326,9 +325,9 @@
             preview.innerHTML = '';
             selectedAttachmentFiles.forEach((file, index) => {
                 preview.innerHTML += `
-                    <div class="flex items-center justify-between bg-blue-50 px-2 py-1.5 rounded text-[10px] border border-blue-100">
+                    <div class="flex items-center justify-between bg-blue-50 px-2 py-1.5 rounded-lg text-xs border border-blue-100">
                         <span class="truncate text-blue-700 font-bold">📄 ${file.name}</span>
-                        <button type="button" onclick="removeFile(${index})" class="text-red-500 font-bold px-2">&times;</button>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 bg-red-100 rounded px-2 font-bold transition">&times;</button>
                     </div>`;
             });
         }
@@ -416,20 +415,19 @@
             const { data, error } = await _supabase.from('complaints').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
             const tbody = document.getElementById('complaints-list');
             if (error || !data || data.length === 0) { 
-                tbody.innerHTML = '<div class="p-6 text-center text-gray-400 font-medium border rounded-lg bg-gray-50">Belum ada aduan.</div>'; return; 
+                tbody.innerHTML = '<div class="p-6 text-center text-gray-400 font-medium border rounded-lg bg-gray-50 md:col-span-2">Belum ada aduan.</div>'; return; 
             }
             
-            // Rekaan kad untuk mobile
             tbody.innerHTML = data.map(item => `
-                <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[10px] text-gray-400 font-bold">${new Date(item.created_at).toLocaleDateString('ms-MY')}</span>
+                <div class="bg-white border border-gray-200 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[11px] sm:text-xs text-gray-400 font-bold"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</span>
                         ${getStatusBadge(item.status)}
                     </div>
-                    <h3 class="font-bold text-sm text-gray-800">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
-                    <p class="text-[11px] text-gray-500 mt-1 line-clamp-2">${item.details || ''}</p>
-                    <div class="mt-3 pt-2 border-t border-gray-100 text-[10px] font-bold text-gray-600 uppercase">
-                        📍 ${item.department || '-'}
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800 mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 line-clamp-2">${item.details || ''}</p>
+                    <div class="mt-4 pt-3 border-t border-gray-100 text-[11px] sm:text-xs font-bold text-gray-600 uppercase flex items-center">
+                        <i class="fa-solid fa-location-dot mr-1.5 text-red-500"></i> ${item.department || '-'}
                     </div>
                 </div>
             `).join('');
@@ -437,10 +435,10 @@
 
         function getStatusBadge(status) {
             switch(status) {
-                case 'BARU': return '<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md text-[9px] font-bold">BARU</span>';
-                case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md text-[9px] font-bold">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-md text-[9px] font-bold">SELESAI</span>';
-                default: return `<span class="bg-gray-100 text-gray-800 px-2.5 py-1 rounded-md text-[9px] font-bold">${status || 'BARU'}</span>`;
+                case 'BARU': return '<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold shadow-sm">BARU</span>';
+                case 'PROSES': return '<span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold shadow-sm">PROSES</span>';
+                case 'SELESAI': return '<span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold shadow-sm">SELESAI</span>';
+                default: return `<span class="bg-gray-100 text-gray-800 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold shadow-sm">${status || 'BARU'}</span>`;
             }
         }
 
