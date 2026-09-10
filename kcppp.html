@@ -25,29 +25,26 @@
         </div>
     </div>
     
-    <!-- Bahagian Kanan (Avatar & Butang Ikon Log Keluar) -->
-    <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm" id="user-avatar">
-                <i class="fa-solid fa-user text-[11px]"></i>
+   <!-- Bahagian Kanan (Avatar & Butang Ikon Log Keluar) -->
+        <div class="flex items-center gap-1.5 sm:gap-3">
+            <!-- Butang Gear -->
+            <button onclick="openSettingsModal()" class="p-1.5 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors flex-shrink-0" title="Tetapan Sistem">
+                <i class="fa-solid fa-gear text-base"></i>
+            </button>
+            
+            <!-- Avatar -->
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0" id="user-avatar">
+                    <i class="fa-solid fa-user text-[11px]"></i>
+                </div>
+                <span id="user-name-display" class="text-xs font-bold text-slate-700 hidden sm:inline-block truncate max-w-[100px]">Pengguna</span>
             </div>
-            <span id="user-name-display" class="text-xs font-bold text-slate-700 hidden sm:inline-block">Pengguna</span>
-        </div>
-        
-        <div class="h-4 w-[1px] bg-slate-200"></div>
-
-        <!-- Butang Log Keluar (Ikon Ringkas) -->
-        <button onclick="logout()" class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Log Keluar">
-            <i class="fa-solid fa-right-from-bracket text-base"></i>
-        </button>
-
-<button onclick="toggleSettingsView()" class="p-1.5 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="Tetapan Sistem">
-    <i class="fa-solid fa-gear text-base"></i>
-</button>
-
-
-
-        
+            
+            <!-- Log Keluar -->
+            <button onclick="logout()" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0" title="Log Keluar">
+                <i class="fa-solid fa-right-from-bracket text-sm"></i>
+            </button>
+        </div>     
     </div>
 </nav>
 
@@ -99,35 +96,54 @@
         <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">Memaparkan 0 rekod</span>
     </div>
 
-    <!-- Kotak Borang Tapisan (TVET Layout) -->
+    <!-- Kotak Borang Tapisan (TVET Layout + Tahun) -->
     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama / Detail</label>
-                <input type="text" id="filter-search" placeholder="Taip nama pemohon..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                <input type="text" id="filter-search" placeholder="Taip nama..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Jabatan / Lokasi</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label>
                 <select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua Lokasi --</option>
+                    <option value="">-- Semua --</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori Kerosakan</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label>
                 <select id="filter-category" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua Kategori --</option>
+                    <option value="">-- Semua --</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Aduan</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
                 <select id="filter-status" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua Status --</option>
+                    <option value="">-- Semua --</option>
                     <option value="BARU">BARU</option>
                     <option value="PROSES">PROSES</option>
                     <option value="SELESAI">SELESAI</option>
                 </select>
             </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tahun</label>
+                <select id="filter-year" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                    <option value="">-- Semua --</option>
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                </select>
+            </div>
         </div>
+
+        <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
+            <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
+                Reset
+            </button>
+            <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian
+            </button>
+        </div>
+    </div>
 
         <!-- Butang Carian & Reset Ala TVET -->
         <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
@@ -709,14 +725,16 @@ function applyFilters() {
     const dept = document.getElementById('filter-dept').value;
     const cat = document.getElementById('filter-category').value;
     const status = document.getElementById('filter-status').value;
+    const year = document.getElementById('filter-year').value;
 
     const filtered = rawComplaintsData.filter(item => {
         const matchSearch = !search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search));
         const matchDept = !dept || item.department === dept;
         const matchCat = !cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat);
         const matchStatus = !status || item.status === status;
+        const matchYear = !year || new Date(item.created_at).getFullYear().toString() === year;
 
-        return matchSearch && matchDept && matchCat && matchStatus;
+        return matchSearch && matchDept && matchCat && matchStatus && matchYear;
     });
 
     renderKCPPPTable(filtered);
@@ -727,6 +745,7 @@ function resetFilters() {
     document.getElementById('filter-dept').value = '';
     document.getElementById('filter-category').value = '';
     document.getElementById('filter-status').value = '';
+    document.getElementById('filter-year').value = '';
     renderKCPPPTable(rawComplaintsData);
 }
 
