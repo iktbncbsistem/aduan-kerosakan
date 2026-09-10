@@ -32,10 +32,10 @@
                 <i class="fa-solid fa-file-pen"></i> Hantar Aduan
             </a>
 
-            <!-- Butang Gear (Buka Pop-up Tetapan) -->
-            <button onclick="openSettingsModal()" class="p-1.5 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors flex-shrink-0" title="Tetapan Sistem">
+            <!-- Butang Gear (Buka Page setting.html) -->
+            <a href="setting.html" class="p-1.5 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors flex-shrink-0" title="Tetapan Sistem">
                 <i class="fa-solid fa-gear text-base"></i>
-            </button>
+            </a>
             
             <!-- Avatar -->
             <div class="flex items-center gap-2">
@@ -159,61 +159,22 @@
                     <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
                         <tr>
                             <th class="p-3 w-10 text-center">Bil</th>
-                            <th class="p-3">Pemohon & Tarikh</th>
-                            <th class="p-3">Lokasi / Jabatan</th>
+                            <th class="p-3 w-48">Pemohon & Tarikh</th>
+                            <th class="p-3 w-28">Lokasi</th>
                             <th class="p-3">Kategori & Butiran</th>
-                            <th class="p-3 text-right">Kos (RM)</th>
-                            <th class="p-3 text-center">Status</th>
-                            <th class="p-3 text-center">Tindakan</th>
+                            <th class="p-3 w-48">Justifikasi</th>
+                            <th class="p-3 text-right w-24">Kos (RM)</th>
+                            <th class="p-3 text-center w-24">Status</th>
+                            <th class="p-3 text-center w-24">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody id="kcppp-complaints-table" class="divide-y divide-slate-100">
-                        <tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
+                        <tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-    </div>
-
-    <!-- MODAL TETAPAN SISTEM (GEAR) -->
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden z-50 flex items-center justify-center p-3 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-gear text-orange-500 mr-1.5"></i> Tetapan Sistem Pusat</h3>
-                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-red-500 text-xl font-bold leading-none">&times;</button>
-            </div>
-            <div class="p-5 overflow-y-auto flex-1 bg-white space-y-5 text-xs">
-                
-                <!-- Tab Whatsapp -->
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <label class="block font-bold text-slate-700 mb-2 uppercase tracking-wide border-b border-slate-200 pb-1.5"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1"></i> No. Telefon WhatsApp Admin</label>
-                    <p class="text-[10px] text-slate-500 mb-3">Nombor ini digunakan untuk menerima notifikasi aduan baru.</p>
-                    <div class="flex gap-2">
-                        <input type="text" id="wa-number" placeholder="Cth: 60123456789" class="flex-1 border border-slate-300 rounded-lg p-2 outline-none focus:border-orange-500">
-                        <button onclick="saveWhatsapp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg transition shadow-sm">Simpan</button>
-                    </div>
-                </div>
-
-                <!-- Tab Lokasi -->
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <label class="block font-bold text-slate-700 mb-2 uppercase tracking-wide border-b border-slate-200 pb-1.5"><i class="fa-solid fa-building text-blue-500 mr-1"></i> Urus Jabatan / Lokasi</label>
-                    <div class="flex gap-2 mb-4 mt-2">
-                        <input type="text" id="new-location" placeholder="Tambah lokasi baru..." class="flex-1 border border-slate-300 rounded-lg p-2 outline-none focus:border-orange-500">
-                        <button onclick="addLocation()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-plus"></i> Tambah</button>
-                    </div>
-                    <div class="overflow-y-auto w-full border border-slate-200 rounded-lg max-h-48">
-                        <table class="w-full text-left whitespace-nowrap">
-                            <thead class="bg-white text-slate-500 font-bold text-[10px] uppercase border-b sticky top-0">
-                                <tr><th class="p-2 w-10 text-center">No.</th><th class="p-2">Nama Lokasi</th><th class="p-2 w-16 text-center">Padam</th></tr>
-                            </thead>
-                            <tbody id="settings-dept-list" class="divide-y divide-slate-100 text-[11px] bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-        </div>
     </div>
 
     <!-- MODAL PERINCIAN ADUAN -->
@@ -239,6 +200,7 @@
                 <div class="space-y-3">
                     <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Kategori Kerosakan</p><p id="vm-types" class="font-semibold text-slate-800 bg-slate-50 p-2 rounded-lg border border-slate-200">-</p></div>
                     <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Butiran Penuh</p><p id="vm-details" class="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200">-</p></div>
+                    <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Justifikasi</p><p id="vm-justification" class="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200">-</p></div>
                     <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Catatan Tindakan CPPP</p><p id="vm-remarks" class="text-slate-700 bg-orange-50 p-2.5 rounded-lg border border-orange-100">-</p></div>
                 </div>
                 <div class="flex justify-end gap-2 mt-4">
@@ -301,10 +263,10 @@
 
         async function loadComplaintsData() {
             const tbody = document.getElementById('kcppp-complaints-table');
-            tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Memuatkan data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Memuatkan data...</td></tr>';
             
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
-            if (error || !data) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-red-500 p-8">Ralat pangkalan data.</td></tr>'; return; }
+            if (error || !data) { tbody.innerHTML = '<tr><td colspan="8" class="text-center text-red-500 p-8">Ralat pangkalan data.</td></tr>'; return; }
             
             rawComplaintsData = data;
             updateDashboardStats(data);
@@ -328,12 +290,12 @@
             const tbody = document.getElementById('kcppp-complaints-table');
             document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
 
-            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
 
             tbody.innerHTML = data.map((item, idx) => `
                 <tr class="hover:bg-slate-50/80 transition-colors">
                     <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
-                    <td class="p-3 align-top">
+                    <td class="p-3 align-top whitespace-normal min-w-[140px]">
                         <div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div>
                         <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
                     </td>
@@ -341,13 +303,16 @@
                         <div class="font-bold text-slate-700">${item.department || '-'}</div>
                         <div class="text-[10px] text-slate-400">${item.phone || '-'}</div>
                     </td>
-                    <td class="p-3 align-top max-w-xs">
+                    <td class="p-3 align-top max-w-[200px] whitespace-normal">
                         <span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">
                             ${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}
                         </span>
-                        <p class="text-[11px] text-slate-500 truncate">${item.details || '-'}</p>
+                        <p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p>
                     </td>
-                    <td class="p-3 align-top text-right font-bold text-slate-700">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
+                    <td class="p-3 align-top max-w-[200px] whitespace-normal">
+                        <p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p>
+                    </td>
+                    <td class="p-3 align-top text-right font-bold text-slate-700 whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
                     <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
                     <td class="p-3 align-top text-center">
                         <button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[10px] shadow-sm transition">🔍 Perinci</button>
@@ -393,7 +358,6 @@
             renderKCPPPTable(rawComplaintsData);
         }
 
-        // --- FUNGSI MODAL PERINCIAN KCPPP ---
         function viewComplaintDetail(id) {
             const item = rawComplaintsData.find(c => c.id === id);
             if(!item) return;
@@ -403,6 +367,7 @@
             document.getElementById('vm-date').innerText = new Date(item.created_at).toLocaleString('ms-MY');
             document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
             document.getElementById('vm-details').innerText = item.details || 'Tiada butiran.';
+            document.getElementById('vm-justification').innerText = item.justification || 'Tiada justifikasi direkodkan.';
             
             let remarks = item.action_remarks || 'Belum ada tindakan CPPP.';
             if(item.cppp_kategori) remarks = `[${item.cppp_kategori}]\n${remarks}`;
@@ -411,51 +376,6 @@
             document.getElementById('view-modal').classList.remove('hidden');
         }
         function closeViewModal() { document.getElementById('view-modal').classList.add('hidden'); }
-
-        // --- FUNGSI TETAPAN (GEAR) - DALAM MODAL ---
-        async function openSettingsModal() {
-            document.getElementById('settings-modal').classList.remove('hidden');
-            const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no').single();
-            if(data) document.getElementById('wa-number').value = data.setting_value;
-            loadSettingsLocations();
-        }
-        function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
-
-        async function loadSettingsLocations() {
-            const { data } = await _supabase.from('departments').select('*').order('name');
-            const tbody = document.getElementById('settings-dept-list');
-            if(data) {
-                tbody.innerHTML = data.map((l, i) => `
-                    <tr>
-                        <td class="p-2 text-center">${i+1}</td>
-                        <td class="p-2 font-bold text-slate-700">${l.name}</td>
-                        <td class="p-2 text-center">
-                            <button onclick="deleteLocation('${l.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
-        
-        async function addLocation() {
-            const name = document.getElementById('new-location').value.trim();
-            if(!name) return;
-            await _supabase.from('departments').insert([{ name: name.toUpperCase() }]);
-            document.getElementById('new-location').value = '';
-            loadSettingsLocations(); loadMasterData();
-        }
-        
-        async function deleteLocation(id) {
-            if(!confirm("Padam lokasi ini?")) return;
-            await _supabase.from('departments').delete().eq('id', id);
-            loadSettingsLocations(); loadMasterData();
-        }
-        
-        async function saveWhatsapp() {
-            const num = document.getElementById('wa-number').value.trim();
-            const { error } = await _supabase.from('system_settings').upsert({ setting_key: 'whatsapp_no', setting_value: num, updated_at: new Date() });
-            if(!error) { alert('No WhatsApp dikemaskini!'); }
-        }
 
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         
