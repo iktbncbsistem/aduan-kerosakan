@@ -286,24 +286,29 @@
         }
 
         async function loadMasterData() {
-            const { data: locations } = await _supabase.from('locations').select('*').order('name');
+            // Tukar dari 'locations' kepada 'departments'
+            const { data: locations } = await _supabase.from('departments').select('*').order('name');
             const deptSelect = document.getElementById('department');
             if (locations && locations.length > 0) {
-                deptSelect.innerHTML = '<option value="">Pilih Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+                deptSelect.innerHTML = '<option value="">Pilih Jabatan / Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
             }
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Perkakasan", "Perisian", "Rangkaian", "Pencetak", "Lain-lain"];
+            let damageTypes = ["Perkakasan (Hardware)", "Perisian (Software)", "Rangkaian / Wi-Fi", "Pencetak (Printer)", "Lain-lain"];
             
             if (settings) {
                 const typesSetting = settings.find(s => s.key === 'damage_types');
                 if (typesSetting && typesSetting.value) damageTypes = JSON.parse(typesSetting.value);
+                const waEnabled = settings.find(s => s.key === 'whatsapp_enabled');
+                const waPhone = settings.find(s => s.key === 'whatsapp_number');
+                whatsappSettings.enabled = waEnabled ? waEnabled.value === 'true' : false;
+                whatsappSettings.phone = waPhone ? waPhone.value : '';
             }
 
             document.getElementById('damage-types-container').innerHTML = damageTypes.map(type => `
-                <label class="flex items-center gap-2 cursor-pointer p-1.5 bg-white rounded border border-gray-200">
-                    <input type="checkbox" name="damage_types" value="${type}" class="w-3.5 h-3.5 text-blue-600 rounded">
-                    <span class="text-[11px] font-bold text-gray-700 truncate">${type}</span>
+                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white rounded border border-transparent hover:border-gray-200 transition">
+                    <input type="checkbox" name="damage_types" value="${type}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700">${type}</span>
                 </label>
             `).join('');
         }
