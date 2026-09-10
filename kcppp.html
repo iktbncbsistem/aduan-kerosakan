@@ -101,7 +101,7 @@
             
             <!-- Navigation Tabs (Scrollable on mobile) -->
             <div class="flex border-b border-slate-200 bg-white px-2 overflow-x-auto hide-scrollbar">
-                <button onclick="switchSettingsTab('tema')" id="tab-tema" class="px-5 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50/50 whitespace-nowrap"><i class="fa-solid fa-palette mr-1"></i> Tema & Logo</button>
+                <button onclick="switchSettingsTab('tema')" id="tab-tema" class="px-5 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50/50 whitespace-nowrap"><i class="fa-solid fa-image mr-1"></i> Latar Belakang</button>
                 <button onclick="switchSettingsTab('lokasi')" id="tab-lokasi" class="px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-building mr-1"></i> Urus Lokasi</button>
                 <button onclick="switchSettingsTab('whatsapp')" id="tab-whatsapp" class="px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap"><i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp</button>
                 <button onclick="switchSettingsTab('rbac')" id="tab-rbac" class="px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-users-gear mr-1"></i> Akses Pengguna</button>
@@ -109,19 +109,21 @@
 
             <div class="p-6 bg-slate-50 min-h-[400px]">
                 
-                <!-- SEKSYEN: TEMA & LOGO -->
-                <div id="sec-tema" class="space-y-6 max-w-4xl mx-auto">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6">
-                        <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"><i class="fa-regular fa-image text-blue-500 mr-1"></i> Logo Sistem Terkini</label>
-                            <p class="text-xs text-slate-500 mb-4">Logo ini akan dipaparkan di semua paparan (Staf, CPPP, KCPPP & Log Masuk).</p>
-                            <input type="file" id="upload-logo" accept="image/*" class="w-full text-sm border border-slate-300 rounded p-1 mb-3">
-                            <button onclick="uploadSystemImage('upload-logo', 'system_logo')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-bold shadow-sm transition"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Logo</button>
-                        </div>
-                        <div class="w-full sm:w-48 bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-center justify-center">
-                            <img id="preview-logo" src="https://via.placeholder.com/150x150.png?text=Tiada+Logo" class="sys-logo w-24 h-24 object-contain rounded">
-                        </div>
-                    </div>
+                <!-- SEKSYEN: LATAR BELAKANG -->
+<div id="sec-tema" class="space-y-6 max-w-4xl mx-auto">
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6">
+        <div class="flex-1">
+            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"><i class="fa-solid fa-desktop text-purple-500 mr-1"></i> Gambar Background (Log Masuk)</label>
+            <p class="text-xs text-slate-500 mb-4">Gambar ini akan menghiasi latar belakang skrin halaman log masuk utama.</p>
+            <input type="file" id="upload-bg" accept="image/*" class="w-full text-sm border border-slate-300 rounded p-1 mb-3">
+            <button onclick="uploadSystemImage('upload-bg', 'login_bg')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-bold shadow-sm transition"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Background</button>
+        </div>
+        <div class="w-full sm:w-48 h-32 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex items-center justify-center relative">
+            <img id="preview-bg" src="https://dummyimage.com/300x200/f3f4f6/64748b.png&text=Tiada+BG" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/20 flex items-center justify-center"><span class="text-white text-[10px] font-bold tracking-widest bg-black/50 px-2 py-1 rounded">PREVIEW</span></div>
+        </div>
+    </div>
+</div>
 
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6">
                         <div class="flex-1">
