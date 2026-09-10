@@ -11,6 +11,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
+
+
+
+
+
+
+    
 <body class="bg-slate-50 min-h-screen">
     
     <!-- Navbar -->
@@ -582,8 +589,68 @@
 
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         async function forceDownload(url, fn) { const a = document.createElement('a'); a.href = url; a.download = fn; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); }
+
+async function openSettingsModal() {
+    document.getElementById('settings-modal').classList.remove('hidden');
+    const { data } = await _supabase.from('system_settings').select('*');
+    if (data) {
+        const logo = data.find(s => s.setting_key === 'system_logo');
+        const wa = data.find(s => s.setting_key === 'whatsapp_no');
+        if (logo) document.getElementById('setting-logo-url').value = logo.setting_value;
+        if (wa) document.getElementById('setting-wa-no').value = wa.setting_value;
+    }
+}
+
+function closeSettingsModal() {
+    document.getElementById('settings-modal').classList.add('hidden');
+}
+
+async function saveSystemSettings(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-settings');
+    btn.disabled = true; btn.innerText = 'Menyimpan...';
+
+    const logoUrl = document.getElementById('setting-logo-url').value.trim();
+    const waNo = document.getElementById('setting-wa-no').value.trim();
+
+    await _supabase.from('system_settings').upsert([
+        { setting_key: 'system_logo', setting_value: logoUrl },
+        { setting_key: 'whatsapp_no', setting_value: waNo }
+    ], { onConflict: 'setting_key' });
+
+    alert('Tetapan berjaya disimpan!');
+    btn.disabled = false; btn.innerText = 'Simpan';
+    closeSettingsModal();
+    location.reload();
+}
+
         
         initKCPPP();
+        
+        <!-- Modal Tetapan Sistem -->
+<div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-gear text-orange-500 mr-2"></i>Tetapan Sistem</h3>
+            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+        </div>
+        
+        <form onsubmit="saveSystemSettings(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">URL Logo Sistem (PNG)</label>
+                <input type="url" id="setting-logo-url" required class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-orange-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">No. WhatsApp Admin (Aduan Baru)</label>
+                <input type="text" id="setting-wa-no" placeholder="60123456789" required class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-orange-500">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeSettingsModal()" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg">Batal</button>
+                <button type="submit" id="btn-save-settings" class="px-4 py-1.5 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-lg shadow-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
     </script>
 </body>
 </html>
