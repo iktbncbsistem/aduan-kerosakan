@@ -16,38 +16,36 @@
     <!-- Container Utama (Responsif: Penuh di mobile, Kad lebar di desktop) -->
     <div class="max-w-4xl mx-auto bg-white min-h-screen sm:min-h-0 sm:rounded-2xl shadow-2xl relative pb-20 overflow-hidden border border-gray-100">
         
-        <!-- Header Social Media Style -->
-        <nav class="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-50">
-            <span id="user-email-header" class="hidden"></span>
-            
-            <div class="flex items-center gap-3 sm:gap-4">
-                <!-- Ruang Logo -->
-                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo Organisasi" class="w-24 h-24 mx-auto object-contain mb-4 p-2 rounded-xl border border-gray-100">
-                
-                <div class="flex flex-col">
-                    <h1 class="font-bold text-[13px] sm:text-base leading-tight text-gray-900">E-Aduan Kerosakan</h1>
-                    
-                    <div id="name-view-mode" class="flex items-center gap-2 mt-0.5">
-                        <span id="display-name" class="text-[11px] sm:text-xs text-gray-500 font-medium truncate max-w-[150px] sm:max-w-xs">Memuatkan...</span>
-                        <button type="button" onclick="toggleEditName(true)" class="text-[9px] sm:text-[10px] text-blue-600 hover:underline font-bold bg-blue-50 px-1.5 py-0.5 rounded">Edit</button>
-                    </div>
-                    
-                    <div id="name-edit-mode" class="hidden flex items-center gap-1 mt-0.5">
-                        <input type="text" id="edit-name-input" class="text-[10px] sm:text-xs px-2 py-1 border rounded w-32 focus:outline-none focus:border-blue-500">
-                        <button type="button" onclick="saveProfileName()" class="bg-green-500 text-white text-[10px] px-2 py-1 rounded font-bold">OK</button>
-                    </div>
-                </div>
-            </div>
+<!-- Header Social Media Style -->
+    <nav class="bg-white border-b border-gray-200 px-4 sm:px-6 py-2 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <span id="user-email-header" class="hidden"></span>
 
-            <!-- Avatar Pemohon di sebelah Kanan -->
-            <div class="flex items-center gap-3">
-                <div id="dynamic-menu" class="hidden flex flex-wrap gap-2"></div>
-                <div class="relative cursor-pointer flex-shrink-0" onclick="document.getElementById('avatar-upload').click()">
-                    <img id="profile-avatar" src="https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200 shadow-sm transition hover:border-blue-400">
-                    <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+        
+        <div class="flex items-center gap-2">
+            <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-7 h-7 object-contain">
+            <div class="flex flex-col">
+                <h1 class="font-bold text-xs sm:text-sm leading-tight text-gray-900">Aduan Kerosakan</h1>
+                <div id="name-view-mode" class="flex items-center gap-1">
+                    <span id="display-name" class="text-[10px] text-gray-500 font-medium truncate max-w-[120px]">Memuatkan...</span>
+                    <button type="button" onclick="toggleEditName(true)" class="text-[9px] text-blue-600 hover:underline font-bold bg-blue-50 px-1 py-0.5 rounded">Edit</button>
+                </div>
+                <div id="name-edit-mode" class="hidden flex items-center gap-1 mt-0.5">
+                    <input type="text" id="edit-name-input" class="text-[10px] px-1.5 py-0.5 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                    <button type="button" onclick="saveProfileName()" class="bg-green-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">OK</button>
                 </div>
             </div>
-        </nav>
+        </div>
+
+        
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                <i class="fa-solid fa-user text-[11px]"></i>
+            </div>
+            <button onclick="logout()" class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Log Keluar">
+                <i class="fa-solid fa-right-from-bracket text-sm"></i>
+            </button>
+        </div>
+    </nav> 
 
         <div class="p-4 sm:p-8">
             <!-- Pill Tabs -->
