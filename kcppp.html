@@ -590,19 +590,39 @@
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         async function forceDownload(url, fn) { const a = document.createElement('a'); a.href = url; a.download = fn; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); }
 
+// Buka & Tutup Modal
 async function openSettingsModal() {
     document.getElementById('settings-modal').classList.remove('hidden');
-    const { data } = await _supabase.from('system_settings').select('*');
-    if (data) {
-        const logo = data.find(s => s.setting_key === 'system_logo');
-        const wa = data.find(s => s.setting_key === 'whatsapp_no');
-        if (logo) document.getElementById('setting-logo-url').value = logo.setting_value;
-        if (wa) document.getElementById('setting-wa-no').value = wa.setting_value;
-    }
+    switchModalTab('system');
+    loadModalSystemSettings();
 }
 
 function closeSettingsModal() {
     document.getElementById('settings-modal').classList.add('hidden');
+}
+
+// Tukar Tab Modal
+function switchModalTab(tab) {
+    ['system', 'depts', 'users'].forEach(t => {
+        document.getElementById(`modal-content-${t}`).classList.add('hidden');
+        document.getElementById(`modal-tab-${t}`).className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800";
+    });
+    document.getElementById(`modal-content-${tab}`).classList.remove('hidden');
+    document.getElementById(`modal-tab-${tab}`).className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-slate-800";
+
+    if(tab === 'depts') loadModalDepts();
+    if(tab === 'users') loadModalUsers();
+}
+
+// 1. Logik Background & WhatsApp
+async function loadModalSystemSettings() {
+    const { data } = await _supabase.from('system_settings').select('*');
+    if (data) {
+        const bg = data.find(s => s.setting_key === 'login_bg');
+        const wa = data.find(s => s.setting_key === 'whatsapp_no');
+        if (bg) document.getElementById('setting-bg-url').value = bg.setting_value;
+        if (wa) document.getElementById('setting-wa-no').value = wa.setting_value;
+    }
 }
 
 async function saveSystemSettings(e) {
@@ -610,20 +630,81 @@ async function saveSystemSettings(e) {
     const btn = document.getElementById('btn-save-settings');
     btn.disabled = true; btn.innerText = 'Menyimpan...';
 
-    const logoUrl = document.getElementById('setting-logo-url').value.trim();
-    const waNo = document.getElementById('setting-wa-no').value.trim();
-
     await _supabase.from('system_settings').upsert([
-        { setting_key: 'system_logo', setting_value: logoUrl },
-        { setting_key: 'whatsapp_no', setting_value: waNo }
+        { setting_key: 'login_bg', setting_value: document.getElementById('setting-bg-url').value.trim() },
+        { setting_key: 'whatsapp_no', setting_value: document.getElementById('setting-wa-no').value.trim() }
     ], { onConflict: 'setting_key' });
 
     alert('Tetapan berjaya disimpan!');
-    btn.disabled = false; btn.innerText = 'Simpan';
-    closeSettingsModal();
-    location.reload();
+    btn.disabled = false; btn.innerText = 'Simpan Tetapan';
 }
 
+// 2. Logik Lokasi / Jabatan
+async function loadModalDepts() {
+    const { data } = await _supabase.from('departments').select('*').order('name');
+    const tbody = document.getElementById('modal-dept-list');
+    if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="2" class="p-3 text-center">Tiada lokasi.</td></tr>'; return; }
+    tbody.innerHTML = data.map(d => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="p-2.5 font-bold text-slate-700">${d.name}</td>
+            <td class="p-2.5 text-right"><button onclick="deleteModalDept(${d.id})" class="text-red-500 font-bold hover:underline">Padam</button></td>
+        </tr>
+    `).join('');
+}
+
+async function addModalDept(e) {
+    e.preventDefault();
+    const input = document.getElementById('new-dept-input');
+    if(!input.value.trim()) return;
+    await _supabase.from('departments').insert([{ name: input.value.trim() }]);
+    input.value = '';
+    loadModalDepts();
+}
+
+async function deleteModalDept(id) {
+    if(confirm('Padam lokasi ini?')) {
+        await _supabase.from('departments').delete().eq('id', id);
+        loadModalDepts();
+    }
+}
+
+// 3. Logik User Roles
+async function loadModalUsers() {
+    const { data } = await _supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
+    const tbody = document.getElementById('modal-user-list');
+    if(!data) return;
+    tbody.innerHTML = data.map(u => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="p-2">
+                <div class="font-bold text-slate-800">${u.full_name || 'Pengguna'}</div>
+                <div class="text-[10px] text-slate-400">${u.email}</div>
+            </td>
+            <td class="p-2">
+                <select onchange="updateUserRole('${u.email}', this.value)" class="border rounded p-1 text-[11px] font-bold ${u.role === 'PENDING' ? 'bg-amber-100 text-amber-800' : ''}">
+                    <option value="STAF" ${u.role === 'STAF' ? 'selected' : ''}>STAF</option>
+                    <option value="CPPP" ${u.role === 'CPPP' ? 'selected' : ''}>CPPP</option>
+                    <option value="KCPPP" ${u.role === 'KCPPP' ? 'selected' : ''}>KCPPP</option>
+                    <option value="PENDING" ${u.role === 'PENDING' ? 'selected' : ''}>PENDING</option>
+                </select>
+            </td>
+            <td class="p-2 text-right">
+                <button onclick="toggleBlockUser('${u.email}', ${!u.is_blocked})" class="text-[10px] font-bold ${u.is_blocked ? 'text-green-600' : 'text-red-500'}">
+                    ${u.is_blocked ? 'Unblock' : 'Block'}
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function updateUserRole(email, role) {
+    await _supabase.from('user_profiles').update({ role }).eq('email', email);
+    alert('Peranan dikemaskini!');
+}
+
+async function toggleBlockUser(email, is_blocked) {
+    await _supabase.from('user_profiles').update({ is_blocked }).eq('email', email);
+    loadModalUsers();
+}
         
         initKCPPP();
                 
@@ -653,5 +734,88 @@ async function saveSystemSettings(e) {
         </form>
     </div>
 </div>
+<!-- Modal Tetapan Sistem Ringkas (KCPPP) -->
+<div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 border border-slate-100 max-h-[90vh] flex flex-col">
+        
+        <!-- Header Modal -->
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base"><i class="fa-solid fa-gear text-orange-500 mr-2"></i>Tetapan Sistem</h3>
+            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+        </div>
+
+        <!-- Tab Options -->
+        <div class="flex bg-slate-100 p-1 rounded-xl mb-4 gap-1">
+            <button onclick="switchModalTab('system')" id="modal-tab-system" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-slate-800">⚙️ Tetapan Utama</button>
+            <button onclick="switchModalTab('depts')" id="modal-tab-depts" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800">📍 Lokasi</button>
+            <button onclick="switchModalTab('users')" id="modal-tab-users" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800">👥 Pengguna</button>
+        </div>
+        
+        <!-- Kandungan Tab -->
+        <div class="overflow-y-auto flex-1 pr-1 space-y-4">
+            
+            <!-- TAB 1: Background & WhatsApp -->
+            <div id="modal-content-system" class="space-y-3">
+                <form onsubmit="saveSystemSettings(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">URL Latar Belakang (Background Login)</label>
+                        <input type="url" id="setting-bg-url" placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-orange-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">No. WhatsApp Admin (Terima Notifikasi Aduan)</label>
+                        <input type="text" id="setting-wa-no" placeholder="60123456789" required class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-orange-500">
+                    </div>
+                    <button type="submit" id="btn-save-settings" class="w-full py-2 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-lg shadow-sm transition">Simpan Tetapan</button>
+                </form>
+            </div>
+
+            <!-- TAB 2: Lokasi / Jabatan -->
+            <div id="modal-content-depts" class="hidden space-y-3">
+                <form onsubmit="addModalDept(event)" class="flex gap-2">
+                    <input type="text" id="new-dept-input" placeholder="Nama Lokasi Baru..." required class="flex-1 border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-orange-500">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition">+ Tambah</button>
+                </form>
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-52 overflow-y-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">Nama Lokasi</th>
+                                <th class="p-2.5 text-right">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-dept-list">
+                            <tr><td colspan="2" class="p-3 text-center text-slate-400">Memuatkan...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: User Roles -->
+            <div id="modal-content-users" class="hidden space-y-3">
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-60 overflow-y-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">Pengguna</th>
+                                <th class="p-2.5">Peranan (Role)</th>
+                                <th class="p-2.5 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-user-list">
+                            <tr><td colspan="3" class="p-3 text-center text-slate-400">Memuatkan pengguna...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 text-right">
+            <button type="button" onclick="closeSettingsModal()" class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg">Tutup</button>
+        </div>
+    </div>
+</div>
+
+    
 </body>
 </html>
