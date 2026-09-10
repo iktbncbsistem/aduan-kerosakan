@@ -182,7 +182,7 @@
                 <div id="sec-rbac" class="hidden">
                     <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
                         <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-100 text-slate-600 font-bold border-b"><tr><th class="p-3 w-12 text-center">No.</th><th class="p-3">Nama / Emel</th><th class="p-3 w-48">Peranan Semasa</th><th class="p-3 w-32 text-center">Kemaskini</th></tr></thead>
+                            <thead class="bg-slate-100 text-slate-600 font-bold border-b"><tr><th class="p-3 w-12 text-center">No.</th><th class="p-3">Nama / Emel</th> <th class="p-3 w-40">Aktiviti Terakhir</th><th class="p-3 w-48">Peranan Semasa</th><th class="p-3 w-32 text-center">Kemaskini</th></tr></thead>
                             <tbody id="user-list" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
@@ -318,17 +318,26 @@
                     deptList.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-400 font-medium italic">Tiada lokasi didaftarkan.</td></tr>';
                 }
 
-                // Load Users (RBAC)
+// Load Users (RBAC)
                 const { data: users, error: userErr } = await _supabase.from('user_profiles').select('*').order('full_name');
                 const userList = document.getElementById('user-list');
                 
                 if (userErr) {
-                    userList.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500 font-bold">Ralat: ${userErr.message}</td></tr>`;
+                    userList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-bold">Ralat: ${userErr.message}</td></tr>`;
                 } else if (users && users.length > 0) {
-                    userList.innerHTML = users.map((u, i) => `
+                    userList.innerHTML = users.map((u, i) => {
+                        // Dapatkan tarikh aktiviti terakhir (Guna updated_at atau fallback ke created_at)
+                        const rawDate = u.updated_at || u.created_at;
+                        const lastLogin = rawDate ? new Date(rawDate).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+
+                        return `
                         <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
                             <td class="p-3 text-center font-semibold text-slate-500">${i+1}</td>
-                            <td class="p-3"><div class="font-bold text-slate-800 uppercase">${u.full_name || 'Tanpa Nama'}</div><div class="text-[11px] text-slate-500">${u.email}</div></td>
+                            <td class="p-3">
+                                <div class="font-bold text-slate-800 uppercase">${u.full_name || 'Tanpa Nama'}</div>
+                                <div class="text-[11px] text-slate-500">${u.email}</div>
+                            </td>
+                            <td class="p-3 text-xs text-slate-500 font-medium">${lastLogin}</td>
                             <td class="p-3">
                                 <select id="role-${u.id}" class="border border-slate-300 rounded-md p-2 text-xs font-bold w-full focus:border-orange-500 outline-none">
                                     <option value="USER" ${u.role==='USER'?'selected':''}>PEMOHON BIASA (USER)</option>
@@ -340,10 +349,11 @@
                                 <button onclick="updateRole('${u.id}', '${u.email}')" class="bg-slate-800 text-white text-xs px-4 py-2 rounded-md hover:bg-slate-900 shadow-sm transition"><i class="fa-solid fa-floppy-disk mr-1"></i>Simpan</button>
                             </td>
                         </tr>
-                    `).join('');
+                        `;
+                    }).join('');
+                } else {
+                    userList.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium italic">Tiada pengguna didaftarkan.</td></tr>';
                 }
-            } catch (err) { console.error("Ralat SystemData:", err); }
-        }
 
         // ================= TEMA & MUAT NAIK LOGO =================
         async function loadSystemTheme() {
