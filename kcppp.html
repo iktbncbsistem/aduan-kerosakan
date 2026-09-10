@@ -153,17 +153,28 @@
 
                 
                 <!-- SEKSYEN: LOKASI (Diambil dari kod sedia ada) -->
-                <div id="sec-lokasi" class="hidden space-y-4 max-w-4xl mx-auto">
-                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex gap-2">
-                        <input type="text" id="new-location" placeholder="Tambah lokasi baru..." class="flex-1 border border-slate-300 rounded-md p-2 text-sm focus:border-orange-500 outline-none">
-                        <button onclick="addLocation()" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md text-sm font-bold shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
-                    </div>
-                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-100 text-slate-600 font-bold border-b"><tr><th class="p-3 w-16 text-center">No.</th><th class="p-3">Nama Jabatan/Lokasi</th><th class="p-3 w-40 text-center">Tindakan</th></tr></thead>
-                            <tbody id="dept-list" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
+                <!-- SEKSYEN LOKASI -->
+        <div id="sec-lokasi" class="hidden space-y-4 max-w-4xl mx-auto">
+            <!-- Borang Input Tambah Lokasi (Susun menegak di mobile) -->
+            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-2">
+                <input type="text" id="new-location" placeholder="Tambah lokasi baru..." class="flex-1 border border-slate-300 rounded-md p-2 text-sm focus:border-orange-500 outline-none">
+                <button onclick="addLocation()" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md text-sm font-bold shadow-sm transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+            </div>
+
+            <!-- Bekas Jadual (Boleh Skrol Kiri-Kanan) -->
+            <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-x-auto w-full">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-100 text-slate-600 font-bold border-b">
+                        <tr>
+                            <th class="p-3 w-16 text-center">No.</th>
+                            <th class="p-3">Nama Jabatan/Lokasi</th>
+                            <th class="p-3 w-48 text-center">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dept-list" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
                 </div>
 
                 <!-- SEKSYEN: WHATSAPP -->
