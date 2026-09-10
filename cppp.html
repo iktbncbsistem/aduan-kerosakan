@@ -387,6 +387,23 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 window.open(url, '_blank'); 
             }
         }
+
+async function loadSystemTheme() {
+            const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['system_logo', 'login_bg']);
+            if(data) {
+                const logo = data.find(d => d.setting_key === 'system_logo');
+                const sysLogoEls = document.querySelectorAll('.sys-logo');
+                if(logo && logo.setting_value && sysLogoEls.length > 0) {
+                    sysLogoEls.forEach(img => img.src = logo.setting_value);
+                }
+                
+                const bg = data.find(d => d.setting_key === 'login_bg');
+                if(bg && bg.setting_value && document.body.classList.contains('sys-bg')) {
+                    document.body.style.backgroundImage = `url('${bg.setting_value}')`;
+                }
+            }
+        }
+        loadSystemTheme(); 
         
     </script>
 </body>
