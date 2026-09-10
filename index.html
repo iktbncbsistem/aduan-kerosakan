@@ -38,8 +38,13 @@
 
         
         <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-                <i class="fa-solid fa-user text-[11px]"></i>
+
+<div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm" id="user-avatar">
+    <i class="fa-solid fa-user text-[11px]"></i>
+</div>
+
+
+                
             </div>
             <button onclick="logout()" class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Log Keluar">
                 <i class="fa-solid fa-right-from-bracket text-sm"></i>
@@ -237,7 +242,7 @@
             }
         }
 
-        function updateProfileUI() {
+function updateProfileUI() {
             const displayName = userProfile?.full_name || currentUser?.email?.split('@')[0] || 'Pengguna';
             
             const nameEl = document.getElementById('display-name');
@@ -246,10 +251,10 @@
             const inputEl = document.getElementById('edit-name-input');
             if (inputEl) inputEl.value = displayName;
 
-            // Kemaskini ikon avatar supaya tiada ralat null 'src'
+            // Kemaskini avatar dengan selamat
             const avatarEl = document.getElementById('user-avatar');
             if (avatarEl) {
-                avatarEl.innerHTML = `<span class="uppercase">${displayName.charAt(0)}</span>`;
+                avatarEl.innerHTML = `<span class="uppercase font-bold">${displayName.charAt(0)}</span>`;
             }
         }
 
