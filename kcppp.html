@@ -318,7 +318,7 @@
                     deptList.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-400 font-medium italic">Tiada lokasi didaftarkan.</td></tr>';
                 }
 
-// Load Users (RBAC)
+                // Load Users (RBAC)
                 const { data: users, error: userErr } = await _supabase.from('user_profiles').select('*').order('full_name');
                 const userList = document.getElementById('user-list');
                 
@@ -354,7 +354,10 @@
                 } else {
                     userList.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium italic">Tiada pengguna didaftarkan.</td></tr>';
                 }
-
+            } catch (err) { 
+                console.error("Ralat SystemData:", err); 
+            }
+        }
         // ================= TEMA & MUAT NAIK LOGO =================
         async function loadSystemTheme() {
             const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['system_logo', 'login_bg']);
