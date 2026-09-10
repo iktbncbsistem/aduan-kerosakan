@@ -11,12 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
-
-
-
-
-
-
     
 <body class="bg-slate-50 min-h-screen">
     
@@ -93,27 +87,80 @@
                     <div class="relative h-64 w-full"><canvas id="trendChart"></canvas></div>
                 </div>
 
-                <!-- Jadual Laporan -->
-                <div class="overflow-x-auto rounded-lg border border-slate-200">
-                    <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
-                        <thead class="bg-white text-slate-500 uppercase text-[11px] font-bold border-b-2 border-slate-200 tracking-wider">
-                            <tr>
-                                <th class="p-3 w-10 text-center">No.</th>
-                                <th class="p-3 w-32">Tarikh</th>
-                                <th class="p-3 w-48">Pemohon & Lokasi</th>
-                                <th class="p-3 w-56">Kerosakan & Butiran</th>
-                                <th class="p-3 w-56">Justifikasi</th>
-                                <th class="p-3 w-28 text-center">Status</th>
-                                <th class="p-3 w-28 text-center">Lampiran</th>
-                            </tr>
-                        </thead>
-                        <tbody id="report-list" class="divide-y divide-slate-100">
-                            <tr><td colspan="7" class="p-8 text-center text-slate-500">Memuatkan rekod...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+               <!-- Seksyen Penapis & Senarai Rekod (TVET Style) -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+    
+    <!-- Header Seksyen -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-filter text-orange-500 mr-1.5"></i> Carian & Tapisan Aduan</h3>
+            <p class="text-[10px] text-slate-400">Pilih kriteria di bawah untuk menapis senarai rekod aduan</p>
+        </div>
+        <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">Memaparkan 0 rekod</span>
+    </div>
+
+    <!-- Kotak Borang Tapisan (TVET Layout) -->
+    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama / Detail</label>
+                <input type="text" id="filter-search" placeholder="Taip nama pemohon..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Jabatan / Lokasi</label>
+                <select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                    <option value="">-- Semua Lokasi --</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori Kerosakan</label>
+                <select id="filter-category" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                    <option value="">-- Semua Kategori --</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Aduan</label>
+                <select id="filter-status" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                    <option value="">-- Semua Status --</option>
+                    <option value="BARU">BARU</option>
+                    <option value="PROSES">PROSES</option>
+                    <option value="SELESAI">SELESAI</option>
+                </select>
             </div>
         </div>
+
+        <!-- Butang Carian & Reset Ala TVET -->
+        <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
+            <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
+                Reset
+            </button>
+            <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian
+            </button>
+        </div>
+    </div>
+
+    <!-- Jadual Senarai Rekod (Kemasan Padat TVET Style) -->
+    <div class="overflow-x-auto w-full border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
+                <tr>
+                    <th class="p-3 w-10 text-center">Bil</th>
+                    <th class="p-3">Pemohon & Tarikh</th>
+                    <th class="p-3">Lokasi / Jabatan</th>
+                    <th class="p-3">Kategori & Butiran Kerosakan</th>
+                    <th class="p-3 text-right">Anggaran (RM)</th>
+                    <th class="p-3 text-center">Status</th>
+                    <th class="p-3 text-center">Tindakan</th>
+                </tr>
+            </thead>
+            <tbody id="kcppp-complaints-table" class="divide-y divide-slate-100">
+                <tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
 
         <!-- ================= VIEW 2: KAWALAN SISTEM PUSAT (PAGE) ================= -->
         <div id="settings-view" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300">
@@ -615,7 +662,75 @@
         async function forceDownload(url, fn) { const a = document.createElement('a'); a.href = url; a.download = fn; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); }
        
         initKCPPP();
-                
+
+let rawComplaintsData = [];
+
+function renderKCPPPTable(data) {
+    const tbody = document.getElementById('kcppp-complaints-table');
+    document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
+
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = data.map((item, idx) => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
+            <td class="p-3 align-top">
+                <div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
+            </td>
+            <td class="p-3 align-top">
+                <div class="font-bold text-slate-700">${item.department || '-'}</div>
+                <div class="text-[10px] text-slate-400">${item.phone || '-'}</div>
+            </td>
+            <td class="p-3 align-top max-w-xs">
+                <span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">
+                    ${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}
+                </span>
+                <p class="text-[11px] text-slate-500 truncate">${item.details || '-'}</p>
+            </td>
+            <td class="p-3 align-top text-right font-bold text-slate-700">
+                RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}
+            </td>
+            <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
+            <td class="p-3 align-top text-center">
+                <button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[10px] shadow-sm transition">
+                    🔍 Perinci
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function applyFilters() {
+    const search = document.getElementById('filter-search').value.toLowerCase();
+    const dept = document.getElementById('filter-dept').value;
+    const cat = document.getElementById('filter-category').value;
+    const status = document.getElementById('filter-status').value;
+
+    const filtered = rawComplaintsData.filter(item => {
+        const matchSearch = !search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search));
+        const matchDept = !dept || item.department === dept;
+        const matchCat = !cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat);
+        const matchStatus = !status || item.status === status;
+
+        return matchSearch && matchDept && matchCat && matchStatus;
+    });
+
+    renderKCPPPTable(filtered);
+}
+
+function resetFilters() {
+    document.getElementById('filter-search').value = '';
+    document.getElementById('filter-dept').value = '';
+    document.getElementById('filter-category').value = '';
+    document.getElementById('filter-status').value = '';
+    renderKCPPPTable(rawComplaintsData);
+}
+
+        
     </script>
        
 </body>
