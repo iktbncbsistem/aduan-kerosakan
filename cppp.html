@@ -12,21 +12,35 @@
 </head>
 <body class="bg-slate-50 min-h-screen">
     
-    <!-- Navbar Ala Cloudflare -->
-    <nav class="bg-white border-b border-gray-200 text-slate-800 p-4 flex justify-between items-center sticky top-0 z-40">
-        <div class="flex items-center gap-3">
-            <!-- Logo Dinamik Lutsinar -->
-            <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo Organisasi" class="w-24 h-24 mx-auto object-contain mb-4 p-2 rounded-xl border border-gray-100">
-            <div>
-                <h1 class="font-bold text-lg sm:text-xl text-slate-900 tracking-tight">Sistem Pengurusan Penyenggaraan</h1>
-                <p class="text-[11px] text-slate-500 font-bold tracking-widest uppercase mt-0.5"><i class="fa-solid fa-wrench text-orange-500 mr-1"></i> Panel Pegawai CPPP</p>
+    
+    <!-- Navbar -->
+<nav class="bg-white border-b border-slate-200 text-slate-800 py-2 px-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+    <div class="flex items-center gap-2.5">
+        <!-- Logo Kecil & Lutsinar -->
+        <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-7 h-7 object-contain">
+        <div class="flex items-center gap-2">
+            <h1 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight leading-none">Sistem Penyenggaraan</h1>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Aplikasi Aduan</span>
+        </div>
+    </div>
+    
+    <!-- Bahagian Kanan (Avatar & Butang Ikon Log Keluar) -->
+    <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm" id="user-avatar">
+                <i class="fa-solid fa-user text-[11px]"></i>
             </div>
+            <span id="user-name-display" class="text-xs font-bold text-slate-700 hidden sm:inline-block">Pengguna</span>
         </div>
-        <div class="flex gap-3 items-center">
-            <a href="index.html" class="text-slate-500 hover:text-orange-500 text-sm font-bold transition hidden sm:block"><i class="fa-solid fa-house mr-1"></i> Paparan Pemohon</a>
-            <button onclick="logout()" class="border border-slate-300 hover:border-slate-400 text-slate-700 px-4 py-1.5 rounded-md text-sm font-bold transition shadow-sm bg-gray-50 hover:bg-gray-100"><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Log Keluar</button>
-        </div>
-    </nav>
+        
+        <div class="h-4 w-[1px] bg-slate-200"></div>
+
+        <!-- Butang Log Keluar (Ikon Ringkas) -->
+        <button onclick="logout()" class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Log Keluar">
+            <i class="fa-solid fa-right-from-bracket text-base"></i>
+        </button>
+    </div>
+</nav>
 
     <div class="max-w-[1400px] mx-auto p-4 sm:p-6 mt-2">
         
