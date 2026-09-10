@@ -10,138 +10,143 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { display: none; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         .slide-up { animation: slideUp 0.3s ease-out forwards; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
-    <script>
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-    </script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </head>
-<body class="flex justify-center min-h-screen bg-slate-200 sm:p-4">
+<body class="bg-slate-100 min-h-screen">
 
-    <!-- Bekas Utama Skrin Telefon -->
-    <div class="w-full max-w-[450px] bg-slate-50 relative overflow-hidden sm:shadow-2xl sm:rounded-[2.5rem] sm:border-[8px] border-slate-800 flex flex-col h-[100dvh] sm:h-[850px]">
+    <!-- ========================================== -->
+    <!-- VERSI 1: PAPARAN TELEFON PINTAR (OCTO STYLE) -->
+    <!-- ========================================== -->
+    <div class="block lg:hidden w-full h-[100dvh] bg-slate-50 relative flex flex-col overflow-hidden no-scrollbar">
         
         <!-- HEADER BERTINDIH (Biru Gelap) -->
         <div class="bg-gradient-to-br from-slate-900 to-blue-900 pt-10 pb-16 px-6 text-white relative flex-shrink-0">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[11px] text-blue-200 mb-0.5">Selamat datang,</p>
-                    <h1 id="user-name-display" class="text-base font-bold leading-tight uppercase truncate max-w-[200px]">Pengguna</h1>
+                    <h1 id="mob-user-name" class="text-base font-bold leading-tight uppercase truncate max-w-[200px]">Pengguna</h1>
                     <p class="text-[9px] bg-blue-800/50 inline-block px-2 py-0.5 rounded-full mt-1.5 font-medium border border-blue-700/50 tracking-wider">STAF ILKBS</p>
                 </div>
-                <button onclick="logout()" class="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition border border-white/20" title="Log Keluar">
-                    <i class="fa-solid fa-right-from-bracket text-xs"></i>
-                </button>
+                <button onclick="logout()" class="w-8 h-8 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition border border-white/20"><i class="fa-solid fa-right-from-bracket text-xs"></i></button>
             </div>
         </div>
 
         <!-- KAD UTAMA (-mt-6 untuk tindih header) -->
-        <div class="bg-slate-50 -mt-6 rounded-t-3xl flex-1 overflow-y-auto px-5 pt-6 pb-24 relative z-10">
-            
-            <!-- Menu Kategori Pantas -->
-            <h2 class="text-xs font-extrabold text-slate-800 mb-3 tracking-wide">LAPOR KEROSAKAN PANTAS</h2>
-            <div class="grid grid-cols-4 gap-2 mb-6" id="quick-categories">
-                <button onclick="openFormModal('Perkakasan IT')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-orange-500 transition active:scale-95">
-                    <div class="text-orange-500 text-lg"><i class="fa-solid fa-desktop"></i></div>
-                    <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perkakasan<br>IT</span>
-                </button>
-                <button onclick="openFormModal('Perisian & Sistem')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition active:scale-95">
-                    <div class="text-blue-500 text-lg"><i class="fa-solid fa-code"></i></div>
-                    <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Sistem &<br>Perisian</span>
-                </button>
-                <button onclick="openFormModal('Elektrik')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-emerald-500 transition active:scale-95">
-                    <div class="text-emerald-500 text-lg"><i class="fa-solid fa-plug"></i></div>
-                    <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Elektrik &<br>Wayar</span>
-                </button>
-                <button onclick="openFormModal('Sivil & Bangunan')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-amber-500 transition active:scale-95">
-                    <div class="text-amber-500 text-lg"><i class="fa-solid fa-house-crack"></i></div>
-                    <span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Sivil &<br>Bangunan</span>
-                </button>
+        <div class="bg-slate-50 -mt-6 rounded-t-3xl flex-1 overflow-y-auto px-5 pt-6 pb-24 relative z-10 no-scrollbar">
+            <h2 class="text-xs font-extrabold text-slate-800 mb-3 tracking-wide">LAPOR PANTAS</h2>
+            <div class="grid grid-cols-4 gap-2 mb-6">
+                <button onclick="openMobModal('Perkakasan IT')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-orange-500 active:scale-95"><div class="text-orange-500 text-lg"><i class="fa-solid fa-desktop"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perkakasan</span></button>
+                <button onclick="openMobModal('Perisian & Sistem')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-blue-500 active:scale-95"><div class="text-blue-500 text-lg"><i class="fa-solid fa-code"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Perisian</span></button>
+                <button onclick="openMobModal('Elektrik')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-emerald-500 active:scale-95"><div class="text-emerald-500 text-lg"><i class="fa-solid fa-plug"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Elektrik</span></button>
+                <button onclick="openMobModal('Sivil & Bangunan')" class="bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 hover:border-amber-500 active:scale-95"><div class="text-amber-500 text-lg"><i class="fa-solid fa-house-crack"></i></div><span class="text-[8px] font-bold text-slate-600 text-center leading-tight">Sivil</span></button>
             </div>
 
-            <!-- Senarai Aduan Terkini -->
             <div class="flex justify-between items-end mb-3 border-b border-slate-200 pb-2">
                 <h2 class="text-xs font-extrabold text-slate-800 tracking-wide">STATUS ADUAN SAYA</h2>
-                <span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="total-aduan">0 Rekod</span>
+                <span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="mob-total">0 Rekod</span>
             </div>
-            
-            <div id="my-complaints-list" class="space-y-3 pb-4">
-                <!-- Senarai dijana oleh JS -->
-                <div class="text-center p-6 text-slate-400 text-xs font-medium bg-white rounded-xl border border-slate-100">Memuatkan data aduan...</div>
+            <div id="mob-list" class="space-y-3 pb-4">
+                <div class="text-center p-6 text-slate-400 text-xs font-medium bg-white rounded-xl border border-slate-100">Memuatkan data...</div>
             </div>
         </div>
 
-        <!-- BOTTOM NAV BAR DENGAN BUTANG TERAPUNG -->
-        <div class="absolute bottom-0 w-full bg-slate-900 text-slate-400 rounded-t-3xl pt-2 pb-6 px-6 z-40 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.1)] flex-shrink-0">
-            <button onclick="closeFormModal()" class="flex flex-col items-center gap-1 text-white transition"><i class="fa-solid fa-house text-lg"></i><span class="text-[9px] font-bold">Utama</span></button>
-            <button class="flex flex-col items-center gap-1 hover:text-white transition mr-4 opacity-50 cursor-not-allowed"><i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">Sejarah</span></button>
-            
-            <!-- Butang Terapung (Lapor) -->
-            <button onclick="openFormModal('')" class="absolute left-1/2 -translate-x-1/2 -top-6 w-16 h-16 bg-red-600 text-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-slate-50 hover:bg-red-700 hover:scale-105 transition-transform">
-                <i class="fa-solid fa-qrcode text-xl mb-0.5"></i>
-                <span class="text-[8px] font-bold tracking-widest">LAPOR</span>
-            </button>
-
-            <button class="flex flex-col items-center gap-1 hover:text-white transition ml-4 opacity-50 cursor-not-allowed"><i class="fa-solid fa-bell text-lg"></i><span class="text-[9px] font-bold">Notis</span></button>
-            <button onclick="logout()" class="flex flex-col items-center gap-1 hover:text-white transition"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px] font-bold">Profil</span></button>
+        <!-- BOTTOM NAV BAR (TERAPUNG) -->
+        <div class="absolute bottom-0 w-full bg-slate-900 text-slate-400 rounded-t-3xl pt-2 pb-6 px-6 z-40 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.1)]">
+            <button onclick="closeMobModal()" class="flex flex-col items-center gap-1 text-white"><i class="fa-solid fa-house text-lg"></i><span class="text-[9px] font-bold">Utama</span></button>
+            <button class="flex flex-col items-center gap-1 opacity-50 mr-4"><i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">Sejarah</span></button>
+            <button onclick="openMobModal('')" class="absolute left-1/2 -translate-x-1/2 -top-6 w-16 h-16 bg-red-600 text-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-slate-50 hover:bg-red-700 hover:scale-105 transition-transform"><i class="fa-solid fa-qrcode text-xl mb-0.5"></i><span class="text-[8px] font-bold tracking-widest">LAPOR</span></button>
+            <button class="flex flex-col items-center gap-1 opacity-50 ml-4"><i class="fa-solid fa-bell text-lg"></i><span class="text-[9px] font-bold">Notis</span></button>
+            <button onclick="logout()" class="flex flex-col items-center gap-1"><i class="fa-solid fa-user text-lg"></i><span class="text-[9px] font-bold">Profil</span></button>
         </div>
 
-        <!-- MODAL BORANG ADUAN (Meluncur dari bawah) -->
-        <div id="form-modal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex flex-col justify-end sm:absolute sm:inset-0 backdrop-blur-sm">
-            <div class="bg-white rounded-t-3xl h-[85%] w-full flex flex-col shadow-2xl slide-up relative">
-                
+        <!-- MODAL BORANG (Meluncur) -->
+        <div id="mob-modal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex flex-col justify-end backdrop-blur-sm">
+            <div class="bg-white rounded-t-3xl h-[85%] w-full flex flex-col shadow-2xl slide-up">
                 <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 rounded-t-3xl">
-                    <h3 class="font-extrabold text-sm text-slate-800 tracking-tight"><i class="fa-solid fa-file-pen text-red-500 mr-1.5"></i> Borang Aduan Baru</h3>
-                    <button onclick="closeFormModal()" class="w-7 h-7 bg-slate-200 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-full flex items-center justify-center font-bold transition">&times;</button>
+                    <h3 class="font-extrabold text-sm text-slate-800"><i class="fa-solid fa-file-pen text-red-500 mr-1.5"></i> Borang Aduan</h3>
+                    <button onclick="closeMobModal()" class="w-7 h-7 bg-slate-200 text-slate-600 rounded-full font-bold">&times;</button>
                 </div>
-                
                 <div class="p-5 overflow-y-auto flex-1 bg-white">
-                    <form id="complaint-form" onsubmit="submitComplaint(event)" class="space-y-4 text-xs">
-                        <input type="hidden" id="f-name">
-                        <input type="hidden" id="f-phone">
-                        
+                    <form onsubmit="submitComplaint(event, 'mob')" class="space-y-4 text-xs">
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label><select id="mob-dept" required class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"><option value="">-- Pilih --</option></select></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label><select id="mob-cat" required class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"><option value="">-- Pilih --</option></select></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Butiran</label><textarea id="mob-det" required rows="3" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"></textarea></div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi / Jabatan Kerosakan</label>
-                            <select id="f-dept" required class="w-full border border-slate-300 rounded-xl p-3 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition bg-slate-50">
-                                <option value="">-- Pilih Lokasi --</option>
-                            </select>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gambar</label>
+                            <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer"><input type="file" id="mob-img" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?this.files[0].name:'Pilih gambar'"><i class="fa-solid fa-camera text-xl text-slate-400 mb-1"></i><p class="text-[10px] font-bold text-slate-600" id="mob-img-lbl">Klik untuk pilih gambar</p></div>
                         </div>
-                        
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori Kerosakan</label>
-                            <select id="f-category" required class="w-full border border-slate-300 rounded-xl p-3 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition bg-slate-50">
-                                <option value="">-- Pilih Kategori --</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Butiran Kerosakan</label>
-                            <textarea id="f-details" required rows="3" placeholder="Terangkan kerosakan secara terperinci..." class="w-full border border-slate-300 rounded-xl p-3 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition bg-slate-50"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Muat Naik Gambar (Pilihan)</label>
-                            <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-red-500 hover:bg-red-50 transition cursor-pointer">
-                                <input type="file" id="f-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 mb-1"></i>
-                                <p class="text-[10px] font-bold text-slate-600" id="file-name-display">Klik untuk pilih gambar</p>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 pb-4">
-                            <button type="submit" id="submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition text-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-paper-plane"></i> Hantar Aduan
-                            </button>
-                        </div>
+                        <button type="submit" id="mob-btn" class="w-full bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-lg mt-4"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Aduan</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+
+    <!-- ========================================== -->
+    <!-- VERSI 2: PAPARAN WEB / PC (TVET STYLE) -->
+    <!-- ========================================== -->
+    <div class="hidden lg:flex flex-col min-h-screen">
+        
+        <!-- Navbar Web -->
+        <nav class="bg-white border-b border-slate-200 py-3 px-6 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+            <div class="flex items-center gap-3">
+                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-8 h-8 object-contain">
+                <div><h1 class="font-bold text-base text-slate-900 leading-none">Sistem Penyenggaraan</h1><span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold uppercase">Portal Staf</span></div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center"><i class="fa-solid fa-user"></i></div><span id="web-user-name" class="text-sm font-bold text-slate-700">Pengguna</span></div>
+                <button onclick="logout()" class="p-2 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg transition" title="Log Keluar"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </nav>
+
+        <!-- Main Content Web -->
+        <div class="flex-1 max-w-[1400px] w-full mx-auto p-6 grid grid-cols-3 gap-6 items-start">
+            
+            <!-- Borang Kiri -->
+            <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-20">
+                <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-3 mb-4"><i class="fa-solid fa-file-pen text-red-500 mr-2"></i> Borang Aduan Baru</h2>
+                <form onsubmit="submitComplaint(event, 'web')" class="space-y-4 text-xs">
+                    <div><label class="block font-bold text-slate-600 mb-1">Lokasi / Jabatan</label><select id="web-dept" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-red-500 transition"><option value="">-- Pilih Lokasi --</option></select></div>
+                    <div><label class="block font-bold text-slate-600 mb-1">Kategori Kerosakan</label><select id="web-cat" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-red-500 transition"><option value="">-- Pilih Kategori --</option></select></div>
+                    <div><label class="block font-bold text-slate-600 mb-1">Butiran Kerosakan</label><textarea id="web-det" required rows="4" class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-red-500 transition"></textarea></div>
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">Muat Naik Gambar</label>
+                        <div class="relative border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50"><input type="file" id="web-img" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('web-img-lbl').innerText=this.files[0]?this.files[0].name:'Pilih gambar'"><i class="fa-solid fa-upload text-xl text-slate-400 mb-1"></i><p class="text-xs font-medium text-slate-600" id="web-img-lbl">Klik untuk muat naik</p></div>
+                    </div>
+                    <button type="submit" id="web-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-sm mt-2 transition"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Aduan</button>
+                </form>
+            </div>
+
+            <!-- Jadual Kanan -->
+            <div class="col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                    <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> Sejarah Aduan Saya</h2>
+                    <span id="web-total" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">0 Rekod</span>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200">
+                            <tr><th class="p-3 w-10 text-center">Bil</th><th class="p-3">Kategori & Butiran</th><th class="p-3 w-32">Lokasi</th><th class="p-3 w-28 text-center">Tarikh</th><th class="p-3 w-24 text-center">Status</th></tr>
+                        </thead>
+                        <tbody id="web-list" class="divide-y divide-slate-100">
+                            <tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT (Dikongsi untuk Web & Mobile) -->
     <script>
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
@@ -156,9 +161,9 @@
             const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
             if(profile) {
                 userProfile = profile;
-                document.getElementById('user-name-display').innerText = profile.full_name || currentUser.email.split('@')[0];
-                document.getElementById('f-name').value = profile.full_name || '';
-                document.getElementById('f-phone').value = profile.phone || '';
+                const nameStr = profile.full_name || currentUser.email.split('@')[0];
+                document.getElementById('mob-user-name').innerText = nameStr;
+                document.getElementById('web-user-name').innerText = nameStr;
             }
 
             loadMasterData();
@@ -167,108 +172,116 @@
 
         async function loadMasterData() {
             const { data: locations } = await _supabase.from('departments').select('*').order('name');
-            if (locations) document.getElementById('f-dept').innerHTML = '<option value="">-- Pilih Lokasi --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+            if (locations) {
+                const opt = '<option value="">-- Pilih --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+                document.getElementById('mob-dept').innerHTML = opt; document.getElementById('web-dept').innerHTML = opt;
+            }
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
             if (settings) {
                 const typesSetting = settings.find(s => s.key === 'damage_types');
                 if (typesSetting && typesSetting.value) {
                     const types = JSON.parse(typesSetting.value);
-                    document.getElementById('f-category').innerHTML = '<option value="">-- Pilih Kategori --</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+                    const opt = '<option value="">-- Pilih --</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+                    document.getElementById('mob-cat').innerHTML = opt; document.getElementById('web-cat').innerHTML = opt;
                 }
+                const logoSetting = settings.find(s => s.key === 'system_logo');
+                if (logoSetting && logoSetting.value) document.querySelectorAll('.sys-logo').forEach(img => img.src = logoSetting.value);
             }
         }
 
         async function loadMyComplaints() {
-            const { data, error } = await _supabase.from('complaints').select('*').eq('email', currentUser.email).order('created_at', { ascending: false }).limit(10);
-            const container = document.getElementById('my-complaints-list');
+            const { data, error } = await _supabase.from('complaints').select('*').eq('email', currentUser.email).order('created_at', { ascending: false }).limit(15);
             
+            const mobList = document.getElementById('mob-list'); const webList = document.getElementById('web-list');
+            const totalStr = error || !data ? '0 Rekod' : `${data.length} Rekod`;
+            document.getElementById('mob-total').innerText = totalStr; document.getElementById('web-total').innerText = totalStr;
+
             if (error || !data || data.length === 0) {
-                document.getElementById('total-aduan').innerText = '0 Rekod';
-                container.innerHTML = '<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center"><div class="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center text-xl mx-auto mb-2"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs text-slate-500 font-medium">Tiada rekod aduan buat masa ini.</p></div>';
+                mobList.innerHTML = '<div class="text-center p-6 text-slate-400 text-xs">Tiada rekod.</div>';
+                webList.innerHTML = '<tr><td colspan="5" class="text-center p-6 text-slate-400">Tiada rekod.</td></tr>';
                 return;
             }
 
-            document.getElementById('total-aduan').innerText = `${data.length} Rekod`;
-            container.innerHTML = data.map(item => {
+            // Render Mobile
+            mobList.innerHTML = data.map(item => {
                 let icon = 'fa-file-lines'; let color = 'text-slate-600 bg-slate-50';
                 if(item.damage_types && item.damage_types.includes('Elektrik')) { icon = 'fa-plug'; color = 'text-emerald-600 bg-emerald-50'; }
                 else if(item.damage_types && item.damage_types.includes('Perisian')) { icon = 'fa-code'; color = 'text-blue-600 bg-blue-50'; }
                 else if(item.damage_types && item.damage_types.includes('Perkakasan')) { icon = 'fa-desktop'; color = 'text-orange-600 bg-orange-50'; }
                 else if(item.damage_types && item.damage_types.includes('Sivil')) { icon = 'fa-house-crack'; color = 'text-amber-600 bg-amber-50'; }
 
-                return `
-                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
+                return `<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
                     <div class="w-10 h-10 rounded-xl ${color} flex items-center justify-center text-lg flex-shrink-0"><i class="fa-solid ${icon}"></i></div>
-                    <div class="flex-1 overflow-hidden">
-                        <h3 class="text-[11px] font-bold text-slate-800 truncate">${item.damage_types || 'Aduan Kerosakan'}</h3>
-                        <p class="text-[9px] text-slate-500 truncate">${item.department} • ${new Date(item.created_at).toLocaleDateString('ms-MY')}</p>
-                    </div>
-                    <div class="flex-shrink-0">${getStatusBadgeMobile(item.status)}</div>
+                    <div class="flex-1 overflow-hidden"><h3 class="text-[11px] font-bold text-slate-800 truncate">${item.damage_types}</h3><p class="text-[9px] text-slate-500 truncate">${item.department} • ${new Date(item.created_at).toLocaleDateString('ms-MY')}</p></div>
+                    <div class="flex-shrink-0">${getStatusBadge(item.status)}</div>
                 </div>`;
             }).join('');
+
+            // Render Web
+            webList.innerHTML = data.map((item, i) => `
+                <tr class="hover:bg-slate-50 border-b border-slate-50">
+                    <td class="p-3 text-center font-bold text-slate-400 align-top">${i+1}</td>
+                    <td class="p-3 align-top whitespace-normal"><span class="font-bold text-slate-800 block">${item.damage_types}</span><span class="text-[10px] text-slate-500 line-clamp-2">${item.details}</span></td>
+                    <td class="p-3 align-top font-medium text-slate-600">${item.department}</td>
+                    <td class="p-3 align-top text-center text-slate-500">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
+                    <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
+                </tr>
+            `).join('');
         }
 
-        function getStatusBadgeMobile(status) {
+        function getStatusBadge(status) {
             switch(status) {
-                case 'BARU': return '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-[8px] font-bold uppercase">BARU</span>';
-                case 'PROSES': case 'SEDANG DIPROSES': return '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[8px] font-bold uppercase">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg text-[8px] font-bold uppercase">SELESAI</span>';
-                default: return `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg text-[8px] font-bold uppercase">${status}</span>`;
+                case 'BARU': return '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[9px] font-bold uppercase">BARU</span>';
+                case 'PROSES': case 'SEDANG DIPROSES': return '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[9px] font-bold uppercase">PROSES</span>';
+                case 'SELESAI': return '<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[9px] font-bold uppercase">SELESAI</span>';
+                default: return `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[9px] font-bold uppercase">${status}</span>`;
             }
         }
 
-        // Papar nama file bila gambar dipilih
-        document.getElementById('f-image').addEventListener('change', function(e) {
-            const label = document.getElementById('file-name-display');
-            if(e.target.files.length > 0) label.innerHTML = `<span class="text-red-600"><i class="fa-solid fa-check mr-1"></i> ${e.target.files[0].name}</span>`;
-            else label.innerText = 'Klik untuk pilih gambar';
-        });
-
-        function openFormModal(categoryStr) {
-            document.getElementById('form-modal').classList.remove('hidden');
-            if(categoryStr) {
-                const select = document.getElementById('f-category');
-                for(let i=0; i<select.options.length; i++) {
-                    if(select.options[i].value.includes(categoryStr) || categoryStr.includes(select.options[i].value)) {
-                        select.selectedIndex = i; break;
-                    }
-                }
+        function openMobModal(cat) { 
+            document.getElementById('mob-modal').classList.remove('hidden'); 
+            if(cat) {
+                const s = document.getElementById('mob-cat');
+                for(let i=0; i<s.options.length; i++) { if(s.options[i].value.includes(cat) || cat.includes(s.options[i].value)) { s.selectedIndex = i; break; } }
             }
         }
-        function closeFormModal() { document.getElementById('form-modal').classList.add('hidden'); document.getElementById('complaint-form').reset(); document.getElementById('file-name-display').innerText = 'Klik untuk pilih gambar'; }
+        function closeMobModal() { document.getElementById('mob-modal').classList.add('hidden'); }
 
-        async function submitComplaint(e) {
+        async function submitComplaint(e, type) {
             e.preventDefault();
-            const btn = document.getElementById('submit-btn'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghantar...';
+            const btn = document.getElementById(`${type}-btn`); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hantar...';
 
-            let imageUrl = null; const fileInput = document.getElementById('f-image');
+            let imageUrl = null; const fileInput = document.getElementById(`${type}-img`);
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0]; const fileExt = file.name.split('.').pop(); const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-                const { data: uploadData, error: uploadError } = await _supabase.storage.from('complaint-files').upload(fileName, file);
-                if (uploadError) { alert('Gagal muat naik gambar.'); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Hantar Aduan'; return; }
-                imageUrl = _supabase.storage.from('complaint-files').getPublicUrl(fileName).data.publicUrl;
+                const file = fileInput.files[0]; const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
+                const { error: upErr } = await _supabase.storage.from('complaint-files').upload(fileName, file);
+                if (!upErr) imageUrl = _supabase.storage.from('complaint-files').getPublicUrl(fileName).data.publicUrl;
             }
 
             const { error } = await _supabase.from('complaints').insert([{
                 email: currentUser.email,
-                full_name: document.getElementById('f-name').value || currentUser.email,
-                phone: document.getElementById('f-phone').value || '-',
-                department: document.getElementById('f-dept').value,
-                damage_types: document.getElementById('f-category').value,
-                details: document.getElementById('f-details').value,
+                full_name: userProfile?.full_name || currentUser.email,
+                phone: userProfile?.phone || '-',
+                department: document.getElementById(`${type}-dept`).value,
+                damage_types: document.getElementById(`${type}-cat`).value,
+                details: document.getElementById(`${type}-det`).value,
                 image_url: imageUrl,
                 status: 'BARU'
             }]);
 
-            if (error) { alert('Ralat menghantar aduan: ' + error.message); } 
-            else { alert('Aduan berjaya dihantar!'); closeFormModal(); loadMyComplaints(); }
-            
-            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Hantar Aduan';
+            if (error) alert('Ralat: ' + error.message);
+            else { 
+                alert('Aduan berjaya dihantar!'); 
+                if(type === 'mob') closeMobModal(); 
+                e.target.reset(); 
+                document.getElementById(`${type}-img-lbl`).innerText = type==='mob'?'Pilih gambar':'Klik untuk muat naik';
+                loadMyComplaints(); 
+            }
+            btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i> Hantar Aduan`;
         }
 
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
-        
         initIndex();
     </script>
 </body>
