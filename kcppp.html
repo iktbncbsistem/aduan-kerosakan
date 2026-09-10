@@ -109,22 +109,8 @@
 
             <div class="p-6 bg-slate-50 min-h-[400px]">
                 
-                <!-- SEKSYEN: LATAR BELAKANG -->
-<div id="sec-tema" class="space-y-6 max-w-4xl mx-auto">
-    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6">
-        <div class="flex-1">
-            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"><i class="fa-solid fa-desktop text-purple-500 mr-1"></i> Gambar Background (Log Masuk)</label>
-            <p class="text-xs text-slate-500 mb-4">Gambar ini akan menghiasi latar belakang skrin halaman log masuk utama.</p>
-            <input type="file" id="upload-bg" accept="image/*" class="w-full text-sm border border-slate-300 rounded p-1 mb-3">
-            <button onclick="uploadSystemImage('upload-bg', 'login_bg')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-bold shadow-sm transition"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Background</button>
-        </div>
-        <div class="w-full sm:w-48 h-32 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex items-center justify-center relative">
-            <img id="preview-bg" src="https://dummyimage.com/300x200/f3f4f6/64748b.png&text=Tiada+BG" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-black/20 flex items-center justify-center"><span class="text-white text-[10px] font-bold tracking-widest bg-black/50 px-2 py-1 rounded">PREVIEW</span></div>
-        </div>
-    </div>
-</div>
-
+               <!-- SEKSYEN: LATAR BELAKANG -->
+                <div id="sec-tema" class="space-y-6 max-w-4xl mx-auto">
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6">
                         <div class="flex-1">
                             <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"><i class="fa-solid fa-desktop text-purple-500 mr-1"></i> Gambar Background (Log Masuk)</label>
@@ -133,12 +119,13 @@
                             <button onclick="uploadSystemImage('upload-bg', 'login_bg')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-bold shadow-sm transition"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Background</button>
                         </div>
                         <div class="w-full sm:w-48 h-32 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex items-center justify-center relative">
-                            <img id="preview-bg" src="https://via.placeholder.com/300x200.png?text=Tiada+BG" class="w-full h-full object-cover">
+                            <img id="preview-bg" src="https://dummyimage.com/300x200/f3f4f6/64748b.png&text=Tiada+BG" class="w-full h-full object-cover">
                             <div class="absolute inset-0 bg-black/20 flex items-center justify-center"><span class="text-white text-[10px] font-bold tracking-widest bg-black/50 px-2 py-1 rounded">PREVIEW</span></div>
                         </div>
                     </div>
                 </div>
 
+                
                 <!-- SEKSYEN: LOKASI (Diambil dari kod sedia ada) -->
                 <div id="sec-lokasi" class="hidden space-y-4 max-w-4xl mx-auto">
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex gap-2">
