@@ -238,19 +238,30 @@
         }
 
         function updateProfileUI() {
-            const displayName = userProfile.full_name || currentUser.email.split('@')[0];
-            document.getElementById('display-name').innerText = displayName;
-            document.getElementById('edit-name-input').value = displayName;
+            const displayName = userProfile?.full_name || currentUser?.email?.split('@')[0] || 'Pengguna';
             
-            const avatarImg = document.getElementById('profile-avatar');
-            if (userProfile.avatar_url) avatarImg.src = userProfile.avatar_url;
-            else avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff&size=128&bold=true`;
+            const nameEl = document.getElementById('display-name');
+            if (nameEl) nameEl.innerText = displayName;
+            
+            const inputEl = document.getElementById('edit-name-input');
+            if (inputEl) inputEl.value = displayName;
+
+            // Kemaskini ikon avatar supaya tiada ralat null 'src'
+            const avatarEl = document.getElementById('user-avatar');
+            if (avatarEl) {
+                avatarEl.innerHTML = `<span class="uppercase">${displayName.charAt(0)}</span>`;
+            }
         }
 
         function toggleEditName(show) {
-            document.getElementById('name-view-mode').classList.toggle('hidden', show);
-            document.getElementById('name-edit-mode').classList.toggle('hidden', !show);
-            if (show) document.getElementById('edit-name-input').focus();
+            const viewMode = document.getElementById('name-view-mode');
+            const editMode = document.getElementById('name-edit-mode');
+            if (viewMode) viewMode.classList.toggle('hidden', show);
+            if (editMode) editMode.classList.toggle('hidden', !show);
+            if (show) {
+                const inputEl = document.getElementById('edit-name-input');
+                if (inputEl) inputEl.focus();
+            }
         }
 
         async function saveProfileName() {
@@ -258,7 +269,7 @@
             if (!newName) return;
             const { error } = await _supabase.from('user_profiles').update({ full_name: newName }).eq('email', currentUser.email);
             if (!error) {
-                userProfile.full_name = newName;
+                if (userProfile) userProfile.full_name = newName;
                 updateProfileUI();
                 toggleEditName(false);
             }
