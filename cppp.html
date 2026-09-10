@@ -2,95 +2,169 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Panel CPPP - Sistem Aduan Kerosakan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; } 
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-    
-    
-    <!-- Navbar -->
-<nav class="bg-white border-b border-slate-200 text-slate-800 py-2 px-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
-    <div class="flex items-center gap-2.5">
-        <!-- Logo Kecil & Lutsinar -->
-        <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-7 h-7 object-contain">
-        <div class="flex items-center gap-2">
-            <h1 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight leading-none">Sistem Penyenggaraan</h1>
-            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Aplikasi Aduan</span>
-        </div>
-    </div>
-    
-    <!-- Bahagian Kanan (Avatar & Butang Ikon Log Keluar) -->
-    <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm" id="user-avatar">
-                <i class="fa-solid fa-user text-[11px]"></i>
+<body class="bg-slate-100 min-h-screen">
+
+    <!-- NAVBAR TVET STYLE (Tanpa Gear) -->
+    <nav class="bg-white border-b border-slate-200 text-slate-800 py-2.5 px-4 sm:px-6 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+        <div class="flex items-center gap-2.5">
+            <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-7 h-7 object-contain">
+            <div class="flex items-center gap-2">
+                <h1 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight leading-none">Sistem Penyenggaraan</h1>
+                <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Panel CPPP</span>
             </div>
-            <span id="user-name-display" class="text-xs font-bold text-slate-700 hidden sm:inline-block">Pengguna</span>
         </div>
         
-        <div class="h-4 w-[1px] bg-slate-200"></div>
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Pautan Hantar Aduan (Kembali ke Index) -->
+            <a href="index.html" class="text-xs font-bold text-slate-500 hover:text-blue-500 transition hidden sm:flex items-center gap-1 bg-slate-50 px-2 py-1.5 rounded-lg border border-slate-200 mr-1">
+                <i class="fa-solid fa-file-pen"></i> Hantar Aduan
+            </a>
 
-        <!-- Butang Log Keluar (Ikon Ringkas) -->
-        <button onclick="logout()" class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Log Keluar">
-            <i class="fa-solid fa-right-from-bracket text-base"></i>
-        </button>
-    </div>
-</nav>
-
-    <div class="max-w-[1400px] mx-auto p-4 sm:p-6 mt-2">
-        
-        <!-- Kad Statistik Ala Cloudflare -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500 flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Aduan Baru</p>
-                    <h3 id="stat-baru" class="text-3xl font-black text-slate-800 mt-1">0</h3>
+            <!-- Avatar -->
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0" id="user-avatar">
+                    <i class="fa-solid fa-user text-[11px]"></i>
                 </div>
-                <div class="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 text-xl"><i class="fa-solid fa-bell"></i></div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500 flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Sedang Diproses</p>
-                    <h3 id="stat-proses" class="text-3xl font-black text-slate-800 mt-1">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 text-xl"><i class="fa-solid fa-spinner fa-spin"></i></div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500 flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Selesai</p>
-                    <h3 id="stat-selesai" class="text-3xl font-black text-slate-800 mt-1">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 text-xl"><i class="fa-solid fa-check-double"></i></div>
-            </div>
-        </div>
-
-        <!-- Jadual Aduan Utama -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-5 border-b bg-white flex justify-between items-center gap-4">
-                <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-list-check text-orange-500 mr-2"></i>Senarai Permohonan Penyenggaraan</h2>
-                <button onclick="loadComplaints()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-md font-bold shadow-sm transition"><i class="fa-solid fa-rotate-right mr-1"></i> Muat Semula</button>
+                <span id="user-name-display" class="text-xs font-bold text-slate-700 hidden sm:inline-block truncate max-w-[100px]">Pengguna</span>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap sm:whitespace-normal">
-                    <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold border-b border-slate-200 tracking-wider">
+            <!-- Butang Log Keluar -->
+            <button onclick="logout()" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0" title="Log Keluar">
+                <i class="fa-solid fa-right-from-bracket text-sm"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- KANDUNGAN UTAMA -->
+    <div class="max-w-[1400px] mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- Header Tajuk -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-4">
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-blue-500 uppercase">MODUL PENYENGGARAAN</span>
+                <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Dashboard Tugasan CPPP</h2>
+                <p class="text-xs text-slate-500">Selamat Datang, <span id="welcome-user-name" class="font-bold text-slate-700">Pengguna</span></p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="loadComplaintsData()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh Data</button>
+            </div>
+        </div>
+
+        <!-- Kad Statistik TVET -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-amber-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Aduan Baru</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Perlu disemak segera</p>
+                </div>
+                <div class="bg-amber-50 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-baru">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-blue-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Sedang Diproses</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Dalam tindakan CPPP</p>
+                </div>
+                <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-proses">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Aduan Selesai</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Menunggu kelulusan KCPPP</p>
+                </div>
+                <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-selesai">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-slate-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Jumlah Terkumpul</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Semua rekod aduan</p>
+                </div>
+                <div class="bg-slate-50 text-slate-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-total">0</div>
+            </div>
+        </div>
+
+        <!-- Seksyen Penapis & Senarai Rekod (Lebar Penuh) -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4 w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-list-check text-blue-600 mr-1.5"></i> Senarai Tugasan Penyenggaraan</h3>
+                    <p class="text-[10px] text-slate-400">Pilih kriteria di bawah untuk menapis senarai rekod aduan</p>
+                </div>
+                <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">Memaparkan 0 rekod</span>
+            </div>
+
+            <!-- Kotak Borang Tapisan (5 Kolum) -->
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama / Detail</label>
+                        <input type="text" id="filter-search" placeholder="Taip carian..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500 bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label>
+                        <select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500 bg-white transition">
+                            <option value="">-- Semua --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label>
+                        <select id="filter-category" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500 bg-white transition">
+                            <option value="">-- Semua --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
+                        <select id="filter-status" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500 bg-white transition">
+                            <option value="">-- Semua --</option>
+                            <option value="BARU">BARU</option>
+                            <option value="PROSES">PROSES</option>
+                            <option value="SELESAI">SELESAI</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tahun</label>
+                        <select id="filter-year" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500 bg-white transition">
+                            <option value="">-- Semua --</option>
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
+                    <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">Reset</button>
+                    <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian</button>
+                </div>
+            </div>
+
+            <!-- Jadual Data Lebar Penuh (8 Kolum) -->
+            <div class="overflow-x-auto w-full border border-slate-200 rounded-xl">
+                <table class="w-full text-left text-xs whitespace-nowrap">
+                    <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
                         <tr>
-                            <th class="p-3 w-12 text-center">No.</th>
-                            <th class="p-3">Tarikh & Pemohon</th>
-                            <th class="p-3">Kerosakan & Lokasi</th>
-                            <th class="p-3 text-center">Status</th>
-                            <th class="p-3 text-center">Tindakan</th>
+                            <th class="p-3 w-10 text-center">Bil</th>
+                            <th class="p-3 w-48">Pemohon & Tarikh</th>
+                            <th class="p-3 w-28">Lokasi</th>
+                            <th class="p-3">Kategori & Butiran</th>
+                            <th class="p-3 w-48">Justifikasi</th>
+                            <th class="p-3 text-right w-24">Kos (RM)</th>
+                            <th class="p-3 text-center w-24">Status</th>
+                            <th class="p-3 text-center w-24">Tindakan</th>
                         </tr>
                     </thead>
-                    <tbody id="complaints-list" class="divide-y divide-slate-100">
-                        <tr><td colspan="5" class="p-8 text-center text-slate-500">Memuatkan data aduan...</td></tr>
+                    <tbody id="cppp-complaints-table" class="divide-y divide-slate-100">
+                        <tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -98,100 +172,99 @@
 
     </div>
 
-    <!-- Modal Tindakan CPPP -->
-    <div id="action-modal" class="fixed inset-0 bg-slate-900 bg-opacity-70 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+    <!-- MODAL TINDAKAN CPPP (Sokongan/Kriteria) -->
+    <div id="action-modal" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden z-50 flex items-center justify-center p-3 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden border border-slate-200">
             
-            <div class="p-5 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-user-gear text-orange-500 mr-2"></i>Urus Permohonan Penyenggaraan</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-red-500 text-2xl font-bold leading-none transition">&times;</button>
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-wrench text-blue-600 mr-1.5"></i> Tindakan & Sokongan CPPP</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-red-500 text-xl font-bold leading-none">&times;</button>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1 bg-white">
+            <div class="p-5 overflow-y-auto flex-1 bg-white space-y-4">
                 <form id="action-form" onsubmit="updateComplaint(event)">
                     <input type="hidden" id="modal-id">
                     
-                    <!-- Maklumat Pemohon -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                    <!-- Maklumat Asas -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
                         <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase mb-1"><i class="fa-solid fa-user mr-1"></i> Pemohon</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Pemohon</p>
                             <p id="modal-name" class="font-bold text-slate-800">-</p>
-                            <p id="modal-phone" class="text-xs text-slate-600 mt-0.5">-</p>
+                            <p id="modal-phone" class="text-[11px] text-slate-500">-</p>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Jabatan / Lokasi</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Jabatan / Lokasi</p>
                             <p id="modal-dept" class="font-bold text-slate-800">-</p>
-                            <p id="modal-date" class="text-xs text-slate-600 mt-0.5">-</p>
+                            <p id="modal-date" class="text-[11px] text-slate-500">-</p>
                         </div>
                     </div>
 
-                    <!-- Butiran Kerosakan -->
-                    <div class="mb-6 space-y-4">
+                    <!-- Butiran Kerosakan & Lampiran -->
+                    <div class="space-y-3 text-xs">
                         <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase mb-1"><i class="fa-solid fa-wrench mr-1"></i> Kategori Kerosakan</p>
-                            <p id="modal-types" class="text-sm font-semibold text-slate-800 bg-slate-50 p-2.5 rounded border border-slate-200">-</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Kategori Kerosakan</p>
+                            <p id="modal-types" class="font-semibold text-slate-800 bg-slate-50 p-2 rounded-lg border border-slate-200">-</p>
                         </div>
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase mb-1"><i class="fa-solid fa-circle-info mr-1"></i> Butiran Penuh</p>
-                            <p id="modal-details" class="text-sm text-slate-700 bg-slate-50 p-3 rounded border border-slate-200">-</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase mb-1"><i class="fa-solid fa-scale-balanced mr-1"></i> Justifikasi Keperluan</p>
-                            <p id="modal-justification" class="text-sm text-slate-700 bg-slate-50 p-3 rounded border border-slate-200">-</p>
-                        </div>
-                        
-                        <!-- Lampiran -->
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase mb-1"><i class="fa-solid fa-paperclip mr-1"></i> Lampiran Fail</p>
-                            <div id="modal-attachments" class="flex flex-wrap gap-2 pt-1">
-                                <!-- Lampiran dimasukkan di sini secara dinamik -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Butiran Penuh</p>
+                                <p id="modal-details" class="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200 h-full">-</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Justifikasi Keperluan</p>
+                                <p id="modal-justification" class="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200 h-full">-</p>
                             </div>
                         </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Lampiran Fail</p>
+                            <div id="modal-attachments" class="flex flex-wrap gap-1.5 pt-1"></div>
+                        </div>
                     </div>
 
-                    <hr class="my-6 border-slate-200">
+                    <hr class="my-5 border-slate-100">
 
-                    <!-- Borang Tindakan CPPP -->
-                    <h4 class="font-bold text-slate-800 mb-4 border-l-4 border-orange-500 pl-2 uppercase tracking-wide text-sm">Tindakan Pegawai (CPPP)</h4>
+                    <!-- Ruangan Tindakan CPPP -->
+                    <h4 class="font-bold text-xs text-slate-800 border-l-4 border-blue-600 pl-2 uppercase tracking-wide">Borang Sokongan CPPP</h4>
+                    <p class="text-[10px] text-slate-500 mt-1 mb-3">Tanda kriteria kerosakan dan masukkan syor/catatan untuk kelulusan KCPPP kelak.</p>
                     
-                    <div class="mb-5 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-3 border-b border-slate-200 pb-2">Kategori Kerosakan (Tindakan CPPP)</label>
-                        <div class="space-y-2.5">
-                            <label class="flex items-start gap-3 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
-                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki dengan kadar segera" class="mt-0.5 w-4 h-4 text-orange-500 focus:ring-orange-500 rounded border-slate-300">
-                                <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">a. Kerosakan yang perlu dibaiki dengan kadar segera</span>
+                    <div class="mb-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200 pb-1.5">Kriteria Kerosakan (Pilih yang berkaitan)</label>
+                        <div class="space-y-2 text-xs pt-1">
+                            <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki dengan kadar segera" class="mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300">
+                                <span class="font-medium text-slate-700 leading-tight">a. Kerosakan yang perlu dibaiki dengan kadar segera</span>
                             </label>
-                            <label class="flex items-start gap-3 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
-                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki terus" class="mt-0.5 w-4 h-4 text-orange-500 focus:ring-orange-500 rounded border-slate-300">
-                                <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">b. Kerosakan yang boleh dibaiki terus</span>
+                            <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki terus" class="mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300">
+                                <span class="font-medium text-slate-700 leading-tight">b. Kerosakan yang boleh dibaiki terus</span>
                             </label>
-                            <label class="flex items-start gap-3 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
-                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti" class="mt-0.5 w-4 h-4 text-orange-500 focus:ring-orange-500 rounded border-slate-300">
-                                <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">c. Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</span>
+                            <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti" class="mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300">
+                                <span class="font-medium text-slate-700 leading-tight">c. Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</span>
                             </label>
-                            <label class="flex items-start gap-3 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
-                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki oleh pembekal luar" class="mt-0.5 w-4 h-4 text-orange-500 focus:ring-orange-500 rounded border-slate-300">
-                                <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">d. Kerosakan yang perlu dibaiki oleh pembekal luar</span>
+                            <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki oleh pembekal luar" class="mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300">
+                                <span class="font-medium text-slate-700 leading-tight">d. Kerosakan yang perlu dibaiki oleh pembekal luar</span>
                             </label>
-                            <label class="flex items-start gap-3 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
-                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang tidak ekonomi untuk dibaiki" class="mt-0.5 w-4 h-4 text-orange-500 focus:ring-orange-500 rounded border-slate-300">
-                                <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">e. Kerosakan yang tidak ekonomi untuk dibaiki</span>
+                            <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Kerosakan yang tidak ekonomi untuk dibaiki" class="mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300">
+                                <span class="font-medium text-slate-700 leading-tight">e. Kerosakan yang tidak ekonomi untuk dibaiki</span>
                             </label>
-                            <label class="flex items-start gap-3 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
-                                <input type="checkbox" name="cppp_kategori" value="Lain-lain" class="mt-0.5 w-4 h-4 text-orange-500 focus:ring-orange-500 rounded border-slate-300">
-                                <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">f. Lain-lain (Sila nyatakan dalam ruangan catatan)</span>
+                            <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1 rounded transition">
+                                <input type="checkbox" name="cppp_kategori" value="Lain-lain" class="mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300">
+                                <span class="font-medium text-slate-700 leading-tight">f. Lain-lain (Sila nyatakan dalam ruangan catatan/syor di bawah)</span>
                             </label>
                         </div>
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catatan / Tindakan Diambil</label>
-                        <textarea id="modal-remarks" rows="3" placeholder="Contoh: Alat ganti telah dipesan..." class="w-full border border-slate-300 rounded-md p-2.5 text-sm focus:border-orange-500 outline-none transition"></textarea>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan / Syor kepada KCPPP</label>
+                        <textarea id="modal-remarks" rows="2" placeholder="Contoh: Disyorkan untuk perolehan alat ganti baru memandangkan kos membaiki lebih mahal..." class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:border-blue-500 outline-none transition shadow-sm"></textarea>
                     </div>
 
-                    <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-md font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">Batal</button>
-                        <button type="submit" id="save-btn" class="px-5 py-2 rounded-md font-bold text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Tindakan</button>
+                    <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg font-bold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">Batal</button>
+                        <button type="submit" id="save-btn" class="px-5 py-2 rounded-lg font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Sokongan</button>
                     </div>
                 </form>
             </div>
@@ -203,73 +276,102 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let allComplaints = [];
+        let rawComplaintsData = [];
+        let currentUser = null;
 
         async function initCPPP() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'login.html'; return; }
+            currentUser = session.user;
             
-            const { data: profile } = await _supabase.from('user_profiles').select('role').eq('email', session.user.email).single();
+            const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
             if (!profile || !['CPPP', 'KCPPP', 'ADMIN'].includes(profile.role)) {
-                alert('Akses Ditolak! Panel ini khas untuk pegawai CPPP sahaja.');
-                window.location.href = 'index.html'; return;
+                alert('Akses Ditolak! Khas untuk Pegawai Penyenggaraan (CPPP) sahaja.'); window.location.href = 'index.html'; return;
             }
+            
+            const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
+            document.getElementById('user-name-display').innerText = nameDisplay;
+            document.getElementById('welcome-user-name').innerText = nameDisplay;
+            document.getElementById('user-avatar').innerHTML = `<span class="uppercase">${nameDisplay.charAt(0)}</span>`;
+
             loadSystemTheme();
-            loadComplaints();
+            loadMasterData();
+            loadComplaintsData();
         }
 
         async function loadSystemTheme() {
             const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
-            if(data && data.setting_value) {
-                document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+            if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+        }
+
+        async function loadMasterData() {
+            const { data: locations } = await _supabase.from('departments').select('*').order('name');
+            const deptSelect = document.getElementById('filter-dept');
+            if (locations) deptSelect.innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+
+            const { data: settings } = await _supabase.from('system_settings').select('*');
+            if (settings) {
+                const typesSetting = settings.find(s => s.key === 'damage_types');
+                if (typesSetting && typesSetting.value) {
+                    const types = JSON.parse(typesSetting.value);
+                    document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+                }
             }
         }
 
-        async function loadComplaints() {
-            const tbody = document.getElementById('complaints-list');
-            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium">Memuatkan aduan...</td></tr>';
+        async function loadComplaintsData() {
+            const tbody = document.getElementById('cppp-complaints-table');
+            tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Memuatkan data...</td></tr>';
             
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
+            if (error || !data) { tbody.innerHTML = '<tr><td colspan="8" class="text-center text-red-500 p-8">Ralat pangkalan data.</td></tr>'; return; }
             
-            if (error || !data) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Ralat memuatkan data.</td></tr>'; return;
-            }
+            rawComplaintsData = data;
             
-            allComplaints = data;
-            updateStats(data);
-            renderTable(data);
-        }
-
-        function updateStats(data) {
             let baru = 0, proses = 0, selesai = 0;
             data.forEach(item => {
                 if(item.status === 'BARU') baru++;
-                else if(item.status === 'PROSES' || item.status === 'SEDANG DIPROSES') proses++;
+                else if(['PROSES', 'SEDANG DIPROSES'].includes(item.status)) proses++;
                 else if(item.status === 'SELESAI') selesai++;
             });
             document.getElementById('stat-baru').innerText = baru;
             document.getElementById('stat-proses').innerText = proses;
             document.getElementById('stat-selesai').innerText = selesai;
+            document.getElementById('stat-total').innerText = data.length;
+
+            renderCPPPTable(data);
         }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('complaints-list');
-            if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">Tiada rekod ditemui.</td></tr>'; return; }
-            
+        function renderCPPPTable(data) {
+            const tbody = document.getElementById('cppp-complaints-table');
+            document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
+
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
+
             tbody.innerHTML = data.map((item, idx) => `
-                <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors cursor-pointer" onclick="openModal('${item.id}')">
-                    <td class="p-3 text-center font-semibold text-slate-500 align-top">${idx + 1}</td>
-                    <td class="p-3 align-top">
+                <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer" onclick="openModal('${item.id}')">
+                    <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
+                    <td class="p-3 align-top whitespace-normal min-w-[140px]">
                         <div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div>
-                        <div class="text-[11px] font-semibold text-slate-500 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
                     </td>
                     <td class="p-3 align-top">
-                        <div class="font-bold text-slate-800"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i>${item.department || '-'}</div>
-                        <div class="text-[11px] text-slate-500 mt-1 max-w-xs truncate font-medium">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || 'Kerosakan')}</div>
+                        <div class="font-bold text-slate-700">${item.department || '-'}</div>
+                        <div class="text-[10px] text-slate-400">${item.phone || '-'}</div>
                     </td>
-                    <td class="p-3 text-center align-top">${getStatusBadge(item.status)}</td>
-                    <td class="p-3 text-center align-top" onclick="event.stopPropagation();">
-                        <button onclick="openModal('${item.id}')" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold px-3 py-1.5 rounded text-xs shadow-sm transition"><i class="fa-solid fa-pen-to-square mr-1"></i>Tindakan</button>
+                    <td class="p-3 align-top max-w-[200px] whitespace-normal">
+                        <span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">
+                            ${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}
+                        </span>
+                        <p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p>
+                    </td>
+                    <td class="p-3 align-top max-w-[200px] whitespace-normal">
+                        <p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p>
+                    </td>
+                    <td class="p-3 align-top text-right font-bold text-slate-700 whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
+                    <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
+                    <td class="p-3 align-top text-center" onclick="event.stopPropagation();">
+                        <button onclick="openModal('${item.id}')" class="bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-md text-[10px] shadow-sm transition"><i class="fa-solid fa-pen-to-square mr-1"></i> Tindakan</button>
                     </td>
                 </tr>
             `).join('');
@@ -277,16 +379,42 @@
 
         function getStatusBadge(status) {
             switch(status) {
-                case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md text-[10px] font-bold">BARU</span>';
+                case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold">BARU</span>';
                 case 'PROSES':
-                case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-md text-[10px] font-bold">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-bold">SELESAI</span>';
-                default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold">${status || 'BARU'}</span>`;
+                case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold">PROSES</span>';
+                case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold">SELESAI</span>';
+                default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
             }
         }
 
+        function applyFilters() {
+            const search = document.getElementById('filter-search').value.toLowerCase();
+            const dept = document.getElementById('filter-dept').value;
+            const cat = document.getElementById('filter-category').value;
+            const status = document.getElementById('filter-status').value;
+            const year = document.getElementById('filter-year').value;
+
+            const filtered = rawComplaintsData.filter(item => {
+                const matchSearch = !search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search));
+                const matchDept = !dept || item.department === dept;
+                const matchCat = !cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat);
+                const matchStatus = !status || item.status === status;
+                const matchYear = !year || new Date(item.created_at).getFullYear().toString() === year;
+                return matchSearch && matchDept && matchCat && matchStatus && matchYear;
+            });
+            renderCPPPTable(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-search').value = ''; document.getElementById('filter-dept').value = '';
+            document.getElementById('filter-category').value = ''; document.getElementById('filter-status').value = '';
+            document.getElementById('filter-year').value = '';
+            renderCPPPTable(rawComplaintsData);
+        }
+
+        // --- FUNGSI MODAL TINDAKAN CPPP ---
         function openModal(id) {
-            const item = allComplaints.find(c => c.id === id);
+            const item = rawComplaintsData.find(c => c.id === id);
             if(!item) return;
 
             document.getElementById('modal-id').value = item.id;
@@ -294,12 +422,12 @@
             document.getElementById('modal-phone').innerText = item.phone || '-';
             document.getElementById('modal-dept').innerText = item.department || '-';
             document.getElementById('modal-date').innerText = new Date(item.created_at).toLocaleString('ms-MY');
-            
             document.getElementById('modal-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
             document.getElementById('modal-details').innerText = item.details || 'Tiada butiran direkodkan.';
             document.getElementById('modal-justification').innerText = item.justification || 'Tiada justifikasi.';
             document.getElementById('modal-remarks').value = item.action_remarks || '';
           
+            // Tick checkboxes jika dah pernah diset
             document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => cb.checked = false);
             if (item.cppp_kategori) {
                 const savedKategori = item.cppp_kategori.split(', ');
@@ -308,6 +436,7 @@
                 });
             }
 
+            // Lampiran
             let attachHTML = '';
             const formatName = (url) => {
                 let rawName = decodeURIComponent(url.split('/').pop()).replace(/^[0-9]+(_[0-9]+)?_/, '');
@@ -316,7 +445,7 @@
                 if (extIndex !== -1) {
                     const nama = rawName.substring(0, extIndex);
                     const ext = rawName.substring(extIndex);
-                    if (nama.length > 30) shortName = nama.substring(0, 10) + '...' + ext;
+                    if (nama.length > 25) shortName = nama.substring(0, 8) + '...' + ext;
                 }
                 return { rawName, shortName };
             };
@@ -324,29 +453,20 @@
             if (item.image_url) {
                 const urls = item.image_url.split(','); 
                 urls.forEach((url, i) => {
-                    let cleanUrl = url.trim();
-                    let file = formatName(cleanUrl);
-                    attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="text-xs bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded font-bold transition">🖼️ Gambar ${i+1}</button>`;
+                    let cleanUrl = url.trim(); let file = formatName(cleanUrl);
+                    attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="text-[10px] bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-bold transition">🖼️ Gambar ${i+1}</button>`;
                 });
             }
-            
             if (item.quotation_url) {
-                let cleanUrl = item.quotation_url.trim();
-                let file = formatName(cleanUrl);
-                attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="text-xs bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-700 px-3 py-1.5 rounded font-bold transition">📄 Sebutharga</button>`;
+                let cleanUrl = item.quotation_url.trim(); let file = formatName(cleanUrl);
+                attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="text-[10px] bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded font-bold transition">📄 Sebutharga</button>`;
             }
             
-            const modalAttachments = document.getElementById('modal-attachments');
-            if (modalAttachments) {
-                modalAttachments.innerHTML = attachHTML || '<span class="text-xs text-slate-400 font-medium italic">Tiada lampiran.</span>';
-            }
-
+            document.getElementById('modal-attachments').innerHTML = attachHTML || '<span class="text-[10px] text-slate-400 font-medium italic">Tiada lampiran.</span>';
             document.getElementById('action-modal').classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('action-modal').classList.add('hidden');
-        }
+        function closeModal() { document.getElementById('action-modal').classList.add('hidden'); }
 
         async function updateComplaint(e) {
             e.preventDefault();
@@ -356,42 +476,26 @@
             const id = document.getElementById('modal-id').value;
             const remarks = document.getElementById('modal-remarks').value;
             let namaCPPP = 'Pegawai CPPP';
-            try {
-                const { data: authData } = await _supabase.auth.getUser();
-                if (authData && authData.user) {
-                    const email = authData.user.email || '';
-                    namaCPPP = authData.user.user_metadata?.full_name || email.split('@')[0];
-                }
-            } catch (err) { console.log('Ralat user:', err); }
+            
+            if (currentUser) {
+                const { data: p } = await _supabase.from('user_profiles').select('full_name').eq('email', currentUser.email).single();
+                if(p && p.full_name) namaCPPP = p.full_name;
+            }
 
             const selectedKategori = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
 
-            const { error } = await _supabase
-                .from('complaints')
-                .update({
-                    cppp_kategori: selectedKategori,
-                    action_remarks: remarks,
-                    cppp_name: namaCPPP,
-                    status: 'PROSES',
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', id);
+            const { error } = await _supabase.from('complaints').update({
+                cppp_kategori: selectedKategori,
+                action_remarks: remarks,
+                cppp_name: namaCPPP,
+                status: 'PROSES',
+                updated_at: new Date().toISOString()
+            }).eq('id', id);
 
-            if (error) { 
-                alert('Ralat: ' + error.message); 
-            } else { 
-                alert('Tindakan berjaya disimpan!'); 
-                closeModal(); 
-                loadComplaints(); 
-            }
+            if (error) { alert('Ralat: ' + error.message); } 
+            else { alert('Tindakan & Sokongan berjaya disimpan!'); closeModal(); loadComplaintsData(); }
             
-            btn.disabled = false; btn.innerText = 'Simpan Tindakan';
-        }
-
-        async function logout() { 
-            sessionStorage.clear(); 
-            await _supabase.auth.signOut(); 
-            window.location.href = 'login.html'; 
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Sokongan';
         }
 
         async function forceDownload(url, fileName) {
@@ -400,17 +504,14 @@
                 const blob = await response.blob();
                 const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = fileName; 
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(blobUrl);
-            } catch (error) {
-                window.open(url, '_blank'); 
-            }
+                a.href = blobUrl; a.download = fileName; 
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a); window.URL.revokeObjectURL(blobUrl);
+            } catch (error) { window.open(url, '_blank'); }
         }
 
+        async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
+        
         initCPPP();
     </script>
 </body>
