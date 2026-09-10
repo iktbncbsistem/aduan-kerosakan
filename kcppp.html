@@ -2,37 +2,42 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel KCPPP - Analitik & Kawalan Sistem</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Panel KCPPP - Analitik & Kawalan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; } 
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-    
-<body class="bg-slate-50 min-h-screen">
-    
-    <!-- Navbar -->
-<nav class="bg-white border-b border-slate-200 text-slate-800 py-2 px-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
-    <div class="flex items-center gap-2.5">
-        <!-- Logo Kecil & Lutsinar -->
-        <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-7 h-7 object-contain">
-        <div class="flex items-center gap-2">
-            <h1 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight leading-none">Sistem Penyenggaraan</h1>
-            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Aplikasi Aduan</span>
+<body class="bg-slate-100 min-h-screen">
+
+    <!-- NAVBAR TVET STYLE -->
+    <nav class="bg-white border-b border-slate-200 text-slate-800 py-2.5 px-4 sm:px-6 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+        <div class="flex items-center gap-2.5">
+            <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="sys-logo w-7 h-7 object-contain">
+            <div class="flex items-center gap-2">
+                <h1 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight leading-none">Sistem Penyenggaraan</h1>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Panel KCPPP</span>
+            </div>
         </div>
-    </div>
-    
-   <!-- Bahagian Kanan (Avatar & Butang Ikon Log Keluar) -->
-        <div class="flex items-center gap-1.5 sm:gap-3">
-            <!-- Butang Gear -->
+        
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Pautan Hantar Aduan (Kembali ke Index) -->
+            <a href="index.html" class="text-xs font-bold text-slate-500 hover:text-orange-500 transition hidden sm:flex items-center gap-1 bg-slate-50 px-2 py-1.5 rounded-lg border border-slate-200 mr-1">
+                <i class="fa-solid fa-file-pen"></i> Hantar Aduan
+            </a>
+
+            <!-- Butang Gear (Tak tersangkut) -->
             <button onclick="openSettingsModal()" class="p-1.5 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors flex-shrink-0" title="Tetapan Sistem">
                 <i class="fa-solid fa-gear text-base"></i>
             </button>
             
-            <!-- Avatar -->
+            <!-- Avatar (Tak tersangkut) -->
             <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0" id="user-avatar">
                     <i class="fa-solid fa-user text-[11px]"></i>
@@ -40,277 +45,234 @@
                 <span id="user-name-display" class="text-xs font-bold text-slate-700 hidden sm:inline-block truncate max-w-[100px]">Pengguna</span>
             </div>
             
-            <!-- Log Keluar -->
+            <!-- Butang Log Keluar (Tak tersangkut) -->
             <button onclick="logout()" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0" title="Log Keluar">
                 <i class="fa-solid fa-right-from-bracket text-sm"></i>
             </button>
-        </div>     
-    </div>
-</nav>
+        </div>
+    </nav>
 
+    <!-- KANDUNGAN UTAMA -->
+    <div class="max-w-[1400px] mx-auto p-4 sm:p-6 space-y-6">
 
-    <div class="max-w-[1400px] mx-auto p-4 sm:p-6 mt-2">
-        
-        <!-- ================= VIEW 1: DASHBOARD UTAMA ================= -->
-        <div id="dashboard-view" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300">
-            <div class="p-5 border-b bg-white flex flex-wrap justify-between items-center gap-4">
-                <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-chart-pie text-orange-500 mr-2"></i>Analitik Trend & Senarai Rekod</h2>
-                <div class="flex gap-2">
-                    <button onclick="loadComplaints()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-md font-bold shadow-sm transition"><i class="fa-solid fa-rotate-right mr-1"></i> Muat Semula</button>
-                    <button onclick="window.print()" class="text-sm bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 px-4 py-2 rounded-md font-bold shadow-sm transition"><i class="fa-solid fa-print mr-1"></i> Cetak / PDF</button>
+        <!-- Header Tajuk -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-4">
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-orange-500 uppercase">MODUL PENGURUSAN</span>
+                <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Dashboard Analitik KCPPP</h2>
+                <p class="text-xs text-slate-500">Selamat Datang, <span id="welcome-user-name" class="font-bold text-slate-700">Pengguna</span></p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="loadComplaintsData()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh Data</button>
+            </div>
+        </div>
+
+        <!-- Kad Statistik TVET -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-indigo-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Aduan Baru</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Belum diproses</p>
                 </div>
+                <div class="bg-indigo-50 text-indigo-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-baru">0</div>
             </div>
-            
-            <div class="p-5 bg-white">
-                <!-- Panel Tapisan -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tapis Lokasi</label>
-                        <select id="filter-dept" onchange="applyFilters()" class="w-full border border-slate-300 rounded-md p-2 text-sm outline-none focus:border-orange-500"><option value="">Semua Lokasi</option></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tapis Kategori Kerosakan</label>
-                        <select id="filter-damage" onchange="applyFilters()" class="w-full border border-slate-300 rounded-md p-2 text-sm outline-none focus:border-orange-500"><option value="">Semua Kerosakan</option></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tahun Permohonan</label>
-                        <select id="filter-year" onchange="applyFilters()" class="w-full border border-slate-300 rounded-md p-2 text-sm outline-none focus:border-orange-500"><option value="">Semua Tahun</option></select>
-                    </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Sedang Diproses</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Tindakan CPPP</p>
                 </div>
-
-                <!-- Graf Analitik -->
-                <div class="mb-8 p-4 border border-slate-200 rounded-xl shadow-sm bg-white">
-                    <h3 class="text-sm font-bold text-slate-700 text-center mb-4 uppercase tracking-wide">Trend Kerosakan Keseluruhan</h3>
-                    <div class="relative h-64 w-full"><canvas id="trendChart"></canvas></div>
+                <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-proses">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-amber-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Aduan Selesai</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Siap disenggara</p>
                 </div>
-
-               <!-- Seksyen Penapis & Senarai Rekod (TVET Style) -->
-<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
-    
-    <!-- Header Seksyen -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-        <div>
-            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-filter text-orange-500 mr-1.5"></i> Carian & Tapisan Aduan</h3>
-            <p class="text-[10px] text-slate-400">Pilih kriteria di bawah untuk menapis senarai rekod aduan</p>
-        </div>
-        <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">Memaparkan 0 rekod</span>
-    </div>
-
-    <!-- Kotak Borang Tapisan (TVET Layout + Tahun) -->
-    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama / Detail</label>
-                <input type="text" id="filter-search" placeholder="Taip nama..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                <div class="bg-amber-50 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-selesai">0</div>
             </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label>
-                <select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua --</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label>
-                <select id="filter-category" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua --</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
-                <select id="filter-status" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua --</option>
-                    <option value="BARU">BARU</option>
-                    <option value="PROSES">PROSES</option>
-                    <option value="SELESAI">SELESAI</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tahun</label>
-                <select id="filter-year" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
-                    <option value="">-- Semua --</option>
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                </select>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-sky-500 shadow-sm flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-800">Jumlah Terkumpul</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Rekod sistem</p>
+                </div>
+                <div class="bg-sky-50 text-sky-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-total">0</div>
             </div>
         </div>
 
-        <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
-            <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
-                Reset
-            </button>
-            <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
-                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian
-            </button>
-        </div>
-    </div>
-
-        <!-- Butang Carian & Reset Ala TVET -->
-        <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
-            <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
-                Reset
-            </button>
-            <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
-                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian
-            </button>
-        </div>
-    </div>
-
-    <!-- Jadual Senarai Rekod (Kemasan Padat TVET Style) -->
-    <div class="overflow-x-auto w-full border border-slate-200 rounded-xl">
-        <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
-                <tr>
-                    <th class="p-3 w-10 text-center">Bil</th>
-                    <th class="p-3">Pemohon & Tarikh</th>
-                    <th class="p-3">Lokasi / Jabatan</th>
-                    <th class="p-3">Kategori & Butiran Kerosakan</th>
-                    <th class="p-3 text-right">Anggaran (RM)</th>
-                    <th class="p-3 text-center">Status</th>
-                    <th class="p-3 text-center">Tindakan</th>
-                </tr>
-            </thead>
-            <tbody id="kcppp-complaints-table" class="divide-y divide-slate-100">
-                <tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-</div>
-
-        <!-- ================= VIEW 2: KAWALAN SISTEM PUSAT (PAGE) ================= -->
-        <div id="settings-view" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <div class="p-5 border-b bg-slate-50 flex flex-wrap justify-between items-center gap-4">
-                <h3 class="font-bold text-xl text-slate-800"><i class="fa-solid fa-sliders text-orange-500 mr-2"></i>Kawalan Sistem Pusat</h3>
-                <button onclick="toggleSettingsView()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-4 py-2 rounded-md font-bold shadow-sm transition flex items-center gap-2">
-                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Analitik
-                </button>
-            </div>
-            
-            <!-- Navigation Tabs (Scrollable on mobile) -->
-            <div class="flex border-b border-slate-200 bg-white px-2 overflow-x-auto hide-scrollbar">
-                <button onclick="switchSettingsTab('tema')" id="tab-tema" class="px-5 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50/50 whitespace-nowrap"><i class="fa-solid fa-image mr-1"></i> Latar Belakang</button>
-                <button onclick="switchSettingsTab('lokasi')" id="tab-lokasi" class="px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-building mr-1"></i> Urus Lokasi</button>
-                <button onclick="switchSettingsTab('whatsapp')" id="tab-whatsapp" class="px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap"><i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp</button>
-                <button onclick="switchSettingsTab('rbac')" id="tab-rbac" class="px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-users-gear mr-1"></i> Akses Pengguna</button>
-            </div>
-
-            <div class="p-6 bg-slate-50 min-h-[400px]">
+            <!-- Kiri: Graf & Senarai Aduan -->
+            <div class="lg:col-span-2 space-y-6">
                 
-               <!-- SEKSYEN: LATAR BELAKANG -->
-                <div id="sec-tema" class="space-y-6 max-w-4xl mx-auto">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6">
-                        <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"><i class="fa-solid fa-desktop text-purple-500 mr-1"></i> Gambar Background (Log Masuk)</label>
-                            <p class="text-xs text-slate-500 mb-4">Gambar ini akan menghiasi latar belakang skrin halaman log masuk utama.</p>
-                            <input type="file" id="upload-bg" accept="image/*" class="w-full text-sm border border-slate-300 rounded p-1 mb-3">
-                            <button onclick="uploadSystemImage('upload-bg', 'login_bg')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-bold shadow-sm transition"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Background</button>
+                <!-- Seksyen Penapis & Senarai Rekod (TVET Style) -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-filter text-orange-500 mr-1.5"></i> Carian & Tapisan Aduan</h3>
+                            <p class="text-[10px] text-slate-400">Pilih kriteria di bawah untuk menapis senarai rekod aduan</p>
                         </div>
-                        <div class="w-full sm:w-48 h-32 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex items-center justify-center relative">
-                            <img id="preview-bg" src="https://dummyimage.com/300x200/f3f4f6/64748b.png&text=Tiada+BG" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/20 flex items-center justify-center"><span class="text-white text-[10px] font-bold tracking-widest bg-black/50 px-2 py-1 rounded">PREVIEW</span></div>
+                        <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">Memaparkan 0 rekod</span>
+                    </div>
+
+                    <!-- Kotak Borang Tapisan (5 Kolum) -->
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama</label>
+                                <input type="text" id="filter-search" placeholder="Taip nama..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label>
+                                <select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                                    <option value="">-- Semua --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label>
+                                <select id="filter-category" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                                    <option value="">-- Semua --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
+                                <select id="filter-status" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                                    <option value="">-- Semua --</option>
+                                    <option value="BARU">BARU</option>
+                                    <option value="PROSES">PROSES</option>
+                                    <option value="SELESAI">SELESAI</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tahun</label>
+                                <select id="filter-year" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition">
+                                    <option value="">-- Semua --</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-1 border-t border-slate-200/60">
+                            <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">Reset</button>
+                            <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian</button>
                         </div>
                     </div>
-                </div>
 
-                
-                <!-- SEKSYEN: LOKASI (Diambil dari kod sedia ada) -->
-                <!-- SEKSYEN LOKASI -->
-        <div id="sec-lokasi" class="hidden space-y-4 max-w-4xl mx-auto">
-            <!-- Borang Input Tambah Lokasi (Susun menegak di mobile) -->
-            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-2">
-                <input type="text" id="new-location" placeholder="Tambah lokasi baru..." class="flex-1 border border-slate-300 rounded-md p-2 text-sm focus:border-orange-500 outline-none">
-                <button onclick="addLocation()" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md text-sm font-bold shadow-sm transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
-            </div>
-
-            <!-- Bekas Jadual (Boleh Skrol Kiri-Kanan) -->
-            <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-x-auto w-full">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-slate-100 text-slate-600 font-bold border-b">
-                        <tr>
-                            <th class="p-3 w-16 text-center">No.</th>
-                            <th class="p-3">Nama Jabatan/Lokasi</th>
-                            <th class="p-3 w-48 text-center">Tindakan</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dept-list" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-        </div>
-                </div>
-
-                <!-- SEKSYEN: WHATSAPP -->
-                <div id="sec-whatsapp" class="hidden max-w-2xl mx-auto">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <label class="block text-sm font-bold text-slate-700 mb-3"><i class="fa-brands fa-whatsapp text-emerald-500 mr-2 text-xl"></i> No. Telefon WhatsApp Sistem</label>
-                        <p class="text-xs text-slate-500 mb-4">Nombor ini akan digunakan untuk menghantar notifikasi aduan baru kepada pentadbir. Sila masukkan bermula dengan kod negara tanpa tanda tambah (Cth: 60123456789).</p>
-                        <div class="flex gap-2">
-                            <input type="text" id="wa-number" placeholder="Cth: 60123456789" class="w-full border border-slate-300 rounded-md p-2.5 text-sm focus:border-emerald-500 outline-none focus:ring-1 focus:ring-emerald-500">
-                            <button onclick="saveWhatsApp()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-md text-sm font-bold shadow-sm transition">Simpan</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SEKSYEN: RBAC -->
-                <div id="sec-rbac" class="hidden">
-                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-100 text-slate-600 font-bold border-b"><tr><th class="p-3 w-12 text-center">No.</th><th class="p-3">Nama / Emel</th> <th class="p-3 w-40">Aktiviti Terakhir</th><th class="p-3 w-48">Peranan Semasa</th><th class="p-3 w-32 text-center">Kemaskini</th></tr></thead>
-                            <tbody id="user-list" class="divide-y divide-slate-100"></tbody>
+                    <!-- Jadual Data -->
+                    <div class="overflow-x-auto w-full border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
+                                <tr>
+                                    <th class="p-3 w-10 text-center">Bil</th>
+                                    <th class="p-3">Pemohon & Tarikh</th>
+                                    <th class="p-3">Lokasi / Jabatan</th>
+                                    <th class="p-3">Kategori & Butiran</th>
+                                    <th class="p-3 text-right">Kos (RM)</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-center">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kcppp-complaints-table" class="divide-y divide-slate-100">
+                                <tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+
+            <!-- Kanan: Menu Pantas -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3 h-fit">
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2.5"><i class="fa-solid fa-bars-staggered text-orange-500 mr-1.5"></i> Menu Pentadbir KCPPP</h3>
+                <div class="space-y-2">
+                    <a href="index.html" class="block w-full text-left p-2.5 rounded-lg border border-slate-100 hover:border-emerald-300 hover:bg-emerald-50/50 transition flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-700 group-hover:text-emerald-600"><i class="fa-solid fa-pen-to-square text-slate-400 mr-2 group-hover:text-emerald-500"></i> Borang Hantar Aduan Baru</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 group-hover:text-emerald-500"></i>
+                    </a>
+                    <button onclick="openSettingsModal()" class="w-full text-left p-2.5 rounded-lg border border-slate-100 hover:border-orange-300 hover:bg-orange-50/50 transition flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-700 group-hover:text-orange-600"><i class="fa-solid fa-building text-slate-400 mr-2 group-hover:text-orange-500"></i> Urus Lokasi & Jabatan</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 group-hover:text-orange-500"></i>
+                    </button>
+                    <button onclick="openSettingsModal()" class="w-full text-left p-2.5 rounded-lg border border-slate-100 hover:border-orange-300 hover:bg-orange-50/50 transition flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-700 group-hover:text-orange-600"><i class="fa-brands fa-whatsapp text-slate-400 mr-2 group-hover:text-orange-500"></i> Tetapan Notifikasi WA</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 group-hover:text-orange-500"></i>
+                    </button>
+                    <a href="admin.html" class="block w-full text-left p-2.5 rounded-lg border border-slate-100 hover:border-purple-300 hover:bg-purple-50/50 transition flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-700 group-hover:text-purple-600"><i class="fa-solid fa-users-gear text-slate-400 mr-2 group-hover:text-purple-500"></i> Kawalan Pengguna (RBAC)</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 group-hover:text-purple-500"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Kelulusan (Tetap Kekal untuk Tindakan Laporan) -->
-    <div id="kcppp-modal" class="fixed inset-0 bg-slate-900 bg-opacity-70 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
-            <div class="p-5 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-file-signature mr-2 text-orange-500"></i>Borang Kelulusan KCPPP</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-red-500 text-2xl font-bold leading-none transition">&times;</button>
+    <!-- MODAL TETAPAN SISTEM (GEAR) -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden z-50 flex items-center justify-center p-3 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-gear text-orange-500 mr-1.5"></i> Tetapan Sistem Pusat</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-red-500 text-xl font-bold leading-none">&times;</button>
             </div>
-            <div class="p-6 overflow-y-auto flex-1 bg-white">
-                <form id="approval-form" onsubmit="submitApproval(event)">
-                    <input type="hidden" id="modal-id">
-                   <div class="bg-slate-50 p-4 rounded-md border border-slate-200 mb-4 text-sm">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                            <p><strong class="text-slate-500"><i class="fa-solid fa-user text-slate-400 w-4"></i> Pemohon:</strong><br> <span id="info-name" class="font-semibold text-slate-800"></span></p>
-                            <p><strong class="text-slate-500"><i class="fa-solid fa-wrench text-slate-400 w-4"></i> Kerosakan:</strong><br> <span id="info-damage" class="font-semibold text-slate-800"></span></p>
-                            <p class="sm:col-span-2"><strong class="text-slate-500"><i class="fa-solid fa-money-bill text-slate-400 w-4"></i> Kos Anggaran:</strong> <span class="font-bold text-orange-600">RM <span id="info-cost"></span></span></p>
-                        </div>
-                        <div class="border-t border-slate-200 pt-3 space-y-3">
-                            <p><strong class="text-slate-500"><i class="fa-solid fa-circle-info text-slate-400 w-4"></i> Butiran Kerosakan:</strong> <br><span id="info-details" class="text-slate-700 font-medium"></span></p>
-                            <p><strong class="text-slate-500"><i class="fa-solid fa-scale-balanced text-slate-400 w-4"></i> Justifikasi Keperluan:</strong> <br><span id="info-justification" class="text-slate-700 font-medium"></span></p>
-                        </div>
+            <div class="p-5 overflow-y-auto flex-1 bg-white space-y-5 text-xs">
+                
+                <!-- Tab Whatsapp -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block font-bold text-slate-700 mb-2 uppercase tracking-wide border-b border-slate-200 pb-1.5"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1"></i> No. Telefon WhatsApp Admin</label>
+                    <p class="text-[10px] text-slate-500 mb-3">Nombor ini digunakan untuk menerima notifikasi aduan baru.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="wa-number" placeholder="Cth: 60123456789" class="flex-1 border border-slate-300 rounded-lg p-2 outline-none focus:border-orange-500">
+                        <button onclick="saveWhatsapp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg transition shadow-sm">Simpan</button>
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-md mb-5 border-l-4 border-slate-400 shadow-sm">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase mb-2 tracking-wider"><i class="fa-solid fa-list-check mr-1"></i> Laporan Sokongan (CPPP)</p>
-                        <div class="space-y-2">
-                            <p class="text-sm text-slate-700 leading-relaxed"><span class="font-bold text-slate-900">Kategori Tindakan:</span> <br><span id="info-cppp-kategori" class="font-medium">-</span></p>
-                            <div id="info-cppp-remarks"></div>
-                        </div>
+                </div>
+
+                <!-- Tab Lokasi -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block font-bold text-slate-700 mb-2 uppercase tracking-wide border-b border-slate-200 pb-1.5"><i class="fa-solid fa-building text-blue-500 mr-1"></i> Urus Jabatan / Lokasi</label>
+                    <div class="flex gap-2 mb-4 mt-2">
+                        <input type="text" id="new-location" placeholder="Tambah lokasi baru..." class="flex-1 border border-slate-300 rounded-lg p-2 outline-none focus:border-orange-500">
+                        <button onclick="addLocation()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <hr class="my-6 border-slate-200">
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Keputusan</label>
-                        <select id="kcppp-status" required class="w-full border border-slate-300 rounded-md p-2.5 text-sm font-bold focus:border-orange-500 outline-none transition">
-                            <option value="">-- Sila Pilih --</option>
-                            <option value="LULUS">✅ LULUS</option>
-                            <option value="DITOLAK">❌ DITOLAK</option>
-                        </select>
+                    <div class="overflow-x-auto w-full border border-slate-200 rounded-lg max-h-48">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead class="bg-white text-slate-500 font-bold text-[10px] uppercase border-b sticky top-0">
+                                <tr><th class="p-2 w-10 text-center">No.</th><th class="p-2">Nama Lokasi</th><th class="p-2 w-16 text-center">Padam</th></tr>
+                            </thead>
+                            <tbody id="settings-dept-list" class="divide-y divide-slate-100 text-[11px] bg-white"></tbody>
+                        </table>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Ulasan KCPPP (Pilihan)</label>
-                        <textarea id="kcppp-remarks" rows="3" placeholder="Sebab diluluskan / ditolak..." class="w-full border border-slate-300 rounded-md p-2 text-sm focus:border-orange-500 outline-none transition"></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PERINCIAN ADUAN -->
+    <div id="view-modal" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden z-50 flex items-center justify-center p-3 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-magnifying-glass text-orange-500 mr-1.5"></i> Maklumat Aduan</h3>
+                <button onclick="closeViewModal()" class="text-slate-400 hover:text-red-500 text-xl font-bold leading-none">&times;</button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1 bg-white space-y-4 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Pemohon</p>
+                        <p id="vm-name" class="font-bold text-slate-800">-</p>
+                        <p id="vm-phone" class="text-[11px] text-slate-500">-</p>
                     </div>
-                    <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-md font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">Batal</button>
-                        <button type="submit" id="save-btn" class="px-5 py-2 rounded-md font-bold text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Keputusan</button>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Lokasi & Tarikh</p>
+                        <p id="vm-dept" class="font-bold text-slate-800">-</p>
+                        <p id="vm-date" class="text-[11px] text-slate-500">-</p>
                     </div>
-                </form>
+                </div>
+                <div class="space-y-3">
+                    <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Kategori Kerosakan</p><p id="vm-types" class="font-semibold text-slate-800 bg-slate-50 p-2 rounded-lg border border-slate-200">-</p></div>
+                    <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Butiran Penuh</p><p id="vm-details" class="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200">-</p></div>
+                    <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Catatan Tindakan CPPP</p><p id="vm-remarks" class="text-slate-700 bg-orange-50 p-2.5 rounded-lg border border-orange-100">-</p></div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="closeViewModal()" class="px-4 py-1.5 rounded-lg font-bold text-xs text-white bg-slate-800 hover:bg-slate-900 shadow-sm transition">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -319,438 +281,211 @@
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        let allComplaints = [], reportData = [], analyticsChart = null;
+
+        let rawComplaintsData = [];
+        let currentUser = null;
 
         async function initKCPPP() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'login.html'; return; }
+            currentUser = session.user;
             
-            const { data: profile } = await _supabase.from('user_profiles').select('role').eq('email', session.user.email).single();
-            if (!profile || profile.role !== 'KCPPP') {
-                alert('Akses Ditolak! Hanya KCPPP dibenarkan masuk.'); window.location.href = 'index.html'; return;
+            const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
+            if (!profile || !['KCPPP', 'ADMIN'].includes(profile.role)) {
+                alert('Akses Ditolak! Khas untuk KCPPP sahaja.'); window.location.href = 'index.html'; return;
             }
             
-            loadSystemTheme(); // Tarik Logo Semasa Load
-            loadComplaints();
+            const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
+            document.getElementById('user-name-display').innerText = nameDisplay;
+            document.getElementById('welcome-user-name').innerText = nameDisplay;
+            document.getElementById('user-avatar').innerHTML = `<span class="uppercase">${nameDisplay.charAt(0)}</span>`;
+
+            loadSystemTheme();
+            loadMasterData();
+            loadComplaintsData();
         }
 
-        // ================= KAWALAN PAPARAN HALAMAN (VIEW TOGGLE) =================
-        function toggleSettingsView() {
-            const dash = document.getElementById('dashboard-view');
-            const set = document.getElementById('settings-view');
-            
-            if(dash.classList.contains('hidden')) {
-                // Nak tunjuk Dashboard
-                dash.classList.remove('hidden');
-                set.classList.add('hidden');
-            } else {
-                // Nak tunjuk Settings
-                dash.classList.add('hidden');
-                set.classList.remove('hidden');
-                switchSettingsTab('tema');
-                loadSystemData();
-            }
-        }
-
-        function switchSettingsTab(tab) {
-            ['tema', 'lokasi', 'whatsapp', 'rbac'].forEach(t => {
-                document.getElementById(`sec-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).className = "px-5 py-4 text-sm font-bold text-slate-500 hover:text-orange-500 border-b-2 border-transparent whitespace-nowrap";
-            });
-            document.getElementById(`sec-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).className = "px-5 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50/50 whitespace-nowrap";
-        }
-
-        // ================= PENGURUSAN DATA SISTEM (TEMA, WHATSAPP, LOKASI, RBAC) =================
-        async function loadSystemData() {
-            try {
-                // Load WhatsApp (menggunakan jadual system_settings)
-                const { data: wa } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
-                if (wa) document.getElementById('wa-number').value = wa.setting_value;
-
-                // Load Departments
-                const { data: depts, error: deptErr } = await _supabase.from('departments').select('*').order('name');
-                const deptList = document.getElementById('dept-list');
-                
-                if (deptErr) {
-                    deptList.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-bold">Ralat: ${deptErr.message}</td></tr>`;
-                } else if (depts && depts.length > 0) {
-                    deptList.innerHTML = depts.map((d, i) => `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
-                            <td class="p-3 text-center font-semibold text-slate-500">${i+1}</td>
-                            <td class="p-3 font-bold text-slate-800 uppercase tracking-wide">${d.name || d.department_name || '-'}</td>
-                            <td class="p-3 text-center">
-                                <div class="flex justify-center gap-2">
-                                    <button onclick="editLocation('${d.id}', '${d.name}')" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-3 py-1.5 rounded text-[11px] font-bold shadow-sm"><i class="fa-solid fa-pen mr-1"></i> Edit</button>
-                                    <button onclick="deleteLocation('${d.id}')" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-3 py-1.5 rounded text-[11px] font-bold shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
-                } else {
-                    deptList.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-400 font-medium italic">Tiada lokasi didaftarkan.</td></tr>';
-                }
-
-                // Load Users (RBAC)
-                const { data: users, error: userErr } = await _supabase.from('user_profiles').select('*').order('full_name');
-                const userList = document.getElementById('user-list');
-                
-                if (userErr) {
-                    userList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-bold">Ralat: ${userErr.message}</td></tr>`;
-                } else if (users && users.length > 0) {
-                    userList.innerHTML = users.map((u, i) => {
-                        // Dapatkan tarikh aktiviti terakhir (Guna updated_at atau fallback ke created_at)
-                        const rawDate = u.updated_at || u.created_at;
-                        const lastLogin = rawDate ? new Date(rawDate).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
-
-                        return `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
-                            <td class="p-3 text-center font-semibold text-slate-500">${i+1}</td>
-                            <td class="p-3">
-                                <div class="font-bold text-slate-800 uppercase">${u.full_name || 'Tanpa Nama'}</div>
-                                <div class="text-[11px] text-slate-500">${u.email}</div>
-                            </td>
-                            <td class="p-3 text-xs text-slate-500 font-medium">${lastLogin}</td>
-                            <td class="p-3">
-                                <select id="role-${u.id}" class="border border-slate-300 rounded-md p-2 text-xs font-bold w-full focus:border-orange-500 outline-none">
-                                    <option value="USER" ${u.role==='USER'?'selected':''}>PEMOHON BIASA (USER)</option>
-                                    <option value="CPPP" ${u.role==='CPPP'?'selected':''}>PEGAWAI PENYEMAK (CPPP)</option>
-                                    <option value="KCPPP" ${u.role==='KCPPP'?'selected':''}>SUPER ADMIN (KCPPP)</option>
-                                </select>
-                            </td>
-                            <td class="p-3 text-center">
-                                <button onclick="updateRole('${u.id}', '${u.email}')" class="bg-slate-800 text-white text-xs px-4 py-2 rounded-md hover:bg-slate-900 shadow-sm transition"><i class="fa-solid fa-floppy-disk mr-1"></i>Simpan</button>
-                            </td>
-                        </tr>
-                        `;
-                    }).join('');
-                } else {
-                    userList.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium italic">Tiada pengguna didaftarkan.</td></tr>';
-                }
-            } catch (err) { 
-                console.error("Ralat SystemData:", err); 
-            }
-        }
-        // ================= TEMA & MUAT NAIK LOGO =================
         async function loadSystemTheme() {
-            const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['system_logo', 'login_bg']);
-            if(data) {
-                const logo = data.find(d => d.setting_key === 'system_logo');
-                if(logo && logo.setting_value) {
-                    document.querySelectorAll('.sys-logo').forEach(img => img.src = logo.setting_value);
-                }
-                const bg = data.find(d => d.setting_key === 'login_bg');
-                if(bg && bg.setting_value) {
-                    const bgPreview = document.getElementById('preview-bg');
-                    if(bgPreview) bgPreview.src = bg.setting_value;
+            const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
+            if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+        }
+
+        async function loadMasterData() {
+            const { data: locations } = await _supabase.from('departments').select('*').order('name');
+            const deptSelect = document.getElementById('filter-dept');
+            if (locations) {
+                const opts = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+                deptSelect.innerHTML = opts;
+            }
+
+            const { data: settings } = await _supabase.from('system_settings').select('*');
+            if (settings) {
+                const typesSetting = settings.find(s => s.key === 'damage_types');
+                if (typesSetting && typesSetting.value) {
+                    const types = JSON.parse(typesSetting.value);
+                    document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
                 }
             }
         }
 
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader(); 
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image(); 
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width; 
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        
-                        // Bersihkan canvas supaya kekal lutsinar
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-                        
-                        // Semak format asal fail
-                        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-                        
-                        canvas.toBlob(blob => {
-                            resolve(new File([blob], file.name, { type: mimeType }));
-                        }, mimeType, 0.8);
-                    };
-                };
-            });
-        }
-
-        async function uploadSystemImage(inputId, settingKey) {
-            const fileInput = document.getElementById(inputId);
-            const file = fileInput.files[0];
-            if(!file) return alert('Sila pilih fail gambar terlebih dahulu.');
-
-            const btn = fileInput.nextElementSibling;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik...'; btn.disabled = true;
-
-            try {
-                const compressed = await compressImage(file);
-                const path = `system/${settingKey}_${Date.now()}.jpg`;
-
-                // Upload ke Supabase Storage (Pastikan bucket complaint_attachments wujud)
-                const { error: upErr } = await _supabase.storage.from('complaint_attachments').upload(path, compressed, { upsert: true });
-                if(upErr) throw upErr;
-
-                const publicUrl = _supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl;
-
-                // Simpan/Update rekod di jadual system_settings
-                const { data: existing } = await _supabase.from('system_settings').select('*').eq('setting_key', settingKey).single();
-                if (existing) {
-                    await _supabase.from('system_settings').update({ setting_value: publicUrl }).eq('setting_key', settingKey);
-                } else {
-                    await _supabase.from('system_settings').insert([{ setting_key: settingKey, setting_value: publicUrl }]);
-                }
-
-                alert('Berjaya dikemaskini!');
-                loadSystemTheme(); // Segar semula paparan imej
-            } catch(e) {
-                alert('Ralat muat naik: ' + e.message);
-            } finally {
-                btn.innerHTML = originalText; btn.disabled = false;
-                fileInput.value = ''; // Reset input
-            }
-        }
-
-        // ================= FUNGSI LAIN-LAIN (LOKASI, WA, DLL) =================
-        async function saveWhatsApp() {
-            const val = document.getElementById('wa-number').value.trim();
-            if(!val) return alert('Sila masukkan nombor.');
+        async function loadComplaintsData() {
+            const tbody = document.getElementById('kcppp-complaints-table');
+            tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Memuatkan data...</td></tr>';
             
-            const { data: existing } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no').single();
-            if (existing) {
-                await _supabase.from('system_settings').update({ setting_value: val }).eq('setting_key', 'whatsapp_no');
-            } else {
-                await _supabase.from('system_settings').insert([{ setting_key: 'whatsapp_no', setting_value: val }]);
-            }
-            alert('Nombor WhatsApp dikemaskini!');
-        }
-
-        async function addLocation() {
-            const name = document.getElementById('new-location').value.trim();
-            if (!name) return;
-            await _supabase.from('departments').insert([{ name }]);
-            document.getElementById('new-location').value = '';
-            loadSystemData(); alert('Berjaya ditambah!');
-        }
-
-        async function editLocation(id, oldName) {
-            const newName = prompt('Nama baharu lokasi:', oldName);
-            if (newName && newName.trim() !== oldName) {
-                await _supabase.from('departments').update({ name: newName.trim() }).eq('id', id);
-                loadSystemData();
-            }
-        }
-
-        async function deleteLocation(id) {
-            if(confirm('Pasti ingin memadam lokasi ini?')) {
-                await _supabase.from('departments').delete().eq('id', id);
-                loadSystemData();
-            }
-        }
-
-        async function updateRole(id, email) {
-            const newRole = document.getElementById(`role-${id}`).value;
-            if(confirm(`Tukar peranan ${email} kepada ${newRole}?`)) {
-                await _supabase.from('user_profiles').update({ role: newRole }).eq('id', id);
-                alert('Peranan dikemaskini!'); loadSystemData();
-            }
-        }
-
-        // ================= ANALITIK & REPORTING (KEKAL SEPERTI SEBELUMNYA) =================
-        async function loadComplaints() {
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
-            if (error || !data) return;
-            allComplaints = data; reportData = data; 
+            if (error || !data) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-red-500 p-8">Ralat pangkalan data.</td></tr>'; return; }
             
-            const { data: deptData } = await _supabase.from('departments').select('name').order('name');
-            let officialDepts = deptData ? deptData.map(d => d.name) : [];
-            
-            populateFilterOptions(reportData, officialDepts); 
-            applyFilters();
+            rawComplaintsData = data;
+            updateDashboardStats(data);
+            renderKCPPPTable(data);
         }
 
-        function populateFilterOptions(data, officialDepts) {
-            const damages = new Set(); const years = new Set();
+        function updateDashboardStats(data) {
+            let baru = 0, proses = 0, selesai = 0;
             data.forEach(item => {
-                if(item.created_at) years.add(new Date(item.created_at).getFullYear());
-                let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types || 'Lain-lain'];
-                dmgs.forEach(d => damages.add(d));
+                if(item.status === 'BARU') baru++;
+                else if(item.status === 'PROSES' || item.status === 'SEDANG DIPROSES') proses++;
+                else if(item.status === 'SELESAI') selesai++;
             });
-            document.getElementById('filter-dept').innerHTML = '<option value="">Semua Lokasi</option>' + officialDepts.map(d => `<option value="${d}">${d}</option>`).join('');
-            document.getElementById('filter-damage').innerHTML = '<option value="">Semua Kerosakan</option>' + Array.from(damages).sort().map(d => `<option value="${d}">${d}</option>`).join('');
-            document.getElementById('filter-year').innerHTML = '<option value="">Semua Tahun</option>' + Array.from(years).sort((a,b)=>b-a).map(y => `<option value="${y}">${y}</option>`).join('');
+            document.getElementById('stat-baru').innerText = baru;
+            document.getElementById('stat-proses').innerText = proses;
+            document.getElementById('stat-selesai').innerText = selesai;
+            document.getElementById('stat-total').innerText = data.length;
+        }
+
+        function renderKCPPPTable(data) {
+            const tbody = document.getElementById('kcppp-complaints-table');
+            document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
+
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
+
+            tbody.innerHTML = data.map((item, idx) => `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
+                    <td class="p-3 align-top">
+                        <div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
+                    </td>
+                    <td class="p-3 align-top">
+                        <div class="font-bold text-slate-700">${item.department || '-'}</div>
+                        <div class="text-[10px] text-slate-400">${item.phone || '-'}</div>
+                    </td>
+                    <td class="p-3 align-top max-w-xs">
+                        <span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">
+                            ${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}
+                        </span>
+                        <p class="text-[11px] text-slate-500 truncate">${item.details || '-'}</p>
+                    </td>
+                    <td class="p-3 align-top text-right font-bold text-slate-700">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
+                    <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
+                    <td class="p-3 align-top text-center">
+                        <button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[10px] shadow-sm transition">🔍 Perinci</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold">BARU</span>';
+                case 'PROSES':
+                case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold">PROSES</span>';
+                case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold">SELESAI</span>';
+                default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
+            }
         }
 
         function applyFilters() {
-            const fDept = document.getElementById('filter-dept').value;
-            const fDamage = document.getElementById('filter-damage').value;
-            const fYear = document.getElementById('filter-year').value;
+            const search = document.getElementById('filter-search').value.toLowerCase();
+            const dept = document.getElementById('filter-dept').value;
+            const cat = document.getElementById('filter-category').value;
+            const status = document.getElementById('filter-status').value;
+            const year = document.getElementById('filter-year').value;
 
-            const filteredData = reportData.filter(item => {
-                if(fDept && item.department !== fDept) return false;
-                if(fYear && new Date(item.created_at).getFullYear().toString() !== fYear) return false;
-                if(fDamage) {
-                    let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types];
-                    if(!dmgs.includes(fDamage)) return false;
-                }
-                return true;
+            const filtered = rawComplaintsData.filter(item => {
+                const matchSearch = !search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search));
+                const matchDept = !dept || item.department === dept;
+                const matchCat = !cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat);
+                const matchStatus = !status || item.status === status;
+                const matchYear = !year || new Date(item.created_at).getFullYear().toString() === year;
+                return matchSearch && matchDept && matchCat && matchStatus && matchYear;
             });
-            renderReportTable(filteredData); updateChart(filteredData);
+            renderKCPPPTable(filtered);
         }
 
-        function renderReportTable(data) {
-            const tbody = document.getElementById('report-list');
-            if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-500">Tiada rekod.</td></tr>'; return; }
-            
-            tbody.innerHTML = data.map((item, idx) => {
-                const dateMohon = new Date(item.created_at).toLocaleDateString('ms-MY');
-                const dateSelesai = item.updated_at ? new Date(item.updated_at).toLocaleDateString('ms-MY') : '-';
-                
-                let attachHTML = '';
-                if (item.image_url) {
-                    item.image_url.split(',').forEach((url, i) => {
-                        attachHTML += `<button type="button" onclick="event.stopPropagation(); forceDownload('${url.trim()}', 'Gambar_${i+1}.jpg')" class="block w-full text-left text-[10px] bg-slate-50 border border-slate-200 px-2 py-1 rounded mb-1 font-bold shadow-sm">🖼️ Gambar ${i + 1}</button>`;
-                    });
-                }
-                if (item.quotation_url) attachHTML += `<button type="button" onclick="event.stopPropagation(); forceDownload('${item.quotation_url.trim()}', 'Sebutharga.pdf')" class="block w-full text-left text-[10px] bg-orange-50 border border-orange-200 px-2 py-1 rounded font-bold shadow-sm text-orange-700">📄 Sebutharga</button>`;
-
-                let statusBadge = item.kcppp_status === 'LULUS' ? '<span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md text-[10px] font-bold border border-emerald-200">✅ LULUS</span>' : 
-                                  item.kcppp_status === 'DITOLAK' ? '<span class="bg-red-50 text-red-700 px-3 py-1.5 rounded-md text-[10px] font-bold border border-red-200">❌ DITOLAK</span>' : 
-                                  `<span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md text-[10px] font-bold border border-blue-200">🔔 ${(item.status || 'BARU').toUpperCase()}</span>`;
-
-                return `
-                <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="openModal('${item.id}')">
-                    <td class="p-3 text-center text-sm font-semibold align-top">${idx + 1}</td>
-                    <td class="p-3 w-32 align-top text-[11px] font-bold text-slate-600"><div class="mb-1">📅 ${dateMohon}</div><div class="text-emerald-600">✅ ${dateSelesai}</div></td>
-                    <td class="p-3 w-48 align-top text-[11px]"><div class="font-bold uppercase">👤 ${item.full_name || 'Tanpa Nama'}</div><div class="text-slate-500 mt-1">📍 ${item.department || '-'}</div></td>
-                    <td class="p-3 w-56 align-top text-[11px]"><div class="font-bold">🔧 ${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</div><div class="text-[10px] text-slate-500 mt-1 line-clamp-2 ml-4">${item.details || '-'}</div></td>
-                    <td class="p-3 w-56 align-top text-[11px] text-slate-600 line-clamp-3">📄 ${item.justification || '-'}</td>
-                    <td class="p-3 w-28 text-center align-top">${statusBadge}</td>
-                    <td class="p-3 w-28 align-top" onclick="event.stopPropagation();">${attachHTML || '<i class="text-[10px] text-slate-400">Tiada</i>'}</td>
-                </tr>`;
-            }).join('');
+        function resetFilters() {
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-dept').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-year').value = '';
+            renderKCPPPTable(rawComplaintsData);
         }
 
-        function updateChart(data) {
-            const damageCounts = {};
-            data.forEach(item => {
-                let dmgs = Array.isArray(item.damage_types) ? item.damage_types : [item.damage_types || 'Lain-lain'];
-                dmgs.forEach(d => { damageCounts[d] = (damageCounts[d] || 0) + 1; });
-            });
-            const colors = [ { bg: 'rgba(249, 115, 22, 0.8)', border: 'rgba(234, 88, 12, 1)' }, { bg: 'rgba(236, 72, 153, 0.8)', border: 'rgba(219, 39, 119, 1)' }, { bg: 'rgba(59, 130, 246, 0.8)', border: 'rgba(37, 99, 235, 1)' }, { bg: 'rgba(16, 185, 129, 0.8)', border: 'rgba(5, 150, 105, 1)' } ];
-            const labels = Object.keys(damageCounts); const values = Object.values(damageCounts);
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            if (analyticsChart) analyticsChart.destroy();
-            analyticsChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: labels, datasets: [{ label: 'Jumlah', data: values, backgroundColor: labels.map((_, i) => colors[i % colors.length].bg), borderColor: labels.map((_, i) => colors[i % colors.length].border), borderWidth: 1, borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function openModal(id) {
-            const item = allComplaints.find(c => c.id === id);
+        // --- FUNGSI MODAL PERINCIAN KCPPP ---
+        function viewComplaintDetail(id) {
+            const item = rawComplaintsData.find(c => c.id === id);
             if(!item) return;
-            document.getElementById('modal-id').value = item.id;
-            document.getElementById('info-name').innerText = item.full_name || '-';
-            document.getElementById('info-damage').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types;
-            document.getElementById('info-cost').innerText = item.estimated_cost || '0.00';
-            document.getElementById('info-details').innerText = item.details || '-';
-            document.getElementById('info-justification').innerText = item.justification || '-';
-            document.getElementById('info-cppp-kategori').innerText = item.cppp_kategori || '-';
-            document.getElementById('info-cppp-remarks').innerHTML = `<div class="bg-white p-3 rounded shadow-sm text-xs mt-2 border border-slate-200">👤 Disemak: ${item.cppp_name||'-'}<br><br>${item.action_remarks||'Tiada ulasan'}</div>`;
-            document.getElementById('kcppp-modal').classList.remove('hidden');
+            document.getElementById('vm-name').innerText = item.full_name || '-';
+            document.getElementById('vm-phone').innerText = item.phone || '-';
+            document.getElementById('vm-dept').innerText = item.department || '-';
+            document.getElementById('vm-date').innerText = new Date(item.created_at).toLocaleString('ms-MY');
+            document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
+            document.getElementById('vm-details').innerText = item.details || 'Tiada butiran.';
+            
+            let remarks = item.action_remarks || 'Belum ada tindakan CPPP.';
+            if(item.cppp_kategori) remarks = `[${item.cppp_kategori}]\n${remarks}`;
+            document.getElementById('vm-remarks').innerText = remarks;
+            
+            document.getElementById('view-modal').classList.remove('hidden');
         }
-        function closeModal() { document.getElementById('kcppp-modal').classList.add('hidden'); }
+        function closeViewModal() { document.getElementById('view-modal').classList.add('hidden'); }
 
-        async function submitApproval(e) {
-            e.preventDefault();
-            const id = document.getElementById('modal-id').value;
-            const kcppp_status = document.getElementById('kcppp-status').value;
-            const kcppp_remarks = document.getElementById('kcppp-remarks').value;
-            await _supabase.from('complaints').update({ kcppp_status, kcppp_remarks, updated_at: new Date().toISOString() }).eq('id', id);
-            alert('Direkodkan!'); closeModal(); loadComplaints();
+        // --- FUNGSI TETAPAN (GEAR) ---
+        async function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no').single();
+            if(data) document.getElementById('wa-number').value = data.setting_value;
+            loadSettingsLocations();
+        }
+        function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+        async function loadSettingsLocations() {
+            const { data } = await _supabase.from('departments').select('*').order('name');
+            const tbody = document.getElementById('settings-dept-list');
+            if(data) {
+                tbody.innerHTML = data.map((l, i) => `
+                    <tr>
+                        <td class="p-2 text-center">${i+1}</td>
+                        <td class="p-2 font-bold text-slate-700">${l.name}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteLocation('${l.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+        async function addLocation() {
+            const name = document.getElementById('new-location').value.trim();
+            if(!name) return;
+            await _supabase.from('departments').insert([{ name: name.toUpperCase() }]);
+            document.getElementById('new-location').value = '';
+            loadSettingsLocations(); loadMasterData();
+        }
+        async function deleteLocation(id) {
+            if(!confirm("Padam lokasi ini?")) return;
+            await _supabase.from('departments').delete().eq('id', id);
+            loadSettingsLocations(); loadMasterData();
+        }
+        async function saveWhatsapp() {
+            const num = document.getElementById('wa-number').value.trim();
+            const { error } = await _supabase.from('system_settings').upsert({ setting_key: 'whatsapp_no', setting_value: num, updated_at: new Date() });
+            if(!error) { alert('No WhatsApp dikemaskini!'); }
         }
 
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
-        async function forceDownload(url, fn) { const a = document.createElement('a'); a.href = url; a.download = fn; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); }
-       
-        initKCPPP();
-
-let rawComplaintsData = [];
-
-function renderKCPPPTable(data) {
-    const tbody = document.getElementById('kcppp-complaints-table');
-    document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
-
-    if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = data.map((item, idx) => `
-        <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
-            <td class="p-3 align-top">
-                <div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div>
-                <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div>
-            </td>
-            <td class="p-3 align-top">
-                <div class="font-bold text-slate-700">${item.department || '-'}</div>
-                <div class="text-[10px] text-slate-400">${item.phone || '-'}</div>
-            </td>
-            <td class="p-3 align-top max-w-xs">
-                <span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">
-                    ${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}
-                </span>
-                <p class="text-[11px] text-slate-500 truncate">${item.details || '-'}</p>
-            </td>
-            <td class="p-3 align-top text-right font-bold text-slate-700">
-                RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}
-            </td>
-            <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
-            <td class="p-3 align-top text-center">
-                <button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[10px] shadow-sm transition">
-                    🔍 Perinci
-                </button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function applyFilters() {
-    const search = document.getElementById('filter-search').value.toLowerCase();
-    const dept = document.getElementById('filter-dept').value;
-    const cat = document.getElementById('filter-category').value;
-    const status = document.getElementById('filter-status').value;
-    const year = document.getElementById('filter-year').value;
-
-    const filtered = rawComplaintsData.filter(item => {
-        const matchSearch = !search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search));
-        const matchDept = !dept || item.department === dept;
-        const matchCat = !cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat);
-        const matchStatus = !status || item.status === status;
-        const matchYear = !year || new Date(item.created_at).getFullYear().toString() === year;
-
-        return matchSearch && matchDept && matchCat && matchStatus && matchYear;
-    });
-
-    renderKCPPPTable(filtered);
-}
-
-function resetFilters() {
-    document.getElementById('filter-search').value = '';
-    document.getElementById('filter-dept').value = '';
-    document.getElementById('filter-category').value = '';
-    document.getElementById('filter-status').value = '';
-    document.getElementById('filter-year').value = '';
-    renderKCPPPTable(rawComplaintsData);
-}
-
         
+        initKCPPP();
     </script>
-       
 </body>
 </html>
