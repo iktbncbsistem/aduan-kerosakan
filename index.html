@@ -81,13 +81,26 @@
                         <div id="mob-cat-container"><label class="block font-bold text-slate-500 uppercase mb-1">Kategori</label><select id="mob-cat" required class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"><option value="">Pilih Kategori</option></select></div>
                         <div><label class="block font-bold text-slate-500 uppercase mb-1">Butiran Kerosakan</label><textarea id="mob-details" required rows="3" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none" placeholder="Terangkan kerosakan..."></textarea></div>
                         <div><label class="block font-bold text-slate-500 uppercase mb-1">Justifikasi</label><textarea id="mob-justification" required rows="2" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none" placeholder="Sebab permohonan..."></textarea></div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-bold text-slate-500 uppercase mb-1">Gambar</label>
-                                <div class="relative border border-slate-300 rounded-xl p-3 text-center cursor-pointer bg-slate-50"><input type="file" id="mob-img" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'1 Dipilih':'Pilih gambar'"><i class="fa-solid fa-camera text-slate-400 mb-1"></i><p class="text-[9px] font-bold text-slate-600 truncate" id="mob-img-lbl">Upload</p></div>
-                            </div>
-                            <div><label class="block font-bold text-slate-500 uppercase mb-1">Kos (RM)</label><input type="number" step="0.01" id="mob-cost" placeholder="0.00" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none"></div>
-                        </div>
+                        <div><label class="block font-bold text-slate-500 uppercase mb-1">Anggaran Kos (RM)</label><input type="number" step="0.01" id="mob-cost" placeholder="0.00" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none mb-3"></div>
+
+<div>
+    <label class="block font-bold text-slate-500 uppercase mb-1">Gambar Kerosakan</label>
+    <div class="flex gap-2">
+        <!-- Butang Kamera -->
+        <label class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-orange-100 transition">
+            <input type="file" id="mob-cam" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'📷 '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-gal').value='';">
+            <i class="fa-solid fa-camera mb-1 block text-lg"></i>
+            <span class="text-[9px] font-bold">Kamera</span>
+        </label>
+        <!-- Butang Galeri -->
+        <label class="flex-1 bg-slate-50 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-slate-100 transition">
+            <input type="file" id="mob-gal" accept="image/*" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'🖼️ '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-cam').value='';">
+            <i class="fa-solid fa-image mb-1 block text-lg"></i>
+            <span class="text-[9px] font-bold">Galeri</span>
+        </label>
+    </div>
+    <p class="text-[10px] font-bold text-slate-500 mt-1.5 text-center truncate" id="mob-img-lbl">Tiada gambar dipilih</p>
+</div>
                         <button type="submit" id="mob-submit-btn" class="w-full bg-orange-500 text-white font-bold py-3.5 rounded-xl shadow-lg mt-2 active:scale-95 transition"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Permohonan</button>
                     </form>
                 </div>
@@ -547,7 +560,7 @@
                 const selectedDamageTypes = [catValue];
 
                 let imageUrls = [];
-                const mobImg = document.getElementById('mob-img').files[0];
+                const mobImg = document.getElementById('mob-cam').files[0] || document.getElementById('mob-gal').files[0];
                 if (mobImg) {
                     const compFile = await compressImage(mobImg);
                     const path = `images/${Date.now()}_mob_${compFile.name}`;
@@ -581,7 +594,7 @@
 
                 closeMobModal();
                 document.getElementById('mob-form').reset();
-                document.getElementById('mob-img-lbl').innerText = 'Upload';
+                document.getElementById('mob-img-lbl').innerText = 'Tiada gambar dipilih';
                 loadMyComplaints();
 
             } catch (err) { alert('Ralat: ' + err.message); }
