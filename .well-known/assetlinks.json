@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.iktbnchembong.is.aduan_kerosakan.twa",
+        "sha256_cert_fingerprints": ["5E:DD:D1:96:79:5F:D0:7D:CA:57:30:92:91:8D:74:F8:13:83:9E:E7:CB:77:73:5E:F5:49:98:65:D5:6F:DB:BC"]
+      }
+    }]
