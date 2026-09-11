@@ -185,7 +185,11 @@
                     <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Justifikasi</p><p id="vm-justification" class="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200">-</p></div>
                     <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Catatan Tindakan CPPP</p><p id="vm-remarks" class="text-slate-700 bg-orange-50 p-2.5 rounded-lg border border-orange-100">-</p></div>
                 </div>
-                <div class="flex justify-end gap-2 mt-4"><button type="button" onclick="closeViewModal()" class="px-4 py-1.5 rounded-lg font-bold text-xs text-white bg-slate-800 hover:bg-slate-900 shadow-sm transition">Tutup</button></div>
+                <div class="flex justify-end gap-2 mt-4 w-full">
+    <input type="hidden" id="vm-id">
+    <button type="button" onclick="cetakBorang(document.getElementById('vm-id').value)" class="px-4 py-1.5 rounded-lg font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition mr-auto"><i class="fa-solid fa-print mr-1"></i> Cetak Borang</button>
+    <button type="button" onclick="closeViewModal()" class="px-4 py-1.5 rounded-lg font-bold text-xs text-white bg-slate-800 hover:bg-slate-900 shadow-sm transition">Tutup</button>
+</div>
             </div>
         </div>
     </div>
@@ -373,6 +377,112 @@
 
         async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         initKCPPP();
+
+function cetakBorang(id) {
+            const item = rawComplaintsData.find(c => c.id === id);
+            if(!item) return;
+
+            // Kategori Checkbox Part B
+            const cpppKat = item.cppp_kategori || "";
+            const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
+            
+            // Kategori Jenis Kerosakan Part A
+            const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
+            const k1 = (dmg.includes('Elektrik') || dmg.includes('Perkakasan')) ? 'X' : '&nbsp;';
+            const k2 = (dmg.includes('Sivil')) ? 'X' : '&nbsp;';
+            const k3 = (dmg.includes('Perisian')) ? 'X' : '&nbsp;';
+            const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
+
+            const printWindow = window.open('', '_blank');
+            const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Cetak Borang - ${item.full_name}</title>
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap');
+                    @media print {
+                        @page { size: A4; margin: 15mm; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        button { display: none; }
+                    }
+                    body { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.4; color: black; max-w-3xl; margin: 0 auto; padding: 20px; }
+                    .text-center { text-align: center; } .font-bold { font-weight: bold; }
+                    .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mt-8 { margin-top: 32px; }
+                    .header-title { font-size: 16px; margin-bottom: 20px; }
+                    .section-title { background-color: #e5e7eb; padding: 6px; border: 1px solid black; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                    td, th { border: 1px solid black; padding: 6px 10px; vertical-align: top; }
+                    .w-1 { width: 25%; } .w-50 { width: 50%; }
+                    .flex-space { display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px; }
+                    .sign-box { display: inline-block; width: 48%; text-align: center; margin-top: 40px; }
+                    .footer-note { font-size: 10px; text-align: left; font-style: italic; margin-top: 30px; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center font-bold header-title">
+                    INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG<br>
+                    <span style="text-decoration: underline;">BORANG ADUAN KEROSAKAN</span>
+                </div>
+
+                <div class="section-title">BAHAGIAN A: DIISI OLEH PEMOHON</div>
+                <table>
+                    <tr><td class="w-1 font-bold">Nama</td><td class="w-1">${item.full_name}</td><td class="w-1 font-bold">Tarikh</td><td class="w-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td></tr>
+                    <tr><td class="font-bold">Lokasi</td><td>${item.department}</td><td class="font-bold">No. Telefon</td><td>${item.phone}</td></tr>
+                    <tr><td colspan="4" style="height: 60px;"><span class="font-bold">Butiran Kerosakan:</span><br>${item.details}</td></tr>
+                    <tr>
+                        <td colspan="4">
+                            <span class="font-bold">Jenis Kerosakan (Tindakan):</span>
+                            <div class="flex-space">
+                                <span>[ ${k1} ] i- Peralatan/Mesin</span>
+                                <span>[ ${k2} ] ii- Infrastruktur</span>
+                                <span>[ ${k3} ] iii- Peralatan ICT</span>
+                                <span>[ ${k4} ] iv- Lain-lain</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="sign-box text-center">.......................................................<br>Tandatangan Pemohon</div>
+                <div class="sign-box text-center">.......................................................<br>Tarikh</div>
+
+                <div class="section-title" style="margin-top: 30px;">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN DAN KAWALAN KUALITI</div>
+                <table>
+                    <tr class="font-bold text-center"><td style="width: 30px;">Bil</td><td>Kategori Kerosakan</td><td style="width: 100px;">Tindakan ( / )</td></tr>
+                    <tr><td class="text-center">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki dengan kadar segera')} ]</td></tr>
+                    <tr><td class="text-center">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki terus')} ]</td></tr>
+                    <tr><td class="text-center">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')} ]</td></tr>
+                    <tr><td class="text-center">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')} ]</td></tr>
+                    <tr><td class="text-center">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td class="text-center font-bold">[ ${tick('Kerosakan yang tidak ekonomi untuk dibaiki')} ]</td></tr>
+                    <tr><td class="text-center">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td class="text-center font-bold">[ ${tick('Lain-lain')} ]</td></tr>
+                </table>
+
+                <div style="border: 1px solid black; padding: 10px; min-height: 60px;">
+                    <span class="font-bold">Catatan:</span><br>
+                    ${item.action_remarks || ''}
+                </div>
+
+                <div class="sign-box">
+                    <br><br>.......................................................<br>
+                    <span class="font-bold">Tandatangan & Nama Pemeriksa:</span><br>
+                    Unit Pembangunan dan Penyelenggaraan<br>Tarikh:
+                </div>
+                <div class="sign-box">
+                    <br><br>.......................................................<br>
+                    <span class="font-bold">Tandatangan & Nama Pegawai:</span><br>
+                    Ketua Cawangan Penyelarasan & Kawalan Kualiti<br>Tarikh:
+                </div>
+
+                <div class="footer-note">'Dokumen tidak terkawal jika dicetak'</div>
+            </body>
+            </html>
+            `;
+
+            printWindow.document.write(html);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 800);
+        }
+        
     </script>
 </body>
 </html>
