@@ -226,18 +226,23 @@
             if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
         }
 
-        async function loadMasterData() {
+       async function loadMasterData() {
             const { data: locations } = await _supabase.from('departments').select('*').order('name');
             const deptSelect = document.getElementById('filter-dept');
             if (locations) deptSelect.innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
+            let damageTypes = ["Perkakasan", "Perisian", "Elektrik", "Sivil", "Lain-lain"];
+            
             if (settings) {
-                const typesSetting = settings.find(s => s.key === 'damage_types');
-                if (typesSetting && typesSetting.value) {
-                    const types = JSON.parse(typesSetting.value);
-                    document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+                const typesSetting = settings.find(s => s.setting_key === 'damage_types');
+                if (typesSetting && typesSetting.setting_value) {
+                    try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
                 }
+            }
+            
+            document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
             }
         }
 
