@@ -281,6 +281,7 @@
 
     let rawComplaintsData = [];
     let currentUser = null;
+    let currentActionId = null; // Memori kebal ID aduan ditambah di sini
 
     async function initCPPP() {
         const { data: { session } } = await _supabase.auth.getSession();
@@ -402,8 +403,10 @@
     function viewComplaintDetail(id) {
         const item = rawComplaintsData.find(c => c.id === id);
         if(!item) return;
-        if(document.getElementById('modal-id')) document.getElementById('modal-id').value = item.id;
         
+        currentActionId = id; // Mengunci ID
+        
+        if(document.getElementById('modal-id')) document.getElementById('modal-id').value = item.id;
         if(document.getElementById('modal-name')) document.getElementById('modal-name').innerText = item.full_name || '-';
         if(document.getElementById('modal-dept')) document.getElementById('modal-dept').innerText = item.department || '-';
         if(document.getElementById('modal-types')) document.getElementById('modal-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
@@ -422,30 +425,42 @@
         
         if(document.getElementById('action-remarks')) document.getElementById('action-remarks').value = item.action_remarks || '';
         
-        document.getElementById('action-modal').classList.remove('hidden');
+        const modal = document.getElementById('action-modal') || document.getElementById('view-modal');
+        if(modal) modal.classList.remove('hidden');
     }
 
-    function closeModal() { document.getElementById('action-modal').classList.add('hidden'); }
+    function closeModal() { 
+        const modal = document.getElementById('action-modal') || document.getElementById('view-modal');
+        if(modal) modal.classList.add('hidden'); 
+    }
 
     async function submitAction(e) {
         e.preventDefault();
-        const id = document.getElementById('modal-id').value;
-        const newStatus = document.getElementById('action-status').value;
-        const remarks = document.getElementById('action-remarks').value;
+        
+        const id = currentActionId; // Guna ID dari memori
+        if (!id) { alert('Ralat: ID Aduan tidak dijumpai!'); return; }
+        
+        const newStatus = document.getElementById('action-status') ? document.getElementById('action-status').value : 'PROSES';
+        const remarks = document.getElementById('action-remarks') ? document.getElementById('action-remarks').value : '';
         
         const checkedKat = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
 
-        const { error } = await _supabase.from('complaints').update({
-            status: newStatus,
-            action_remarks: remarks,
-            cppp_kategori: checkedKat,
-            updated_at: new Date()
-        }).eq('id', id);
+        try {
+            const { error } = await _supabase.from('complaints').update({
+                status: newStatus,
+                action_remarks: remarks,
+                cppp_kategori: checkedKat,
+                updated_at: new Date().toISOString()
+            }).eq('id', id);
 
-        if(error) { alert('Ralat kemaskini: ' + error.message); return; }
-        alert('Tindakan berjaya disimpan!');
-        closeModal();
-        loadComplaintsData();
+            if(error) throw error;
+            
+            alert('Tindakan berjaya disimpan!');
+            closeModal();
+            loadComplaintsData();
+        } catch (err) {
+            alert('Ralat kemaskini: ' + err.message);
+        }
     }
 
     function cetakBorang(id) {
