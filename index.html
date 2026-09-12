@@ -416,30 +416,35 @@
             const mobDeptSelect = document.getElementById('mob-dept');
             if (locations && locations.length > 0) {
                 const opts = '<option value="">Pilih Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
-                deptSelect.innerHTML = opts;
-                mobDeptSelect.innerHTML = opts;
+                if(deptSelect) deptSelect.innerHTML = opts;
+                if(mobDeptSelect) mobDeptSelect.innerHTML = opts;
             }
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
+            let damageTypes = ["Perkakasan", "Perisian", "Elektrik", "Sivil", "Lain-lain"];
             
             if (settings) {
-                const typesSetting = settings.find(s => s.key === 'damage_types');
-                if (typesSetting && typesSetting.value) damageTypes = JSON.parse(typesSetting.value);
+                const typesSetting = settings.find(s => s.setting_key === 'damage_types');
+                if (typesSetting && typesSetting.setting_value) {
+                    try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
+                }
+                const logoSetting = settings.find(s => s.setting_key === 'system_logo');
+                if (logoSetting && logoSetting.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = logoSetting.setting_value);
             }
 
-            // Untuk Desktop Checkboxes
-            document.getElementById('damage-types-container').innerHTML = damageTypes.map(type => `
-                <label class="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-orange-300 transition">
-                    <input type="checkbox" name="damage_types" value="${type}" class="w-3.5 h-3.5 text-orange-500 rounded">
-                    <span class="text-xs font-bold text-slate-700 truncate">${type}</span>
-                </label>
-            `).join('');
+            const dtContainer = document.getElementById('damage-types-container');
+            if(dtContainer) {
+                dtContainer.innerHTML = damageTypes.map(type => `
+                    <label class="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-orange-300 transition">
+                        <input type="checkbox" name="damage_types" value="${type}" class="w-3.5 h-3.5 text-orange-500 rounded">
+                        <span class="text-xs font-bold text-slate-700 truncate">${type}</span>
+                    </label>
+                `).join('');
+            }
 
-            // Untuk Mobile Dropdown
-            document.getElementById('mob-cat').innerHTML = '<option value="">Pilih Kategori</option>' + damageTypes.map(type => `<option value="${type}">${type}</option>`).join('');
+            const mobCat = document.getElementById('mob-cat');
+            if(mobCat) mobCat.innerHTML = '<option value="">Pilih Kategori</option>' + damageTypes.map(type => `<option value="${type}">${type}</option>`).join('');
         }
-
         let selectedAttachmentFiles = [];
         function handleFileSelection(event) {
             const files = event.target.files;
