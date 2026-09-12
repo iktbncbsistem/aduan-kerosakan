@@ -546,6 +546,12 @@
 
     async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
     initCPPP();
+
+// Pengadang Global: Halang mana-mana borang dari ter-refresh page
+    document.addEventListener('submit', function(e) {
+        e.preventDefault();
+    });
+        
 </script>
 </body>
 </html>
