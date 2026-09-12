@@ -435,34 +435,49 @@
     }
 
     async function submitAction(e) {
-        e.preventDefault();
+        // 1. Halang crash jika 'e' tidak wujud
+        try { if(e) e.preventDefault(); } catch(err) {}
         
-        const id = currentActionId; // Guna ID dari memori
-        if (!id) { alert('Ralat: ID Aduan tidak dijumpai!'); return; }
+        // 2. Semak ID
+        const id = currentActionId; 
+        if (!id) { alert('Ralat: Sila tutup paparan ini dan buka semula (ID gagal dikesan).'); return; }
         
-        const newStatus = document.getElementById('action-status') ? document.getElementById('action-status').value : 'PROSES';
-        const remarks = document.getElementById('action-remarks') ? document.getElementById('action-remarks').value : '';
+        // 3. Tarik data dari borang (dengan fallback selamat)
+        const statusEl = document.getElementById('action-status');
+        const remarksEl = document.getElementById('action-remarks');
+        const newStatus = statusEl ? statusEl.value : 'PROSES';
+        const remarks = remarksEl ? remarksEl.value : '';
         
-        const checkedKat = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
+        // 4. Tarik senarai checkbox yang di-tick secara selamat
+        let checkedKat = "";
+        try {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            let vals = [];
+            checkboxes.forEach(cb => { if(cb.value && cb.value !== 'on') vals.push(cb.value); });
+            checkedKat = vals.join(', ');
+        } catch(err) {}
 
+        // 5. Hantar ke Supabase
         try {
             const { error } = await _supabase.from('complaints').update({
                 status: newStatus,
                 action_remarks: remarks,
                 cppp_kategori: checkedKat,
-                updated_at: new Date().toISOString()
+                updated_at: new Date()
             }).eq('id', id);
 
-            if(error) throw error;
+            if(error) {
+                alert('Ralat Supabase: ' + error.message);
+                return;
+            }
             
             alert('Tindakan berjaya disimpan!');
             closeModal();
-            loadComplaintsData();
+            loadComplaintsData(); // Refresh jadual
         } catch (err) {
-            alert('Ralat kemaskini: ' + err.message);
+            alert('Ralat Sistem: ' + err.message);
         }
     }
-
     function cetakBorang(id) {
         const item = rawComplaintsData.find(c => c.id === id);
         if(!item) return;
