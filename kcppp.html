@@ -312,12 +312,12 @@
             else { dash.classList.add('hidden'); setView.classList.remove('hidden'); switchSettingsTab('wa'); }
         }
 
-        async function switchSettingsTab(tabId) {
+       async function switchSettingsTab(tabId) {
             document.querySelectorAll('#tab-wa, #tab-lokasi, #tab-rbac').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             
-            const activeClass = "flex-1 min-w-[120px] py-2 text-xs font-bold text-slate-800 bg-white rounded-lg shadow-sm transition-all whitespace-nowrap";
-            const inactiveClass = "flex-1 min-w-[120px] py-2 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all whitespace-nowrap";
+            const activeClass = "flex-shrink-0 px-4 py-2 text-xs font-bold text-slate-800 bg-white rounded-lg shadow-sm transition-all whitespace-nowrap";
+            const inactiveClass = "flex-shrink-0 px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all whitespace-nowrap";
             
             document.getElementById('tab-btn-wa').className = tabId === 'wa' ? activeClass : inactiveClass;
             document.getElementById('tab-btn-lokasi').className = tabId === 'lokasi' ? activeClass : inactiveClass;
