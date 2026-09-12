@@ -20,7 +20,7 @@
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </head>
 <body class="bg-slate-100 min-h-screen">
-
+<label class="block
     <!-- ============================================================== -->
     <!-- VERSI MOBILE (GAYA OCTO) - Hanya dipapar pada skrin kecil      -->
     <!-- ============================================================== -->
@@ -181,7 +181,7 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Kategori Kerosakan</label>
+                            <label class="block font-bold text-slate-500 uppercase mb-2">Jenis Kerosakan</label>
                             <div id="damage-types-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                                 <span class="text-xs text-slate-400">Memuatkan kategori...</span>
                             </div>
@@ -421,13 +421,13 @@
             }
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Perkakasan", "Perisian", "Elektrik", "Sivil", "Lain-lain"];
-            
-            if (settings) {
-                const typesSetting = settings.find(s => s.setting_key === 'damage_types');
-                if (typesSetting && typesSetting.setting_value) {
-                    try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
-                }
+            let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
+
+    if (settings) {
+        const typesSetting = settings.find(s => s.setting_key === 'damage_types');
+        if (typesSetting && typesSetting.setting_value) {
+            // try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
+        }
                 const logoSetting = settings.find(s => s.setting_key === 'system_logo');
                 if (logoSetting && logoSetting.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = logoSetting.setting_value);
             }
