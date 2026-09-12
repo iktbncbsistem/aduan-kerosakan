@@ -275,53 +275,49 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let rawComplaintsData = [];
-        let currentUser = null;
+    let rawComplaintsData = [];
+    let currentUser = null;
 
-        async function initCPPP() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { window.location.href = 'login.html'; return; }
-            currentUser = session.user;
-            
-            const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
-            if (!profile || !['CPPP', 'KCPPP', 'ADMIN'].includes(profile.role)) {
-                alert('Akses Ditolak! Khas untuk Pegawai Penyenggaraan (CPPP) sahaja.'); window.location.href = 'index.html'; return;
-            }
-            
-            const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
-            document.getElementById('user-name-display').innerText = nameDisplay;
-            document.getElementById('welcome-user-name').innerText = nameDisplay;
-            document.getElementById('user-avatar').innerHTML = `<span class="uppercase">${nameDisplay.charAt(0)}</span>`;
-
-            loadSystemTheme();
-            loadMasterData();
-            loadComplaintsData();
+    async function initCPPP() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'login.html'; return; }
+        currentUser = session.user;
+        
+        const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
+        if (!profile || !['CPPP', 'KCPPP', 'ADMIN'].includes(profile.role)) {
+            alert('Akses Ditolak!'); window.location.href = 'index.html'; return;
         }
+        
+        const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
+        document.getElementById('user-name-display').innerText = nameDisplay;
+        document.getElementById('welcome-user-name').innerText = nameDisplay;
+        document.getElementById('user-avatar').innerHTML = `<span class="uppercase">${nameDisplay.charAt(0)}</span>`;
 
-        async function loadSystemTheme() {
-            const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
-            if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
-        }
+        loadSystemTheme(); 
+        loadMasterData(); 
+        loadComplaintsData();
+    }
 
-async function loadMasterData() {
+    async function loadSystemTheme() {
+        const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
+        if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+    }
+
+    async function loadMasterData() {
         const { data: locations } = await _supabase.from('departments').select('*').order('name');
         const deptSelect = document.getElementById('filter-dept');
         if (deptSelect && locations) deptSelect.innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
 
-        const { data: settings } = await _supabase.from('system_settings').select('*');
         let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
-        
         const catSelect = document.getElementById('filter-category');
         if (catSelect) catSelect.innerHTML = '<option value="">-- Semua --</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
     }
-            }
-        }
 
-        async function loadComplaintsData() {
+    async function loadComplaintsData() {
         try {
             const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
             if (error) throw error;
@@ -341,24 +337,14 @@ async function loadMasterData() {
             
             renderCPPPTable(rawComplaintsData);
         } catch (err) {
-            alert("Ralat Pangkalan Data: " + err.message);
+            console.error(err);
         }
     }
 
     function renderCPPPTable(data) {
         try {
-            // Cari ID jadual secara agresif
-            let tbody = document.getElementById('cppp-complaints-table');
-            if(!tbody) tbody = document.getElementById('complaints-table');
-            if(!tbody) {
-                const tbodies = document.querySelectorAll('tbody');
-                tbodies.forEach(tb => { if(tb.innerHTML.includes('Memuatkan')) tbody = tb; });
-            }
-            
-            if(!tbody) {
-                alert("Ralat: ID kotak jadual (tbody) tidak wujud dalam HTML!");
-                return;
-            }
+            let tbody = document.getElementById('cppp-complaints-table') || document.querySelector('table tbody');
+            if(!tbody) return;
             
             const countEl = document.getElementById('total-records-count');
             if(countEl) countEl.innerText = `Memaparkan ${data.length} item`;
@@ -381,7 +367,7 @@ async function loadMasterData() {
                 </tr>
             `).join('');
         } catch (err) {
-            alert("Ralat Lukis Jadual: " + err.message + "\n(Mungkin ada fungsi yang terpadam sebelum ini)");
+            console.error(err);
         }
     }
 
@@ -393,239 +379,143 @@ async function loadMasterData() {
             default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
         }
     }
-        function applyFilters() {
-            const search = document.getElementById('filter-search').value.toLowerCase();
-            const dept = document.getElementById('filter-dept').value;
-            const cat = document.getElementById('filter-category').value;
-            const status = document.getElementById('filter-status').value;
-            const year = document.getElementById('filter-year').value;
 
-            const filtered = rawComplaintsData.filter(item => {
-                const matchSearch = !search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search));
-                const matchDept = !dept || item.department === dept;
-                const matchCat = !cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat);
-                const matchStatus = !status || item.status === status;
-                const matchYear = !year || new Date(item.created_at).getFullYear().toString() === year;
-                return matchSearch && matchDept && matchCat && matchStatus && matchYear;
+    function applyFilters() {
+        const search = document.getElementById('filter-search') ? document.getElementById('filter-search').value.toLowerCase() : '';
+        const dept = document.getElementById('filter-dept') ? document.getElementById('filter-dept').value : '';
+        const cat = document.getElementById('filter-category') ? document.getElementById('filter-category').value : '';
+        const stat = document.getElementById('filter-status') ? document.getElementById('filter-status').value : '';
+        const year = document.getElementById('filter-year') ? document.getElementById('filter-year').value : '';
+        
+        const filtered = rawComplaintsData.filter(item => {
+            return (!search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search))) &&
+                   (!dept || item.department === dept) &&
+                   (!cat || (Array.isArray(item.damage_types) ? item.damage_types.includes(cat) : item.damage_types === cat)) &&
+                   (!stat || item.status === stat) &&
+                   (!year || new Date(item.created_at).getFullYear().toString() === year);
+        });
+        renderCPPPTable(filtered);
+    }
+
+    function resetFilters() { document.querySelectorAll('#filter-search, #filter-dept, #filter-category, #filter-status, #filter-year').forEach(el => el.value = ''); renderCPPPTable(rawComplaintsData); }
+
+    function viewComplaintDetail(id) {
+        const item = rawComplaintsData.find(c => c.id === id);
+        if(!item) return;
+        if(document.getElementById('modal-id')) document.getElementById('modal-id').value = item.id;
+        
+        if(document.getElementById('modal-name')) document.getElementById('modal-name').innerText = item.full_name || '-';
+        if(document.getElementById('modal-dept')) document.getElementById('modal-dept').innerText = item.department || '-';
+        if(document.getElementById('modal-types')) document.getElementById('modal-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
+        if(document.getElementById('modal-details')) document.getElementById('modal-details').innerText = item.details || 'Tiada butiran.';
+        
+        if(document.getElementById('action-status')) document.getElementById('action-status').value = item.status === 'BARU' ? 'PROSES' : item.status;
+        
+        document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => cb.checked = false);
+        if(item.cppp_kategori) {
+            const katArray = item.cppp_kategori.split(', ');
+            katArray.forEach(k => {
+                const cb = document.querySelector(`input[name="cppp_kategori"][value="${k}"]`);
+                if(cb) cb.checked = true;
             });
-            renderCPPPTable(filtered);
         }
-
-        function resetFilters() {
-            document.getElementById('filter-search').value = ''; document.getElementById('filter-dept').value = '';
-            document.getElementById('filter-category').value = ''; document.getElementById('filter-status').value = '';
-            document.getElementById('filter-year').value = '';
-            renderCPPPTable(rawComplaintsData);
-        }
-
-        // --- FUNGSI MODAL TINDAKAN CPPP ---
-        function openModal(id) {
-            const item = rawComplaintsData.find(c => c.id === id);
-            if(!item) return;
-
-            document.getElementById('modal-id').value = item.id;
-            document.getElementById('modal-name').innerText = item.full_name || '-';
-            document.getElementById('modal-phone').innerText = item.phone || '-';
-            document.getElementById('modal-dept').innerText = item.department || '-';
-            document.getElementById('modal-date').innerText = new Date(item.created_at).toLocaleString('ms-MY');
-            document.getElementById('modal-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
-            document.getElementById('modal-details').innerText = item.details || 'Tiada butiran direkodkan.';
-            document.getElementById('modal-justification').innerText = item.justification || 'Tiada justifikasi.';
-            document.getElementById('modal-remarks').value = item.action_remarks || '';
-          
-            // Tick checkboxes jika dah pernah diset
-            document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => cb.checked = false);
-            if (item.cppp_kategori) {
-                const savedKategori = item.cppp_kategori.split(', ');
-                document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => {
-                    if (savedKategori.includes(cb.value)) cb.checked = true;
-                });
-            }
-
-            // Lampiran
-            let attachHTML = '';
-            const formatName = (url) => {
-                let rawName = decodeURIComponent(url.split('/').pop()).replace(/^[0-9]+(_[0-9]+)?_/, '');
-                let shortName = rawName;
-                const extIndex = rawName.lastIndexOf('.');
-                if (extIndex !== -1) {
-                    const nama = rawName.substring(0, extIndex);
-                    const ext = rawName.substring(extIndex);
-                    if (nama.length > 25) shortName = nama.substring(0, 8) + '...' + ext;
-                }
-                return { rawName, shortName };
-            };
-
-            if (item.image_url) {
-                const urls = item.image_url.split(','); 
-                urls.forEach((url, i) => {
-                    let cleanUrl = url.trim(); let file = formatName(cleanUrl);
-                    attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="text-[10px] bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-bold transition">🖼️ Gambar ${i+1}</button>`;
-                });
-            }
-            if (item.quotation_url) {
-                let cleanUrl = item.quotation_url.trim(); let file = formatName(cleanUrl);
-                attachHTML += `<button type="button" onclick="forceDownload('${cleanUrl}', '${file.rawName}')" class="text-[10px] bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded font-bold transition">📄 Sebutharga</button>`;
-            }
-            
-            document.getElementById('modal-attachments').innerHTML = attachHTML || '<span class="text-[10px] text-slate-400 font-medium italic">Tiada lampiran.</span>';
-            document.getElementById('action-modal').classList.remove('hidden');
-        }
-
-        function closeModal() { document.getElementById('action-modal').classList.add('hidden'); }
-
-        async function updateComplaint(e) {
-            e.preventDefault();
-            const btn = document.getElementById('save-btn');
-            btn.disabled = true; btn.innerText = 'Menyimpan...';
-
-            const id = document.getElementById('modal-id').value;
-            const remarks = document.getElementById('modal-remarks').value;
-            let namaCPPP = 'Pegawai CPPP';
-            
-            if (currentUser) {
-                const { data: p } = await _supabase.from('user_profiles').select('full_name').eq('email', currentUser.email).single();
-                if(p && p.full_name) namaCPPP = p.full_name;
-            }
-
-            const selectedKategori = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
-
-            const { error } = await _supabase.from('complaints').update({
-                cppp_kategori: selectedKategori,
-                action_remarks: remarks,
-                cppp_name: namaCPPP,
-                status: 'PROSES',
-                updated_at: new Date().toISOString()
-            }).eq('id', id);
-
-            if (error) { alert('Ralat: ' + error.message); } 
-            else { alert('Tindakan & Sokongan berjaya disimpan!'); closeModal(); loadComplaintsData(); }
-            
-            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Sokongan';
-        }
-
-        async function forceDownload(url, fileName) {
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl; a.download = fileName; 
-                document.body.appendChild(a); a.click();
-                document.body.removeChild(a); window.URL.revokeObjectURL(blobUrl);
-            } catch (error) { window.open(url, '_blank'); }
-        }
-
-        async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
         
-        initCPPP();
-
-function cetakBorang(id) {
-            const item = rawComplaintsData.find(c => c.id === id);
-            if(!item) return;
-
-            // Kategori Checkbox Part B
-            const cpppKat = item.cppp_kategori || "";
-            const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
-            
-// Kategori Jenis Kerosakan Part A
-const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
-const k1 = (dmg.includes('Peralatan / Mesin')) ? 'X' : '&nbsp;';
-const k2 = (dmg.includes('Infrastruktur')) ? 'X' : '&nbsp;';
-const k3 = (dmg.includes('Peralatan ICT')) ? 'X' : '&nbsp;';
-const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
-
-            const printWindow = window.open('', '_blank');
-            const html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Cetak Borang - ${item.full_name}</title>
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap');
-                    @media print {
-                        @page { size: A4; margin: 15mm; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        button { display: none; }
-                    }
-                    body { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.4; color: black; max-w-3xl; margin: 0 auto; padding: 20px; }
-                    .text-center { text-align: center; } .font-bold { font-weight: bold; }
-                    .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mt-8 { margin-top: 32px; }
-                    .header-title { font-size: 16px; margin-bottom: 20px; }
-                    .section-title { background-color: #e5e7eb; padding: 6px; border: 1px solid black; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-                    td, th { border: 1px solid black; padding: 6px 10px; vertical-align: top; }
-                    .w-1 { width: 25%; } .w-50 { width: 50%; }
-                    .flex-space { display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px; }
-                    .sign-box { display: inline-block; width: 48%; text-align: center; margin-top: 40px; }
-                    .footer-note { font-size: 10px; text-align: left; font-style: italic; margin-top: 30px; }
-                </style>
-            </head>
-            <body>
-                <div class="text-center font-bold header-title">
-                    INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG<br>
-                    <span style="text-decoration: underline;">BORANG ADUAN KEROSAKAN</span>
-                </div>
-
-                <div class="section-title">BAHAGIAN A: DIISI OLEH PEMOHON</div>
-                <table>
-                    <tr><td class="w-1 font-bold">Nama</td><td class="w-1">${item.full_name}</td><td class="w-1 font-bold">Tarikh</td><td class="w-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td></tr>
-                    <tr><td class="font-bold">Lokasi</td><td>${item.department}</td><td class="font-bold">No. Telefon</td><td>${item.phone}</td></tr>
-                    <tr><td colspan="4" style="height: 60px;"><span class="font-bold">Butiran Kerosakan:</span><br>${item.details}</td></tr>
-                    <tr>
-                        <td colspan="4">
-                            <span class="font-bold">Jenis Kerosakan (Tindakan):</span>
-                            <div class="flex-space">
-                                <span>[ ${k1} ] i- Peralatan/Mesin</span>
-                                <span>[ ${k2} ] ii- Infrastruktur</span>
-                                <span>[ ${k3} ] iii- Peralatan ICT</span>
-                                <span>[ ${k4} ] iv- Lain-lain</span>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-
-                <div class="sign-box text-center">.......................................................<br>Tandatangan Pemohon</div>
-                <div class="sign-box text-center">.......................................................<br>Tarikh</div>
-
-                <div class="section-title" style="margin-top: 30px;">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN DAN KAWALAN KUALITI</div>
-                <table>
-                    <tr class="font-bold text-center"><td style="width: 30px;">Bil</td><td>Kategori Kerosakan</td><td style="width: 100px;">Tindakan ( / )</td></tr>
-                    <tr><td class="text-center">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki dengan kadar segera')} ]</td></tr>
-                    <tr><td class="text-center">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki terus')} ]</td></tr>
-                    <tr><td class="text-center">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')} ]</td></tr>
-                    <tr><td class="text-center">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')} ]</td></tr>
-                    <tr><td class="text-center">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td class="text-center font-bold">[ ${tick('Kerosakan yang tidak ekonomi untuk dibaiki')} ]</td></tr>
-                    <tr><td class="text-center">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td class="text-center font-bold">[ ${tick('Lain-lain')} ]</td></tr>
-                </table>
-
-                <div style="border: 1px solid black; padding: 10px; min-height: 60px;">
-                    <span class="font-bold">Catatan:</span><br>
-                    ${item.action_remarks || ''}
-                </div>
-
-                <div class="sign-box">
-                    <br><br>.......................................................<br>
-                    <span class="font-bold">Tandatangan & Nama Pemeriksa:</span><br>
-                    Unit Pembangunan dan Penyelenggaraan<br>Tarikh:
-                </div>
-                <div class="sign-box">
-                    <br><br>.......................................................<br>
-                    <span class="font-bold">Tandatangan & Nama Pegawai:</span><br>
-                    Ketua Cawangan Penyelarasan & Kawalan Kualiti<br>Tarikh:
-                </div>
-
-                <div class="footer-note">'Dokumen tidak terkawal jika dicetak'</div>
-            </body>
-            </html>
-            `;
-
-            printWindow.document.write(html);
-            printWindow.document.close();
-            setTimeout(() => { printWindow.print(); }, 800);
-        }
-
+        if(document.getElementById('action-remarks')) document.getElementById('action-remarks').value = item.action_remarks || '';
         
-    </script>
+        document.getElementById('action-modal').classList.remove('hidden');
+    }
+
+    function closeModal() { document.getElementById('action-modal').classList.add('hidden'); }
+
+    async function submitAction(e) {
+        e.preventDefault();
+        const id = document.getElementById('modal-id').value;
+        const newStatus = document.getElementById('action-status').value;
+        const remarks = document.getElementById('action-remarks').value;
+        
+        const checkedKat = Array.from(document.querySelectorAll('input[name="cppp_kategori"]:checked')).map(cb => cb.value).join(', ');
+
+        const { error } = await _supabase.from('complaints').update({
+            status: newStatus,
+            action_remarks: remarks,
+            cppp_kategori: checkedKat,
+            updated_at: new Date()
+        }).eq('id', id);
+
+        if(error) { alert('Ralat kemaskini: ' + error.message); return; }
+        alert('Tindakan berjaya disimpan!');
+        closeModal();
+        loadComplaintsData();
+    }
+
+    function cetakBorang(id) {
+        const item = rawComplaintsData.find(c => c.id === id);
+        if(!item) return;
+
+        const cpppKat = item.cppp_kategori || "";
+        const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
+        
+        const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
+        const k1 = (dmg.includes('Peralatan / Mesin')) ? 'X' : '&nbsp;';
+        const k2 = (dmg.includes('Infrastruktur')) ? 'X' : '&nbsp;';
+        const k3 = (dmg.includes('Peralatan ICT')) ? 'X' : '&nbsp;';
+        const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
+
+        const printWindow = window.open('', '_blank');
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Cetak Borang - ${item.full_name}</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap');
+                @media print { @page { size: A4; margin: 15mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } button { display: none; } }
+                body { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.4; color: black; max-w-3xl; margin: 0 auto; padding: 20px; }
+                .text-center { text-align: center; } .font-bold { font-weight: bold; }
+                .header-title { font-size: 16px; margin-bottom: 20px; }
+                .section-title { background-color: #e5e7eb; padding: 6px; border: 1px solid black; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                td, th { border: 1px solid black; padding: 6px 10px; vertical-align: top; }
+                .w-1 { width: 25%; } .w-50 { width: 50%; }
+                .flex-space { display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px; }
+                .sign-box { display: inline-block; width: 48%; text-align: center; margin-top: 40px; }
+                .footer-note { font-size: 10px; text-align: left; font-style: italic; margin-top: 30px; }
+            </style>
+        </head>
+        <body>
+            <div class="text-center font-bold header-title">INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG<br><span style="text-decoration: underline;">BORANG ADUAN KEROSAKAN</span></div>
+            <div class="section-title">BAHAGIAN A: DIISI OLEH PEMOHON</div>
+            <table>
+                <tr><td class="w-1 font-bold">Nama</td><td class="w-1">${item.full_name}</td><td class="w-1 font-bold">Tarikh</td><td class="w-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td></tr>
+                <tr><td class="font-bold">Lokasi</td><td>${item.department}</td><td class="font-bold">No. Telefon</td><td>${item.phone}</td></tr>
+                <tr><td colspan="4" style="height: 60px;"><span class="font-bold">Butiran Kerosakan:</span><br>${item.details}</td></tr>
+                <tr><td colspan="4"><span class="font-bold">Jenis Kerosakan (Tindakan):</span><div class="flex-space"><span>[ ${k1} ] i- Peralatan/Mesin</span><span>[ ${k2} ] ii- Infrastruktur</span><span>[ ${k3} ] iii- Peralatan ICT</span><span>[ ${k4} ] iv- Lain-lain</span></div></td></tr>
+            </table>
+            <div class="sign-box text-center">.......................................................<br>Tandatangan Pemohon</div><div class="sign-box text-center">.......................................................<br>Tarikh</div>
+            <div class="section-title" style="margin-top: 30px;">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN DAN KAWALAN KUALITI</div>
+            <table>
+                <tr class="font-bold text-center"><td style="width: 30px;">Bil</td><td>Kategori Kerosakan</td><td style="width: 100px;">Tindakan ( / )</td></tr>
+                <tr><td class="text-center">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki dengan kadar segera')} ]</td></tr>
+                <tr><td class="text-center">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki terus')} ]</td></tr>
+                <tr><td class="text-center">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')} ]</td></tr>
+                <tr><td class="text-center">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')} ]</td></tr>
+                <tr><td class="text-center">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td class="text-center font-bold">[ ${tick('Kerosakan yang tidak ekonomi untuk dibaiki')} ]</td></tr>
+                <tr><td class="text-center">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td class="text-center font-bold">[ ${tick('Lain-lain')} ]</td></tr>
+            </table>
+            <div style="border: 1px solid black; padding: 10px; min-height: 60px;"><span class="font-bold">Catatan:</span><br>${item.action_remarks || ''}</div>
+            <div class="sign-box"><br><br>.......................................................<br><span class="font-bold">Tandatangan & Nama Pemeriksa:</span><br>Unit Pembangunan dan Penyelenggaraan<br>Tarikh:</div>
+            <div class="sign-box"><br><br>.......................................................<br><span class="font-bold">Tandatangan & Nama Pegawai:</span><br>Ketua Cawangan Penyelarasan & Kawalan Kualiti<br>Tarikh:</div>
+            <div class="footer-note">'Dokumen tidak terkawal jika dicetak'</div>
+        </body>
+        </html>
+        `;
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 800);
+    }
+
+    async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
+    initCPPP();
+</script>
 </body>
 </html>
