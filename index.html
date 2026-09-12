@@ -20,7 +20,7 @@
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </head>
 <body class="bg-slate-100 min-h-screen">
-<label class="block
+
     <!-- ============================================================== -->
     <!-- VERSI MOBILE (GAYA OCTO) - Hanya dipapar pada skrin kecil      -->
     <!-- ============================================================== -->
@@ -83,24 +83,24 @@
                         <div><label class="block font-bold text-slate-500 uppercase mb-1">Justifikasi</label><textarea id="mob-justification" required rows="2" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none" placeholder="Sebab permohonan..."></textarea></div>
                         <div><label class="block font-bold text-slate-500 uppercase mb-1">Anggaran Kos (RM)</label><input type="number" step="0.01" id="mob-cost" placeholder="0.00" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none mb-3"></div>
 
-<div>
-    <label class="block font-bold text-slate-500 uppercase mb-1">Gambar Kerosakan</label>
-    <div class="flex gap-2">
-        <!-- Butang Kamera -->
-        <label class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-orange-100 transition">
-            <input type="file" id="mob-cam" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'📷 '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-gal').value='';">
-            <i class="fa-solid fa-camera mb-1 block text-lg"></i>
-            <span class="text-[9px] font-bold">Kamera</span>
-        </label>
-        <!-- Butang Galeri -->
-        <label class="flex-1 bg-slate-50 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-slate-100 transition">
-            <input type="file" id="mob-gal" accept="image/*" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'🖼️ '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-cam').value='';">
-            <i class="fa-solid fa-image mb-1 block text-lg"></i>
-            <span class="text-[9px] font-bold">Galeri</span>
-        </label>
-    </div>
-    <p class="text-[10px] font-bold text-slate-500 mt-1.5 text-center truncate" id="mob-img-lbl">Tiada gambar dipilih</p>
-</div>
+                        <div>
+                            <label class="block font-bold text-slate-500 uppercase mb-1">Gambar Kerosakan</label>
+                            <div class="flex gap-2">
+                                <!-- Butang Kamera -->
+                                <label class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-orange-100 transition">
+                                    <input type="file" id="mob-cam" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'📷 '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-gal').value='';">
+                                    <i class="fa-solid fa-camera mb-1 block text-lg"></i>
+                                    <span class="text-[9px] font-bold">Kamera</span>
+                                </label>
+                                <!-- Butang Galeri -->
+                                <label class="flex-1 bg-slate-50 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-slate-100 transition">
+                                    <input type="file" id="mob-gal" accept="image/*" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'🖼️ '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-cam').value='';">
+                                    <i class="fa-solid fa-image mb-1 block text-lg"></i>
+                                    <span class="text-[9px] font-bold">Galeri</span>
+                                </label>
+                            </div>
+                            <p class="text-[10px] font-bold text-slate-500 mt-1.5 text-center truncate" id="mob-img-lbl">Tiada gambar dipilih</p>
+                        </div>
                         <button type="submit" id="mob-submit-btn" class="w-full bg-orange-500 text-white font-bold py-3.5 rounded-xl shadow-lg mt-2 active:scale-95 transition"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Permohonan</button>
                     </form>
                 </div>
@@ -245,6 +245,48 @@
     </div>
 
     <!-- ============================================================== -->
+    <!-- MODAL PERINCIAN ADUAN (UNTUK PEMOHON)                          -->
+    <!-- ============================================================== -->
+    <div id="view-complaint-modal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                <h3 class="font-bold text-slate-800"><i class="fa-solid fa-file-invoice text-orange-500 mr-2"></i>Perincian Aduan</h3>
+                <button onclick="closeViewComplaintModal()" class="w-8 h-8 bg-slate-200 text-slate-600 rounded-full hover:bg-red-500 hover:text-white transition">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Tarikh Aduan</p>
+                        <p id="view-date" class="font-bold text-sm text-slate-700"></p>
+                    </div>
+                    <div id="view-status-badge"></div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Kategori Kerosakan</p>
+                    <p id="view-types" class="text-sm font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded inline-block border border-orange-100"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Butiran Kerosakan</p>
+                    <p id="view-details" class="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 whitespace-pre-wrap"></p>
+                </div>
+                
+                <!-- KOTAK KEPUTUSAN KCPPP (Hanya muncul jika ada) -->
+                <div id="pemohon-kcppp-section" class="mt-4 p-3 bg-purple-50 rounded-xl border border-purple-200 hidden">
+                    <p class="text-[10px] font-bold text-purple-700 uppercase mb-1">
+                        <i class="fa-solid fa-check-double mr-1"></i>Keputusan KCPPP: 
+                        <span id="pemohon-kcppp-action" class="text-purple-900 bg-purple-100 px-2 py-0.5 rounded ml-1"></span>
+                    </p>
+                    <p id="pemohon-kcppp-remarks" class="text-xs text-slate-700 italic mt-1.5"></p>
+                </div>
+
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+                <button onclick="closeViewComplaintModal()" class="w-full py-2 bg-slate-200 text-slate-700 font-bold rounded-lg text-xs hover:bg-slate-300">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- LOGIK JAVASCRIPT (DIKONGSI, DENGAN PENAMBAHAN MOBILE)          -->
     <!-- ============================================================== -->
     <script>
@@ -254,6 +296,35 @@
 
         let currentUser = null;
         let userProfile = null;
+        let rawMyComplaints = []; // Simpanan memori sementara untuk Modal Pemohon
+
+        // FUNGSI MODAL KCPPP UNTUK PEMOHON
+        function openViewComplaintModal(id) {
+            const item = rawMyComplaints.find(c => c.id === id);
+            if (!item) return;
+
+            document.getElementById('view-date').innerText = new Date(item.created_at).toLocaleDateString('ms-MY');
+            document.getElementById('view-status-badge').innerHTML = getStatusBadge(item.status);
+            document.getElementById('view-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
+            document.getElementById('view-details').innerText = item.details || 'Tiada butiran.';
+
+            const kcpppSection = document.getElementById('pemohon-kcppp-section');
+            if (kcpppSection) {
+                if (item.kcppp_action || item.kcppp_remarks) {
+                    kcpppSection.classList.remove('hidden');
+                    document.getElementById('pemohon-kcppp-action').innerText = item.kcppp_action || '-';
+                    document.getElementById('pemohon-kcppp-remarks').innerText = item.kcppp_remarks || 'Tiada ulasan tambahan.';
+                } else {
+                    kcpppSection.classList.add('hidden'); 
+                }
+            }
+            
+            document.getElementById('view-complaint-modal').classList.remove('hidden');
+        }
+
+        function closeViewComplaintModal() {
+            document.getElementById('view-complaint-modal').classList.add('hidden');
+        }
 
         // FUNGSI TAB DESKTOP ASAL
         function switchTab(tabId) {
@@ -423,11 +494,11 @@
             const { data: settings } = await _supabase.from('system_settings').select('*');
             let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
 
-    if (settings) {
-        const typesSetting = settings.find(s => s.setting_key === 'damage_types');
-        if (typesSetting && typesSetting.setting_value) {
-            // try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
-        }
+            if (settings) {
+                const typesSetting = settings.find(s => s.setting_key === 'damage_types');
+                if (typesSetting && typesSetting.setting_value) {
+                    // try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
+                }
                 const logoSetting = settings.find(s => s.setting_key === 'system_logo');
                 if (logoSetting && logoSetting.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = logoSetting.setting_value);
             }
@@ -445,6 +516,7 @@
             const mobCat = document.getElementById('mob-cat');
             if(mobCat) mobCat.innerHTML = '<option value="">Pilih Kategori</option>' + damageTypes.map(type => `<option value="${type}">${type}</option>`).join('');
         }
+        
         let selectedAttachmentFiles = [];
         function handleFileSelection(event) {
             const files = event.target.files;
@@ -493,7 +565,7 @@
             });
         }
 
-        // FUNGSI SUBMIT UNTUK DESKTOP (Kekal 100% Fungsi Asal)
+        // FUNGSI SUBMIT UNTUK DESKTOP 
         async function submitComplaint(e) {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
@@ -609,13 +681,15 @@
         async function loadMyComplaints() {
             const { data, error } = await _supabase.from('complaints').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
             
-            // Render Desktop (Kekal Asal)
+            rawMyComplaints = data || []; // Simpan dalam memori untuk fungsi modal
+
+            // Render Desktop 
             const tbody = document.getElementById('complaints-list');
             if (error || !data || data.length === 0) { 
                 tbody.innerHTML = '<div class="p-6 text-center text-slate-400 font-medium border rounded-xl bg-slate-50 md:col-span-2 text-xs">Belum ada aduan.</div>'; 
             } else {
                 tbody.innerHTML = data.map(item => `
-                    <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                    <div onclick="openViewComplaintModal('${item.id}')" class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md hover:border-orange-300 transition cursor-pointer">
                         <div class="flex justify-between items-start mb-2.5">
                             <span class="text-[11px] text-slate-400 font-bold"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</span>
                             ${getStatusBadge(item.status)}
@@ -639,12 +713,12 @@
             } else {
                 if(mobList) {
                     mobList.innerHTML = data.map(item => {
-let icon = 'fa-file-lines'; let color = 'text-slate-600 bg-slate-50';
-if(item.damage_types && item.damage_types.includes('Peralatan / Mesin')) { icon = 'fa-toolbox'; color = 'text-orange-600 bg-orange-50'; }
-else if(item.damage_types && item.damage_types.includes('Peralatan ICT')) { icon = 'fa-laptop'; color = 'text-blue-600 bg-blue-50'; }
-else if(item.damage_types && item.damage_types.includes('Infrastruktur')) { icon = 'fa-building'; color = 'text-amber-600 bg-amber-50'; }
+                        let icon = 'fa-file-lines'; let color = 'text-slate-600 bg-slate-50';
+                        if(item.damage_types && item.damage_types.includes('Peralatan / Mesin')) { icon = 'fa-toolbox'; color = 'text-orange-600 bg-orange-50'; }
+                        else if(item.damage_types && item.damage_types.includes('Peralatan ICT')) { icon = 'fa-laptop'; color = 'text-blue-600 bg-blue-50'; }
+                        else if(item.damage_types && item.damage_types.includes('Infrastruktur')) { icon = 'fa-building'; color = 'text-amber-600 bg-amber-50'; }
 
-                        return `<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
+                        return `<div onclick="openViewComplaintModal('${item.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center cursor-pointer active:scale-95 transition">
                             <div class="w-10 h-10 rounded-xl ${color} flex items-center justify-center text-lg flex-shrink-0"><i class="fa-solid ${icon}"></i></div>
                             <div class="flex-1 overflow-hidden">
                                 <h3 class="text-[11px] font-bold text-slate-800 truncate">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
