@@ -530,12 +530,12 @@ function cetakBorang(id) {
             const cpppKat = item.cppp_kategori || "";
             const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
             
-            // Kategori Jenis Kerosakan Part A
-            const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
-            const k1 = (dmg.includes('Elektrik') || dmg.includes('Perkakasan')) ? 'X' : '&nbsp;';
-            const k2 = (dmg.includes('Sivil')) ? 'X' : '&nbsp;';
-            const k3 = (dmg.includes('Perisian')) ? 'X' : '&nbsp;';
-            const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
+// Kategori Jenis Kerosakan Part A
+const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
+const k1 = (dmg.includes('Peralatan / Mesin')) ? 'X' : '&nbsp;';
+const k2 = (dmg.includes('Infrastruktur')) ? 'X' : '&nbsp;';
+const k3 = (dmg.includes('Peralatan ICT')) ? 'X' : '&nbsp;';
+const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
 
             const printWindow = window.open('', '_blank');
             const html = `
