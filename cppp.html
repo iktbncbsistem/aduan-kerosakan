@@ -434,24 +434,24 @@
         if(modal) modal.classList.add('hidden'); 
     }
 
-    async function submitAction(e) {
-        // 1. Halang crash jika 'e' tidak wujud
-        try { if(e) e.preventDefault(); } catch(err) {}
+   async function updateComplaint(event) {
+        // 1. Halang borang dari ter-refresh page
+        try { if(event) event.preventDefault(); } catch(err) {}
         
-        // 2. Semak ID
+        // 2. Semak ID dari memori
         const id = currentActionId; 
         if (!id) { alert('Ralat: Sila tutup paparan ini dan buka semula (ID gagal dikesan).'); return; }
         
-        // 3. Tarik data dari borang (dengan fallback selamat)
+        // 3. Tarik data dari borang
         const statusEl = document.getElementById('action-status');
         const remarksEl = document.getElementById('action-remarks');
         const newStatus = statusEl ? statusEl.value : 'PROSES';
         const remarks = remarksEl ? remarksEl.value : '';
         
-        // 4. Tarik senarai checkbox yang di-tick secara selamat
+        // 4. Tarik senarai checkbox yang di-tick
         let checkedKat = "";
         try {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const checkboxes = document.querySelectorAll('input[name="cppp_kategori"]:checked');
             let vals = [];
             checkboxes.forEach(cb => { if(cb.value && cb.value !== 'on') vals.push(cb.value); });
             checkedKat = vals.join(', ');
