@@ -322,54 +322,77 @@ async function loadMasterData() {
         }
 
         async function loadComplaintsData() {
-        const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
-        if (error || !data) return;
-        rawComplaintsData = data;
-        
-        let baru = 0, proses = 0, selesai = 0;
-        data.forEach(item => { if(item.status === 'BARU') baru++; else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; else if(item.status === 'SELESAI') selesai++; });
-        
-        if(document.getElementById('stat-baru')) document.getElementById('stat-baru').innerText = baru; 
-        if(document.getElementById('stat-proses')) document.getElementById('stat-proses').innerText = proses; 
-        if(document.getElementById('stat-selesai')) document.getElementById('stat-selesai').innerText = selesai; 
-        if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = data.length;
-        
-        renderCPPPTable(data);
+        try {
+            const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            rawComplaintsData = data || [];
+            
+            let baru = 0, proses = 0, selesai = 0;
+            rawComplaintsData.forEach(item => { 
+                if(item.status === 'BARU') baru++; 
+                else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; 
+                else if(item.status === 'SELESAI') selesai++; 
+            });
+            
+            if(document.getElementById('stat-baru')) document.getElementById('stat-baru').innerText = baru; 
+            if(document.getElementById('stat-proses')) document.getElementById('stat-proses').innerText = proses; 
+            if(document.getElementById('stat-selesai')) document.getElementById('stat-selesai').innerText = selesai; 
+            if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = rawComplaintsData.length;
+            
+            renderCPPPTable(rawComplaintsData);
+        } catch (err) {
+            alert("Ralat Pangkalan Data: " + err.message);
+        }
     }
 
     function renderCPPPTable(data) {
-        // Guna querySelector supaya ia automatik cari tbody jadual pertama tanpa peduli apa IDnya
-        const tbody = document.getElementById('cppp-complaints-table') || document.querySelector('table tbody');
-        if(!tbody) return;
-        
-        const countEl = document.getElementById('total-records-count');
-        if(countEl) countEl.innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
-        
-        if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
-        
-        tbody.innerHTML = data.map((item, idx) => `
-            <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
-                <td class="p-3 align-top whitespace-normal min-w-[140px]"><div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div><div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div></td>
-                <td class="p-3 align-top"><div class="font-bold text-slate-700">${item.department || '-'}</div><div class="text-[10px] text-slate-400">${item.phone || '-'}</div></td>
-                <td class="p-3 align-top max-w-[200px] whitespace-normal"><span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</span><p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p></td>
-                <td class="p-3 align-top max-w-[200px] whitespace-normal"><p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p></td>
-                <td class="p-3 align-top text-right font-bold text-slate-700 whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
-                <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
-                <td class="p-3 align-top text-center"><button onclick="viewComplaintDetail('${item.id}')" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold px-3 py-1.5 rounded-lg text-[10px] shadow-sm transition">Tindakan</button></td>
-            </tr>
-        `).join('');
-    }
-        function getStatusBadge(status) {
-            switch(status) {
-                case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold">BARU</span>';
-                case 'PROSES':
-                case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold">SELESAI</span>';
-                default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
+        try {
+            // Cari ID jadual secara agresif
+            let tbody = document.getElementById('cppp-complaints-table');
+            if(!tbody) tbody = document.getElementById('complaints-table');
+            if(!tbody) {
+                const tbodies = document.querySelectorAll('tbody');
+                tbodies.forEach(tb => { if(tb.innerHTML.includes('Memuatkan')) tbody = tb; });
             }
+            
+            if(!tbody) {
+                alert("Ralat: ID kotak jadual (tbody) tidak wujud dalam HTML!");
+                return;
+            }
+            
+            const countEl = document.getElementById('total-records-count');
+            if(countEl) countEl.innerText = `Memaparkan ${data.length} item`;
+            
+            if (data.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-bold">Tiada rekod dijumpai.</td></tr>'; 
+                return; 
+            }
+            
+            tbody.innerHTML = data.map((item, idx) => `
+                <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100">
+                    <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
+                    <td class="p-3 align-top whitespace-normal min-w-[140px]"><div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div><div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div></td>
+                    <td class="p-3 align-top"><div class="font-bold text-slate-700">${item.department || '-'}</div><div class="text-[10px] text-slate-400">${item.phone || '-'}</div></td>
+                    <td class="p-3 align-top max-w-[200px] whitespace-normal"><span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</span><p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p></td>
+                    <td class="p-3 align-top max-w-[200px] whitespace-normal"><p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p></td>
+                    <td class="p-3 align-top text-right font-bold text-slate-700 whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
+                    <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
+                    <td class="p-3 align-top text-center"><button onclick="viewComplaintDetail('${item.id}')" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold px-3 py-1.5 rounded-lg text-[10px] shadow-sm transition">Tindakan</button></td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            alert("Ralat Lukis Jadual: " + err.message + "\n(Mungkin ada fungsi yang terpadam sebelum ini)");
         }
+    }
 
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold">BARU</span>';
+            case 'PROSES': case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold">PROSES</span>';
+            case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold">SELESAI</span>';
+            default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
+        }
+    }
         function applyFilters() {
             const search = document.getElementById('filter-search').value.toLowerCase();
             const dept = document.getElementById('filter-dept').value;
