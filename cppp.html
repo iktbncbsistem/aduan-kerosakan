@@ -313,7 +313,7 @@
             if (locations) deptSelect.innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
 
             const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Perkakasan", "Perisian", "Elektrik", "Sivil", "Lain-lain"];
+            let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
             
             if (settings) {
                 const typesSetting = settings.find(s => s.setting_key === 'damage_types');
