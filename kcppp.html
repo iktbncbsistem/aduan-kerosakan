@@ -195,299 +195,298 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let rawComplaintsData = [];
-        let rbacUsersData = [];
-        let currentUser = null;
+    let rawComplaintsData = [];
+    let rbacUsersData = [];
+    let currentUser = null;
 
-        async function initKCPPP() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { window.location.href = 'login.html'; return; }
-            currentUser = session.user;
-            
-            const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
-            if (!profile || !['KCPPP', 'ADMIN'].includes(profile.role)) {
-                alert('Akses Ditolak!'); window.location.href = 'index.html'; return;
+    async function initKCPPP() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'login.html'; return; }
+        currentUser = session.user;
+        
+        const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
+        if (!profile || !['KCPPP', 'ADMIN'].includes(profile.role)) {
+            alert('Akses Ditolak!'); window.location.href = 'index.html'; return;
+        }
+        
+        const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
+        document.getElementById('user-name-display').innerText = nameDisplay;
+        document.getElementById('welcome-user-name').innerText = nameDisplay;
+        document.getElementById('user-avatar').innerHTML = `<span class="uppercase">${nameDisplay.charAt(0)}</span>`;
+
+        loadSystemTheme(); loadMasterData(); loadComplaintsData();
+    }
+
+    async function loadSystemTheme() {
+        const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
+        if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+    }
+
+    async function loadMasterData() {
+        const { data: locations } = await _supabase.from('departments').select('*').order('name');
+        const deptSelect = document.getElementById('filter-dept');
+        if (locations) deptSelect.innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+
+        const { data: settings } = await _supabase.from('system_settings').select('*');
+        let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
+        
+        if (settings) {
+            const typesSetting = settings.find(s => s.setting_key === 'damage_types');
+            if (typesSetting && typesSetting.setting_value) {
+                try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
             }
-            
-            const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
-            document.getElementById('user-name-display').innerText = nameDisplay;
-            document.getElementById('welcome-user-name').innerText = nameDisplay;
-            document.getElementById('user-avatar').innerHTML = `<span class="uppercase">${nameDisplay.charAt(0)}</span>`;
-
-            loadSystemTheme(); loadMasterData(); loadComplaintsData();
         }
+        
+        document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
 
-        async function loadSystemTheme() {
-            const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
-            if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+    async function loadComplaintsData() {
+        const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
+        if (error || !data) return;
+        rawComplaintsData = data;
+        
+        let baru = 0, proses = 0, selesai = 0;
+        data.forEach(item => { if(item.status === 'BARU') baru++; else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; else if(item.status === 'SELESAI') selesai++; });
+        document.getElementById('stat-baru').innerText = baru; document.getElementById('stat-proses').innerText = proses; document.getElementById('stat-selesai').innerText = selesai; document.getElementById('stat-total').innerText = data.length;
+        renderKCPPPTable(data);
+    }
+
+    function renderKCPPPTable(data) {
+        const tbody = document.getElementById('kcppp-complaints-table');
+        document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
+        if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
+        tbody.innerHTML = data.map((item, idx) => `
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
+                <td class="p-3 align-top whitespace-normal min-w-[140px]"><div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div><div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div></td>
+                <td class="p-3 align-top"><div class="font-bold text-slate-700">${item.department || '-'}</div><div class="text-[10px] text-slate-400">${item.phone || '-'}</div></td>
+                <td class="p-3 align-top max-w-[200px] whitespace-normal"><span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</span><p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p></td>
+                <td class="p-3 align-top max-w-[200px] whitespace-normal"><p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p></td>
+                <td class="p-3 align-top text-right font-bold text-slate-700 whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
+                <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
+                <td class="p-3 align-top text-center"><button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[10px] shadow-sm transition">🔍 Perinci</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold">BARU</span>';
+            case 'PROSES': case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold">PROSES</span>';
+            case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold">SELESAI</span>';
+            default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
         }
+    }
 
-       async function loadMasterData() {
-            const { data: locations } = await _supabase.from('departments').select('*').order('name');
-            const deptSelect = document.getElementById('filter-dept');
-            if (locations) deptSelect.innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+    function applyFilters() {
+        const search = document.getElementById('filter-search').value.toLowerCase();
+        const filtered = rawComplaintsData.filter(item => {
+            return (!search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search))) &&
+                   (!document.getElementById('filter-dept').value || item.department === document.getElementById('filter-dept').value) &&
+                   (!document.getElementById('filter-category').value || (Array.isArray(item.damage_types) ? item.damage_types.includes(document.getElementById('filter-category').value) : item.damage_types === document.getElementById('filter-category').value)) &&
+                   (!document.getElementById('filter-status').value || item.status === document.getElementById('filter-status').value) &&
+                   (!document.getElementById('filter-year').value || new Date(item.created_at).getFullYear().toString() === document.getElementById('filter-year').value);
+        });
+        renderKCPPPTable(filtered);
+    }
 
-            const { data: settings } = await _supabase.from('system_settings').select('*');
-            let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
-            
-            if (settings) {
-                const typesSetting = settings.find(s => s.setting_key === 'damage_types');
-                if (typesSetting && typesSetting.setting_value) {
-                    try { damageTypes = JSON.parse(typesSetting.setting_value); } catch(e){}
+    function resetFilters() { document.querySelectorAll('#filter-search, #filter-dept, #filter-category, #filter-status, #filter-year').forEach(el => el.value = ''); renderKCPPPTable(rawComplaintsData); }
+
+    function viewComplaintDetail(id) {
+        const item = rawComplaintsData.find(c => c.id === id);
+        if(!item) return;
+        const vmIdEl = document.getElementById('vm-id');
+        if(vmIdEl) vmIdEl.value = item.id;
+        document.getElementById('vm-name').innerText = item.full_name || '-'; document.getElementById('vm-phone').innerText = item.phone || '-'; document.getElementById('vm-dept').innerText = item.department || '-';
+        document.getElementById('vm-date').innerText = new Date(item.created_at).toLocaleString('ms-MY'); document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
+        document.getElementById('vm-details').innerText = item.details || 'Tiada butiran.'; document.getElementById('vm-justification').innerText = item.justification || 'Tiada justifikasi.';
+        document.getElementById('vm-remarks').innerText = (item.cppp_kategori ? `[${item.cppp_kategori}]\n` : '') + (item.action_remarks || 'Belum ada tindakan CPPP.');
+        document.getElementById('view-modal').classList.remove('hidden');
+    }
+    function closeViewModal() { document.getElementById('view-modal').classList.add('hidden'); }
+
+    // --- TAB TETAPAN & RBAC LOGIC ---
+    async function toggleSettingsView() {
+        const dash = document.getElementById('dashboard-view');
+        const setView = document.getElementById('settings-view');
+        if(dash.classList.contains('hidden')) { dash.classList.remove('hidden'); setView.classList.add('hidden'); loadMasterData(); } 
+        else { dash.classList.add('hidden'); setView.classList.remove('hidden'); switchSettingsTab('wa'); }
+    }
+
+    async function switchSettingsTab(tabId) {
+        document.querySelectorAll('#tab-wa, #tab-lokasi, #tab-rbac').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        
+        const activeClass = "flex-shrink-0 px-4 py-2 text-xs font-bold text-slate-800 bg-white rounded-lg shadow-sm transition-all whitespace-nowrap";
+        const inactiveClass = "flex-shrink-0 px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all whitespace-nowrap";
+        
+        document.getElementById('tab-btn-wa').className = tabId === 'wa' ? activeClass : inactiveClass;
+        document.getElementById('tab-btn-lokasi').className = tabId === 'lokasi' ? activeClass : inactiveClass;
+        document.getElementById('tab-btn-rbac').className = tabId === 'rbac' ? activeClass : inactiveClass;
+
+        if(tabId === 'wa') { const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no').single(); if(data) document.getElementById('wa-number').value = data.setting_value; }
+        if(tabId === 'lokasi') { loadSettingsLocations(); }
+        if(tabId === 'rbac') { loadRBACUsers(); }
+    }
+
+    async function saveWhatsapp() { const num = document.getElementById('wa-number').value.trim(); const { error } = await _supabase.from('system_settings').upsert({ setting_key: 'whatsapp_no', setting_value: num, updated_at: new Date() }); if(!error) alert('No WhatsApp dikemaskini!'); }
+    
+    async function loadSettingsLocations() {
+        const { data } = await _supabase.from('departments').select('*').order('name');
+        if(data) document.getElementById('settings-dept-list').innerHTML = data.map((l, i) => `<tr><td class="p-3 text-center font-medium">${i+1}</td><td class="p-3 font-bold text-slate-700">${l.name}</td><td class="p-3 text-center"><button onclick="deleteLocation('${l.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded transition"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+    }
+    async function addLocation() { const name = document.getElementById('new-location').value.trim(); if(!name) return; await _supabase.from('departments').insert([{ name: name.toUpperCase() }]); document.getElementById('new-location').value = ''; loadSettingsLocations(); }
+    async function deleteLocation(id) { if(confirm("Padam lokasi ini?")) { await _supabase.from('departments').delete().eq('id', id); loadSettingsLocations(); } }
+
+    async function loadRBACUsers() {
+        const tbody = document.getElementById('rbac-table-body');
+        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Memuatkan pengguna...</td></tr>';
+        const { data, error } = await _supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
+        if (error || !data) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 p-8">Ralat pangkalan data.</td></tr>'; return; }
+        rbacUsersData = data;
+        
+        tbody.innerHTML = data.map((u, i) => `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-3 text-center font-medium">${i+1}</td>
+                <td class="p-3"><div class="font-bold text-slate-800">${u.full_name || '-'}</div><div class="text-[10px] text-slate-500">${u.email}</div></td>
+                <td class="p-3 text-center">
+                    <select id="role-${u.id}" class="border border-slate-300 rounded p-1 text-xs outline-none focus:border-purple-500 bg-white shadow-sm font-bold ${u.role==='KCPPP'?'text-purple-600': u.role==='CPPP'?'text-blue-600': u.role==='PENDING'?'text-amber-600':'text-slate-600'}">
+                        <option value="STAF" ${u.role==='STAF'?'selected':''}>STAF</option>
+                        <option value="CPPP" ${u.role==='CPPP'?'selected':''}>CPPP</option>
+                        <option value="KCPPP" ${u.role==='KCPPP'?'selected':''}>KCPPP</option>
+                        <option value="PENDING" ${u.role==='PENDING'?'selected':''}>PENDING</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center">
+                    <select id="status-${u.id}" class="border border-slate-300 rounded p-1 text-xs outline-none bg-white shadow-sm font-bold ${u.is_blocked?'text-red-600':'text-emerald-600'}">
+                        <option value="false" ${!u.is_blocked?'selected':''}>Aktif</option><option value="true" ${u.is_blocked?'selected':''}>Disekat</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center">
+                    <button onclick="saveRBAC('${u.id}')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold px-3 py-1.5 rounded-lg text-[10px] transition shadow-sm">Simpan</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    async function saveRBAC(id) {
+        const newRole = document.getElementById(`role-${id}`).value;
+        const isBlocked = document.getElementById(`status-${id}`).value === 'true';
+        const { error } = await _supabase.from('user_profiles').update({ role: newRole, is_blocked: isBlocked }).eq('id', id);
+        if(error) { alert('Gagal kemaskini.'); } else { alert('Akaun berjaya dikemaskini!'); loadRBACUsers(); }
+    }
+
+    async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
+    initKCPPP();
+
+    function cetakBorang(id) {
+        const item = rawComplaintsData.find(c => c.id === id);
+        if(!item) return;
+
+        // Kategori Checkbox Part B
+        const cpppKat = item.cppp_kategori || "";
+        const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
+        
+        // Kategori Jenis Kerosakan Part A
+        const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
+        const k1 = (dmg.includes('Peralatan / Mesin')) ? 'X' : '&nbsp;';
+        const k2 = (dmg.includes('Infrastruktur')) ? 'X' : '&nbsp;';
+        const k3 = (dmg.includes('Peralatan ICT')) ? 'X' : '&nbsp;';
+        const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
+
+        const printWindow = window.open('', '_blank');
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Cetak Borang - ${item.full_name}</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap');
+                @media print {
+                    @page { size: A4; margin: 15mm; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    button { display: none; }
                 }
-            }
-            
-            document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-        }
-            }
-        }
+                body { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.4; color: black; max-w-3xl; margin: 0 auto; padding: 20px; }
+                .text-center { text-align: center; } .font-bold { font-weight: bold; }
+                .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mt-8 { margin-top: 32px; }
+                .header-title { font-size: 16px; margin-bottom: 20px; }
+                .section-title { background-color: #e5e7eb; padding: 6px; border: 1px solid black; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                td, th { border: 1px solid black; padding: 6px 10px; vertical-align: top; }
+                .w-1 { width: 25%; } .w-50 { width: 50%; }
+                .flex-space { display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px; }
+                .sign-box { display: inline-block; width: 48%; text-align: center; margin-top: 40px; }
+                .footer-note { font-size: 10px; text-align: left; font-style: italic; margin-top: 30px; }
+            </style>
+        </head>
+        <body>
+            <div class="text-center font-bold header-title">
+                INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG<br>
+                <span style="text-decoration: underline;">BORANG ADUAN KEROSAKAN</span>
+            </div>
 
-        async function loadComplaintsData() {
-            const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
-            if (error || !data) return;
-            rawComplaintsData = data;
-            
-            let baru = 0, proses = 0, selesai = 0;
-            data.forEach(item => { if(item.status === 'BARU') baru++; else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; else if(item.status === 'SELESAI') selesai++; });
-            document.getElementById('stat-baru').innerText = baru; document.getElementById('stat-proses').innerText = proses; document.getElementById('stat-selesai').innerText = selesai; document.getElementById('stat-total').innerText = data.length;
-            renderKCPPPTable(data);
-        }
-
-        function renderKCPPPTable(data) {
-            const tbody = document.getElementById('kcppp-complaints-table');
-            document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
-            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; return; }
-            tbody.innerHTML = data.map((item, idx) => `
-                <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="p-3 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
-                    <td class="p-3 align-top whitespace-normal min-w-[140px]"><div class="font-bold text-slate-800 uppercase">${item.full_name || 'Tanpa Nama'}</div><div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div></td>
-                    <td class="p-3 align-top"><div class="font-bold text-slate-700">${item.department || '-'}</div><div class="text-[10px] text-slate-400">${item.phone || '-'}</div></td>
-                    <td class="p-3 align-top max-w-[200px] whitespace-normal"><span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded text-[9px] font-bold mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</span><p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p></td>
-                    <td class="p-3 align-top max-w-[200px] whitespace-normal"><p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p></td>
-                    <td class="p-3 align-top text-right font-bold text-slate-700 whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
-                    <td class="p-3 align-top text-center">${getStatusBadge(item.status)}</td>
-                    <td class="p-3 align-top text-center"><button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[10px] shadow-sm transition">🔍 Perinci</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function getStatusBadge(status) {
-            switch(status) {
-                case 'BARU': return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold">BARU</span>';
-                case 'PROSES': case 'SEDANG DIPROSES': return '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold">PROSES</span>';
-                case 'SELESAI': return '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold">SELESAI</span>';
-                default: return `<span class="bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
-            }
-        }
-
-        function applyFilters() {
-            const search = document.getElementById('filter-search').value.toLowerCase();
-            const filtered = rawComplaintsData.filter(item => {
-                return (!search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search))) &&
-                       (!document.getElementById('filter-dept').value || item.department === document.getElementById('filter-dept').value) &&
-                       (!document.getElementById('filter-category').value || (Array.isArray(item.damage_types) ? item.damage_types.includes(document.getElementById('filter-category').value) : item.damage_types === document.getElementById('filter-category').value)) &&
-                       (!document.getElementById('filter-status').value || item.status === document.getElementById('filter-status').value) &&
-                       (!document.getElementById('filter-year').value || new Date(item.created_at).getFullYear().toString() === document.getElementById('filter-year').value);
-            });
-            renderKCPPPTable(filtered);
-        }
-
-        function resetFilters() { document.querySelectorAll('#filter-search, #filter-dept, #filter-category, #filter-status, #filter-year').forEach(el => el.value = ''); renderKCPPPTable(rawComplaintsData); }
-
-        function viewComplaintDetail(id) {
-            const item = rawComplaintsData.find(c => c.id === id);
-            if(!item) return;
-            document.getElementById('vm-name').innerText = item.full_name || '-'; document.getElementById('vm-phone').innerText = item.phone || '-'; document.getElementById('vm-dept').innerText = item.department || '-';
-            document.getElementById('vm-date').innerText = new Date(item.created_at).toLocaleString('ms-MY'); document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
-            document.getElementById('vm-details').innerText = item.details || 'Tiada butiran.'; document.getElementById('vm-justification').innerText = item.justification || 'Tiada justifikasi.';
-            document.getElementById('vm-remarks').innerText = (item.cppp_kategori ? `[${item.cppp_kategori}]\n` : '') + (item.action_remarks || 'Belum ada tindakan CPPP.');
-            document.getElementById('view-modal').classList.remove('hidden');
-        }
-        function closeViewModal() { document.getElementById('view-modal').classList.add('hidden'); }
-
-        // --- TAB TETAPAN & RBAC LOGIC ---
-        async function toggleSettingsView() {
-            const dash = document.getElementById('dashboard-view');
-            const setView = document.getElementById('settings-view');
-            if(dash.classList.contains('hidden')) { dash.classList.remove('hidden'); setView.classList.add('hidden'); loadMasterData(); } 
-            else { dash.classList.add('hidden'); setView.classList.remove('hidden'); switchSettingsTab('wa'); }
-        }
-
-       async function switchSettingsTab(tabId) {
-            document.querySelectorAll('#tab-wa, #tab-lokasi, #tab-rbac').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            
-            const activeClass = "flex-shrink-0 px-4 py-2 text-xs font-bold text-slate-800 bg-white rounded-lg shadow-sm transition-all whitespace-nowrap";
-            const inactiveClass = "flex-shrink-0 px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all whitespace-nowrap";
-            
-            document.getElementById('tab-btn-wa').className = tabId === 'wa' ? activeClass : inactiveClass;
-            document.getElementById('tab-btn-lokasi').className = tabId === 'lokasi' ? activeClass : inactiveClass;
-            document.getElementById('tab-btn-rbac').className = tabId === 'rbac' ? activeClass : inactiveClass;
-
-            if(tabId === 'wa') { const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no').single(); if(data) document.getElementById('wa-number').value = data.setting_value; }
-            if(tabId === 'lokasi') { loadSettingsLocations(); }
-            if(tabId === 'rbac') { loadRBACUsers(); }
-        }
-
-        async function saveWhatsapp() { const num = document.getElementById('wa-number').value.trim(); const { error } = await _supabase.from('system_settings').upsert({ setting_key: 'whatsapp_no', setting_value: num, updated_at: new Date() }); if(!error) alert('No WhatsApp dikemaskini!'); }
-        
-        async function loadSettingsLocations() {
-            const { data } = await _supabase.from('departments').select('*').order('name');
-            if(data) document.getElementById('settings-dept-list').innerHTML = data.map((l, i) => `<tr><td class="p-3 text-center font-medium">${i+1}</td><td class="p-3 font-bold text-slate-700">${l.name}</td><td class="p-3 text-center"><button onclick="deleteLocation('${l.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded transition"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
-        }
-        async function addLocation() { const name = document.getElementById('new-location').value.trim(); if(!name) return; await _supabase.from('departments').insert([{ name: name.toUpperCase() }]); document.getElementById('new-location').value = ''; loadSettingsLocations(); }
-        async function deleteLocation(id) { if(confirm("Padam lokasi ini?")) { await _supabase.from('departments').delete().eq('id', id); loadSettingsLocations(); } }
-
-        async function loadRBACUsers() {
-            const tbody = document.getElementById('rbac-table-body');
-            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Memuatkan pengguna...</td></tr>';
-            const { data, error } = await _supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
-            if (error || !data) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 p-8">Ralat pangkalan data.</td></tr>'; return; }
-            rbacUsersData = data;
-            
-            tbody.innerHTML = data.map((u, i) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-3 text-center font-medium">${i+1}</td>
-                    <td class="p-3"><div class="font-bold text-slate-800">${u.full_name || '-'}</div><div class="text-[10px] text-slate-500">${u.email}</div></td>
-                    <td class="p-3 text-center">
-                        <select id="role-${u.id}" class="border border-slate-300 rounded p-1 text-xs outline-none focus:border-purple-500 bg-white shadow-sm font-bold ${u.role==='KCPPP'?'text-purple-600': u.role==='CPPP'?'text-blue-600': u.role==='PENDING'?'text-amber-600':'text-slate-600'}">
-                            <option value="STAF" ${u.role==='STAF'?'selected':''}>STAF</option>
-                            <option value="CPPP" ${u.role==='CPPP'?'selected':''}>CPPP</option>
-                            <option value="KCPPP" ${u.role==='KCPPP'?'selected':''}>KCPPP</option>
-                            <option value="PENDING" ${u.role==='PENDING'?'selected':''}>PENDING</option>
-                        </select>
-                    </td>
-                    <td class="p-3 text-center">
-                        <select id="status-${u.id}" class="border border-slate-300 rounded p-1 text-xs outline-none bg-white shadow-sm font-bold ${u.is_blocked?'text-red-600':'text-emerald-600'}">
-                            <option value="false" ${!u.is_blocked?'selected':''}>Aktif</option><option value="true" ${u.is_blocked?'selected':''}>Disekat</option>
-                        </select>
-                    </td>
-                    <td class="p-3 text-center">
-                        <button onclick="saveRBAC('${u.id}')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold px-3 py-1.5 rounded-lg text-[10px] transition shadow-sm">Simpan</button>
+            <div class="section-title">BAHAGIAN A: DIISI OLEH PEMOHON</div>
+            <table>
+                <tr><td class="w-1 font-bold">Nama</td><td class="w-1">${item.full_name}</td><td class="w-1 font-bold">Tarikh</td><td class="w-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td></tr>
+                <tr><td class="font-bold">Lokasi</td><td>${item.department}</td><td class="font-bold">No. Telefon</td><td>${item.phone}</td></tr>
+                <tr><td colspan="4" style="height: 60px;"><span class="font-bold">Butiran Kerosakan:</span><br>${item.details}</td></tr>
+                <tr>
+                    <td colspan="4">
+                        <span class="font-bold">Jenis Kerosakan (Tindakan):</span>
+                        <div class="flex-space">
+                            <span>[ ${k1} ] i- Peralatan/Mesin</span>
+                            <span>[ ${k2} ] ii- Infrastruktur</span>
+                            <span>[ ${k3} ] iii- Peralatan ICT</span>
+                            <span>[ ${k4} ] iv- Lain-lain</span>
+                        </div>
                     </td>
                 </tr>
-            `).join('');
-        }
-        
-        async function saveRBAC(id) {
-            const newRole = document.getElementById(`role-${id}`).value;
-            const isBlocked = document.getElementById(`status-${id}`).value === 'true';
-            const { error } = await _supabase.from('user_profiles').update({ role: newRole, is_blocked: isBlocked }).eq('id', id);
-            if(error) { alert('Gagal kemaskini.'); } else { alert('Akaun berjaya dikemaskini!'); loadRBACUsers(); }
-        }
+            </table>
 
-        async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
-        initKCPPP();
+            <div class="sign-box text-center">.......................................................<br>Tandatangan Pemohon</div>
+            <div class="sign-box text-center">.......................................................<br>Tarikh</div>
 
-function cetakBorang(id) {
-            const item = rawComplaintsData.find(c => c.id === id);
-            if(!item) return;
+            <div class="section-title" style="margin-top: 30px;">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN DAN KAWALAN KUALITI</div>
+            <table>
+                <tr class="font-bold text-center"><td style="width: 30px;">Bil</td><td>Kategori Kerosakan</td><td style="width: 100px;">Tindakan ( / )</td></tr>
+                <tr><td class="text-center">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki dengan kadar segera')} ]</td></tr>
+                <tr><td class="text-center">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki terus')} ]</td></tr>
+                <tr><td class="text-center">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')} ]</td></tr>
+                <tr><td class="text-center">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')} ]</td></tr>
+                <tr><td class="text-center">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td class="text-center font-bold">[ ${tick('Kerosakan yang tidak ekonomi untuk dibaiki')} ]</td></tr>
+                <tr><td class="text-center">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td class="text-center font-bold">[ ${tick('Lain-lain')} ]</td></tr>
+            </table>
 
-            // Kategori Checkbox Part B
-            const cpppKat = item.cppp_kategori || "";
-            const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
-            
-// Kategori Jenis Kerosakan Part A
-const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
-const k1 = (dmg.includes('Peralatan / Mesin')) ? 'X' : '&nbsp;';
-const k2 = (dmg.includes('Infrastruktur')) ? 'X' : '&nbsp;';
-const k3 = (dmg.includes('Peralatan ICT')) ? 'X' : '&nbsp;';
-const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
+            <div style="border: 1px solid black; padding: 10px; min-height: 60px;">
+                <span class="font-bold">Catatan:</span><br>
+                ${item.action_remarks || ''}
+            </div>
 
-            const printWindow = window.open('', '_blank');
-            const html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Cetak Borang - ${item.full_name}</title>
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap');
-                    @media print {
-                        @page { size: A4; margin: 15mm; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        button { display: none; }
-                    }
-                    body { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.4; color: black; max-w-3xl; margin: 0 auto; padding: 20px; }
-                    .text-center { text-align: center; } .font-bold { font-weight: bold; }
-                    .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mt-8 { margin-top: 32px; }
-                    .header-title { font-size: 16px; margin-bottom: 20px; }
-                    .section-title { background-color: #e5e7eb; padding: 6px; border: 1px solid black; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-                    td, th { border: 1px solid black; padding: 6px 10px; vertical-align: top; }
-                    .w-1 { width: 25%; } .w-50 { width: 50%; }
-                    .flex-space { display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px; }
-                    .sign-box { display: inline-block; width: 48%; text-align: center; margin-top: 40px; }
-                    .footer-note { font-size: 10px; text-align: left; font-style: italic; margin-top: 30px; }
-                </style>
-            </head>
-            <body>
-                <div class="text-center font-bold header-title">
-                    INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG<br>
-                    <span style="text-decoration: underline;">BORANG ADUAN KEROSAKAN</span>
-                </div>
+            <div class="sign-box">
+                <br><br>.......................................................<br>
+                <span class="font-bold">Tandatangan & Nama Pemeriksa:</span><br>
+                Unit Pembangunan dan Penyelenggaraan<br>Tarikh:
+            </div>
+            <div class="sign-box">
+                <br><br>.......................................................<br>
+                <span class="font-bold">Tandatangan & Nama Pegawai:</span><br>
+                Ketua Cawangan Penyelarasan & Kawalan Kualiti<br>Tarikh:
+            </div>
 
-                <div class="section-title">BAHAGIAN A: DIISI OLEH PEMOHON</div>
-                <table>
-                    <tr><td class="w-1 font-bold">Nama</td><td class="w-1">${item.full_name}</td><td class="w-1 font-bold">Tarikh</td><td class="w-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td></tr>
-                    <tr><td class="font-bold">Lokasi</td><td>${item.department}</td><td class="font-bold">No. Telefon</td><td>${item.phone}</td></tr>
-                    <tr><td colspan="4" style="height: 60px;"><span class="font-bold">Butiran Kerosakan:</span><br>${item.details}</td></tr>
-                    <tr>
-                        <td colspan="4">
-                            <span class="font-bold">Jenis Kerosakan (Tindakan):</span>
-                            <div class="flex-space">
-                                <span>[ ${k1} ] i- Peralatan/Mesin</span>
-                                <span>[ ${k2} ] ii- Infrastruktur</span>
-                                <span>[ ${k3} ] iii- Peralatan ICT</span>
-                                <span>[ ${k4} ] iv- Lain-lain</span>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <div class="footer-note">'Dokumen tidak terkawal jika dicetak'</div>
+        </body>
+        </html>
+        `;
 
-                <div class="sign-box text-center">.......................................................<br>Tandatangan Pemohon</div>
-                <div class="sign-box text-center">.......................................................<br>Tarikh</div>
-
-                <div class="section-title" style="margin-top: 30px;">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN DAN KAWALAN KUALITI</div>
-                <table>
-                    <tr class="font-bold text-center"><td style="width: 30px;">Bil</td><td>Kategori Kerosakan</td><td style="width: 100px;">Tindakan ( / )</td></tr>
-                    <tr><td class="text-center">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki dengan kadar segera')} ]</td></tr>
-                    <tr><td class="text-center">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki terus')} ]</td></tr>
-                    <tr><td class="text-center">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')} ]</td></tr>
-                    <tr><td class="text-center">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')} ]</td></tr>
-                    <tr><td class="text-center">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td class="text-center font-bold">[ ${tick('Kerosakan yang tidak ekonomi untuk dibaiki')} ]</td></tr>
-                    <tr><td class="text-center">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td class="text-center font-bold">[ ${tick('Lain-lain')} ]</td></tr>
-                </table>
-
-                <div style="border: 1px solid black; padding: 10px; min-height: 60px;">
-                    <span class="font-bold">Catatan:</span><br>
-                    ${item.action_remarks || ''}
-                </div>
-
-                <div class="sign-box">
-                    <br><br>.......................................................<br>
-                    <span class="font-bold">Tandatangan & Nama Pemeriksa:</span><br>
-                    Unit Pembangunan dan Penyelenggaraan<br>Tarikh:
-                </div>
-                <div class="sign-box">
-                    <br><br>.......................................................<br>
-                    <span class="font-bold">Tandatangan & Nama Pegawai:</span><br>
-                    Ketua Cawangan Penyelarasan & Kawalan Kualiti<br>Tarikh:
-                </div>
-
-                <div class="footer-note">'Dokumen tidak terkawal jika dicetak'</div>
-            </body>
-            </html>
-            `;
-
-            printWindow.document.write(html);
-            printWindow.document.close();
-            setTimeout(() => { printWindow.print(); }, 800);
-        }
-        
-    </script>
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 800);
+    }
+</script>
 </body>
 </html>
