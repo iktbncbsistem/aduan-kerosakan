@@ -366,15 +366,19 @@
             document.getElementById('mob-modal').classList.remove('hidden');
             const s = document.getElementById('mob-cat');
             const c = document.getElementById('mob-cat-container');
+            
             if(catName) {
-                for(let i=0; i<s.options.length; i++) {
-                    if(s.options[i].value.includes(catName) || catName.includes(s.options[i].value)) {
-                        s.selectedIndex = i; break;
-                    }
+                // Semak jika pilihan wujud. Jika tidak, paksa sistem tambah dan pilih
+                let wujud = Array.from(s.options).some(opt => opt.value === catName);
+                if(!wujud) {
+                    s.insertAdjacentHTML('beforeend', `<option value="${catName}">${catName}</option>`);
                 }
-                c.classList.add('hidden'); // Sorok dropdown jika pilih kategori pantas
+                
+                s.value = catName; // Kunci nilai pilihan terus ke dalam borang
+                c.classList.add('hidden'); // Sorok dropdown dari pandangan
             } else {
-                s.selectedIndex = 0; c.classList.remove('hidden');
+                s.selectedIndex = 0; 
+                c.classList.remove('hidden');
             }
         }
 
