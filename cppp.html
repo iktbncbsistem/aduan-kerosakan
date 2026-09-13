@@ -62,38 +62,49 @@
             </div>
         </div>
 
-        <!-- Kad Statistik TVET -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-amber-500 shadow-sm flex items-center justify-between">
-                <div class="space-y-0.5">
-                    <p class="text-xs font-bold text-slate-800">Aduan Baru</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Perlu disemak segera</p>
+       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                
+                <!-- Kotak 1: Baru -->
+                <div class="bg-white p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-purple-50 rounded-full opacity-60"></div>
+                    <div class="flex items-center gap-2.5 mb-2 relative z-10">
+                        <div class="w-8 h-8 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-inbox"></i></div>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight">Aduan<br>Baru</h3>
+                    </div>
+                    <p id="stat-baru" class="text-2xl font-extrabold text-slate-800 relative z-10 mt-1">0</p>
                 </div>
-                <div class="bg-amber-50 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-baru">0</div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-blue-500 shadow-sm flex items-center justify-between">
-                <div class="space-y-0.5">
-                    <p class="text-xs font-bold text-slate-800">Sedang Diproses</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Dalam tindakan CPPP</p>
+                
+                <!-- Kotak 2: Proses -->
+                <div class="bg-white p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-50 rounded-full opacity-60"></div>
+                    <div class="flex items-center gap-2.5 mb-2 relative z-10">
+                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-spinner"></i></div>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight">Sedang<br>Diproses</h3>
+                    </div>
+                    <p id="stat-proses" class="text-2xl font-extrabold text-slate-800 relative z-10 mt-1">0</p>
                 </div>
-                <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-proses">0</div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-sm flex items-center justify-between">
-                <div class="space-y-0.5">
-                    <p class="text-xs font-bold text-slate-800">Aduan Selesai</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Menunggu kelulusan KCPPP</p>
-                </div>
-                <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-selesai">0</div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 border-t-4 border-t-slate-500 shadow-sm flex items-center justify-between">
-                <div class="space-y-0.5">
-                    <p class="text-xs font-bold text-slate-800">Jumlah Terkumpul</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Semua rekod aduan</p>
-                </div>
-                <div class="bg-slate-50 text-slate-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner" id="stat-total">0</div>
-            </div>
-        </div>
 
+                <!-- Kotak 3: Selesai -->
+                <div class="bg-white p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-50 rounded-full opacity-60"></div>
+                    <div class="flex items-center gap-2.5 mb-2 relative z-10">
+                        <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-check-double"></i></div>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight">Aduan<br>Selesai</h3>
+                    </div>
+                    <p id="stat-selesai" class="text-2xl font-extrabold text-slate-800 relative z-10 mt-1">0</p>
+                </div>
+
+                <!-- Kotak 4: Total -->
+                <div class="bg-white p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-amber-50 rounded-full opacity-60"></div>
+                    <div class="flex items-center gap-2.5 mb-2 relative z-10">
+                        <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-chart-pie"></i></div>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight">Jumlah<br>Terkumpul</h3>
+                    </div>
+                    <p id="stat-total" class="text-2xl font-extrabold text-slate-800 relative z-10 mt-1">0</p>
+                </div>
+                
+            </div>
         <!-- Seksyen Penapis & Senarai Rekod (Lebar Penuh) -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4 w-full">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
