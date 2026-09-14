@@ -222,6 +222,11 @@
                     <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Justifikasi</p><p id="vm-justification" class="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 whitespace-pre-wrap min-h-[60px]"></p></div>
                 </div>
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Syor / Tindakan CPPP</p><p id="vm-remarks" class="text-xs text-blue-700 bg-blue-50 p-2 rounded border border-blue-100 whitespace-pre-wrap min-h-[40px]"></p></div>
+                <!-- RUANGAN LAMPIRAN -->
+                <div class="mt-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Lampiran</p>
+                    <div id="vm-attachments" class="flex flex-col gap-2 pt-1"></div>
+                </div>
                 
                 <!-- BORANG TINDAKAN KCPPP -->
                 <div class="border-t border-slate-200 pt-4 mt-2">
@@ -363,7 +368,7 @@
 
     let currentKcpppId = null;
 
-    function viewComplaintDetail(id) {
+function viewComplaintDetail(id) {
         const item = rawComplaintsData.find(c => c.id === id);
         if(!item) return;
         
@@ -373,7 +378,12 @@
         if(document.getElementById('vm-types')) document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
         if(document.getElementById('vm-details')) document.getElementById('vm-details').innerText = item.details || 'Tiada butiran.'; 
         if(document.getElementById('vm-justification')) document.getElementById('vm-justification').innerText = item.justification || 'Tiada justifikasi.';
-        if(document.getElementById('vm-remarks')) document.getElementById('vm-remarks').innerText = (item.cppp_kategori ? `[${item.cppp_kategori}]\n` : '') + (item.action_remarks || 'Belum ada tindakan CPPP.');
+        
+        // FIX: Betulkan logik amaran "Belum ada tindakan CPPP"
+        if(document.getElementById('vm-remarks')) {
+            let statusTindakan = item.action_remarks ? item.action_remarks : (item.cppp_kategori ? 'Tiada catatan tambahan.' : 'Belum ada tindakan CPPP.');
+            document.getElementById('vm-remarks').innerText = (item.cppp_kategori ? `[${item.cppp_kategori}]\n` : '') + statusTindakan;
+        }
         
         if(document.getElementById('kcppp-status')) document.getElementById('kcppp-status').value = item.status === 'BARU' ? 'PROSES' : item.status;
         if(document.getElementById('kcppp-action')) document.getElementById('kcppp-action').value = item.kcppp_action || '';
@@ -389,16 +399,17 @@
                 hasAttachment = true;
                 const urls = item.image_url.split(',');
                 urls.forEach((url) => {
+                    if(!url.trim()) return;
                     const cleanUrl = url.trim();
                     const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
-                    attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"><i class="fa-solid fa-download text-orange-500 mr-2"></i>${fileName}</button>`;
+                    attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm mb-1.5"><i class="fa-solid fa-download text-orange-500 mr-2"></i>${fileName}</button>`;
                 });
             }
             if (item.quotation_url) {
                 hasAttachment = true;
                 const cleanUrl = item.quotation_url.trim();
                 const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
-                attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"><i class="fa-solid fa-download text-red-500 mr-2"></i>${fileName}</button>`;
+                attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm mb-1.5"><i class="fa-solid fa-download text-red-500 mr-2"></i>${fileName}</button>`;
             }
             if (!hasAttachment) attachContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Tiada lampiran disertakan.</span>';
         }
