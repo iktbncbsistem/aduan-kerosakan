@@ -92,20 +92,18 @@
                         <div>
                             <label class="block font-bold text-slate-500 uppercase mb-1">Gambar Kerosakan (Boleh lebih dari 1)</label>
                             <div class="flex gap-2">
-                                <!-- Butang Kamera -->
                                 <label class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-orange-100 transition">
-                                    <input type="file" id="mob-cam" accept="image/*" capture="environment" multiple class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files.length>0?'📷 '+this.files.length+' gambar dipilih':'Tiada gambar'; document.getElementById('mob-gal').value='';">
+                                    <input type="file" id="mob-cam" accept="image/*" capture="environment" multiple class="hidden" onchange="handleFileSelection(event)">
                                     <i class="fa-solid fa-camera mb-1 block text-lg"></i>
                                     <span class="text-[9px] font-bold">Kamera</span>
                                 </label>
-                                <!-- Butang Galeri -->
                                 <label class="flex-1 bg-slate-50 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-slate-100 transition">
-                                    <input type="file" id="mob-gal" accept="image/*" multiple class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files.length>0?'🖼️ '+this.files.length+' gambar dipilih':'Tiada gambar'; document.getElementById('mob-cam').value='';">
+                                    <input type="file" id="mob-gal" accept="image/*" multiple class="hidden" onchange="handleFileSelection(event)">
                                     <i class="fa-solid fa-image mb-1 block text-lg"></i>
                                     <span class="text-[9px] font-bold">Galeri</span>
                                 </label>
                             </div>
-                            <p class="text-[10px] font-bold text-slate-500 mt-1.5 text-center truncate" id="mob-img-lbl">Tiada gambar dipilih</p>
+                            <div id="mob-file-name-preview" class="flex flex-col gap-1 mt-2"></div>
                         </div>
                         <button type="submit" id="mob-submit-btn" class="w-full bg-orange-500 text-white font-bold py-3.5 rounded-xl shadow-lg mt-2 active:scale-95 transition"><i class="fa-solid fa-paper-plane mr-1"></i> Hantar Permohonan</button>
                     </form>
@@ -565,21 +563,24 @@
 
         function renderFilePreview() {
             const preview = document.getElementById('file-name-preview');
-            preview.innerHTML = '';
+            const mobPreview = document.getElementById('mob-file-name-preview');
+            let html = '';
+            
             selectedAttachmentFiles.forEach((file, index) => {
-                preview.innerHTML += `
-                    <div class="flex items-center justify-between bg-orange-50 px-2 py-1 rounded text-xs border border-orange-100">
+                html += `
+                    <div class="flex items-center justify-between bg-orange-50 px-2 py-1 rounded text-xs border border-orange-100 mb-1">
                         <span class="truncate text-orange-700 font-bold">📷 ${file.name}</span>
                         <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 bg-red-100 rounded px-1.5 font-bold transition">&times;</button>
                     </div>`;
             });
+            
+            if(preview) preview.innerHTML = html;
+            if(mobPreview) mobPreview.innerHTML = html;
         }
-
         function removeFile(index) {
             selectedAttachmentFiles.splice(index, 1);
             renderFilePreview();
         }
-
         function compressImage(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader(); 
@@ -592,7 +593,6 @@
                         const MAX_HEIGHT = 1200;
                         let width = img.width;
                         let height = img.height;
-
                         if (width > height) {
                             if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                         } else {
@@ -689,20 +689,17 @@
                 const selectedDamageTypes = [catValue];
 
                 let imageUrls = [];
-                const camFiles = document.getElementById('mob-cam').files;
-                const galFiles = document.getElementById('mob-gal').files;
-                const selectedFiles = camFiles.length > 0 ? camFiles : galFiles;
-                
-                if (selectedFiles.length > 0) {
+                // Gunakan array global yang dah kumpul semua gambar (Kamera + Galeri)
+                if (selectedAttachmentFiles.length > 0) {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik gambar...';
                     
-                    for (let i = 0; i < selectedFiles.length; i++) {
-                        const compFile = await compressImage(selectedFiles[i]);
+                    for (let i = 0; i < selectedAttachmentFiles.length; i++) {
+                        const compFile = await compressImage(selectedAttachmentFiles[i]);
                         const cleanName = compFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
                         const path = `images/${Date.now()}_mob_${i}_${cleanName}`;
                         
                         const { error: uploadError } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
-                        if (uploadError) throw new Error('Ralat Muat Naik Gambar ' + (i+1) + ': ' + uploadError.message);
+                        if (uploadError) throw new Error('Ralat Muat Naik: ' + uploadError.message);
                         
                         imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
                     }
@@ -720,7 +717,7 @@
                 };
 
                 const { error } = await _supabase.from('complaints').insert([newComplaint]);
-                if (error) throw new Error('Ralat Sistem Aduan: ' + error.message);
+                if (error) throw new Error('Ralat Sistem: ' + error.message);
 
                 alert('Berjaya dihantar!');
 
@@ -735,7 +732,8 @@
 
                 closeMobModal();
                 document.getElementById('mob-form').reset();
-                document.getElementById('mob-img-lbl').innerText = 'Tiada gambar dipilih';
+                selectedAttachmentFiles = []; 
+                renderFilePreview(); 
                 loadMyComplaints();
 
             } catch (err) { 
