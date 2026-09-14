@@ -367,8 +367,7 @@
         const item = rawComplaintsData.find(c => c.id === id);
         if(!item) return;
         
-        currentKcpppId = id; // Kunci ID
-        
+        currentKcpppId = id; 
         if(document.getElementById('vm-name')) document.getElementById('vm-name').innerText = item.full_name || '-'; 
         if(document.getElementById('vm-dept')) document.getElementById('vm-dept').innerText = item.department || '-';
         if(document.getElementById('vm-types')) document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
@@ -376,14 +375,35 @@
         if(document.getElementById('vm-justification')) document.getElementById('vm-justification').innerText = item.justification || 'Tiada justifikasi.';
         if(document.getElementById('vm-remarks')) document.getElementById('vm-remarks').innerText = (item.cppp_kategori ? `[${item.cppp_kategori}]\n` : '') + (item.action_remarks || 'Belum ada tindakan CPPP.');
         
-        // Tarik data KCPPP sedia ada jika ada
         if(document.getElementById('kcppp-status')) document.getElementById('kcppp-status').value = item.status === 'BARU' ? 'PROSES' : item.status;
         if(document.getElementById('kcppp-action')) document.getElementById('kcppp-action').value = item.kcppp_action || '';
         if(document.getElementById('kcppp-remarks')) document.getElementById('kcppp-remarks').value = item.kcppp_remarks || '';
-        
+
+        // LOGIK LAMPIRAN
+        const attachContainer = document.getElementById('vm-attachments');
+        if (attachContainer) {
+            attachContainer.innerHTML = '';
+            let hasAttachment = false;
+            
+            if (item.image_url) {
+                hasAttachment = true;
+                const urls = item.image_url.split(',');
+                urls.forEach((url) => {
+                    const cleanUrl = url.trim();
+                    const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
+                    attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"><i class="fa-solid fa-download text-orange-500 mr-2"></i>${fileName}</button>`;
+                });
+            }
+            if (item.quotation_url) {
+                hasAttachment = true;
+                const cleanUrl = item.quotation_url.trim();
+                const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
+                attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-emerald-50 hover:text-emerald-700 transition shadow-sm"><i class="fa-solid fa-download text-red-500 mr-2"></i>${fileName}</button>`;
+            }
+            if (!hasAttachment) attachContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Tiada lampiran disertakan.</span>';
+        }
         document.getElementById('view-modal').classList.remove('hidden');
     }
-
     async function submitKCPPPAction(e) {
         try { if(e) e.preventDefault(); } catch(err) {}
         
