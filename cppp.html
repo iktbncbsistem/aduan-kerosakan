@@ -416,8 +416,7 @@
         const item = rawComplaintsData.find(c => c.id === id);
         if(!item) return;
         
-        currentActionId = id; // Mengunci ID
-        
+        currentActionId = id; 
         if(document.getElementById('modal-id')) document.getElementById('modal-id').value = item.id;
         if(document.getElementById('modal-name')) document.getElementById('modal-name').innerText = item.full_name || '-';
         if(document.getElementById('modal-dept')) document.getElementById('modal-dept').innerText = item.department || '-';
@@ -434,8 +433,31 @@
                 if(cb) cb.checked = true;
             });
         }
-        
         if(document.getElementById('action-remarks')) document.getElementById('action-remarks').value = item.action_remarks || '';
+
+        // LOGIK LAMPIRAN
+        const attachContainer = document.getElementById('modal-attachments');
+        if (attachContainer) {
+            attachContainer.innerHTML = '';
+            let hasAttachment = false;
+            
+            if (item.image_url) {
+                hasAttachment = true;
+                const urls = item.image_url.split(',');
+                urls.forEach((url) => {
+                    const cleanUrl = url.trim();
+                    const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
+                    attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-blue-50 hover:text-blue-600 transition shadow-sm mb-1"><i class="fa-solid fa-download text-orange-500 mr-2"></i>${fileName}</button>`;
+                });
+            }
+            if (item.quotation_url) {
+                hasAttachment = true;
+                const cleanUrl = item.quotation_url.trim();
+                const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
+                attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="text-left w-full sm:w-auto inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-[11px] font-bold hover:bg-red-50 hover:text-red-600 transition shadow-sm"><i class="fa-solid fa-download text-red-500 mr-2"></i>${fileName}</button>`;
+            }
+            if (!hasAttachment) attachContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Tiada lampiran disertakan.</span>';
+        }
         
         const modal = document.getElementById('action-modal') || document.getElementById('view-modal');
         if(modal) modal.classList.remove('hidden');
@@ -563,6 +585,25 @@
     document.addEventListener('submit', function(e) {
         e.preventDefault();
     });
+
+
+
+        window.downloadFile = async function(e, url) {
+        e.preventDefault();
+        const btn = e.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-slate-400"></i>Muat turun...';
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const urlBlob = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = urlBlob;
+            a.download = decodeURIComponent(url.split('/').pop().split('?')[0]);
+            document.body.appendChild(a);
+            a.click(); a.remove(); window.URL.revokeObjectURL(urlBlob);
+        } catch (err) { window.open(url, '_blank'); } finally { btn.innerHTML = originalText; }
+    }
         
 </script>
 </body>
