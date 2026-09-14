@@ -310,7 +310,7 @@
             if (!item) return;
 
             document.getElementById('view-date').innerText = new Date(item.created_at).toLocaleDateString('ms-MY');
-            document.getElementById('view-document.getElementById('view-status-badge').innerHTML = getStatusBadge(item.status, item.updated_at || item.created_at);status-badge').innerHTML = getStatusBadge(item.status);
+            document.getElementById('view-status-badge').innerHTML = getStatusBadge(item.status, item.updated_at || item.created_at);
             document.getElementById('view-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
             document.getElementById('view-details').innerText = item.details || 'Tiada butiran.';
 
