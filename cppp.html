@@ -436,7 +436,7 @@ function viewComplaintDetail(id) {
                 if(cb) cb.checked = true;
             });
         }
-        if(document.getElementById('action-remarks')) document.getElementById('action-remarks').value = item.action_remarks || '';
+        if(document.getElementById('modal-remarks')) document.getElementById('modal-remarks').value = item.action_remarks || '';
 
         // LOGIK LAMPIRAN (Berbilang Gambar)
         const attachContainer = document.getElementById('modal-attachments');
