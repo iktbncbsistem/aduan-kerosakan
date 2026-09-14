@@ -569,16 +569,14 @@ function viewComplaintDetail(id) {
         const item = rawComplaintsData.find(c => c.id === id);
         if(!item) return;
 
-        // Kategori Checkbox Part B
         const cpppKat = item.cppp_kategori || "";
-        const tick = (val) => cpppKat.includes(val) ? "X" : "&nbsp;";
+        const tick = (val) => cpppKat.includes(val) ? '☑' : '☐';
         
-        // Kategori Jenis Kerosakan Part A
         const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
-        const k1 = (dmg.includes('Peralatan / Mesin')) ? 'X' : '&nbsp;';
-        const k2 = (dmg.includes('Infrastruktur')) ? 'X' : '&nbsp;';
-        const k3 = (dmg.includes('Peralatan ICT')) ? 'X' : '&nbsp;';
-        const k4 = (dmg.includes('Lain-lain')) ? 'X' : '&nbsp;';
+        const k1 = (dmg.includes('Peralatan / Mesin')) ? '☑' : '☐';
+        const k2 = (dmg.includes('Infrastruktur')) ? '☑' : '☐';
+        const k3 = (dmg.includes('Peralatan ICT')) ? '☑' : '☐';
+        const k4 = (dmg.includes('Lain-lain')) ? '☑' : '☐';
 
         const printWindow = window.open('', '_blank');
         const html = `
@@ -587,84 +585,167 @@ function viewComplaintDetail(id) {
         <head>
             <title>Cetak Borang - ${item.full_name}</title>
             <style>
-                @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
                 @media print {
-                    @page { size: A4; margin: 15mm; }
+                    @page { size: A4; margin: 12mm; }
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    button { display: none; }
+                    .no-print { display: none; }
                 }
-                body { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.4; color: black; max-w-3xl; margin: 0 auto; padding: 20px; }
-                .text-center { text-align: center; } .font-bold { font-weight: bold; }
-                .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mt-8 { margin-top: 32px; }
-                .header-title { font-size: 16px; margin-bottom: 20px; }
-                .section-title { background-color: #e5e7eb; padding: 6px; border: 1px solid black; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-                td, th { border: 1px solid black; padding: 6px 10px; vertical-align: top; }
-                .w-1 { width: 25%; } .w-50 { width: 50%; }
-                .flex-space { display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px; }
-                .sign-box { display: inline-block; width: 48%; text-align: center; margin-top: 40px; }
-                .footer-note { font-size: 10px; text-align: left; font-style: italic; margin-top: 30px; }
+                body { 
+                    font-family: 'Inter', Arial, sans-serif; 
+                    font-size: 11pt; 
+                    line-height: 1.4; 
+                    color: #0f172a; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 20px;
+                    background: #fff;
+                }
+                .header-container {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-bottom: 3px double #1e3a8a;
+                    padding-bottom: 12px;
+                    margin-bottom: 15px;
+                }
+                .header-logo { width: 70px; height: auto; }
+                .header-text { text-align: center; flex-grow: 1; padding: 0 10px; }
+                .header-text h2 { margin: 0; font-size: 13pt; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px; }
+                .header-text h3 { margin: 2px 0 0 0; font-size: 11pt; font-weight: 700; color: #334155; text-transform: uppercase; }
+                .doc-no { font-size: 8pt; color: #64748b; font-weight: 600; text-align: right; width: 120px; }
+                .section-header {
+                    background-color: #1e3a8a;
+                    color: #ffffff;
+                    padding: 5px 10px;
+                    font-size: 9.5pt;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                    margin-top: 15px;
+                    margin-bottom: 8px;
+                    border-radius: 2px;
+                }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt; }
+                th, td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; }
+                .bg-label { background-color: #f8fafc; font-weight: 700; color: #334155; width: 18%; }
+                .val-cell { color: #0f172a; }
+                .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px 0; }
+                .check-item { display: flex; align-items: center; gap: 6px; font-size: 9pt; }
+                .symbol { font-size: 11pt; font-weight: bold; color: #1e3a8a; }
+                .remarks-box {
+                    border: 1px solid #cbd5e1;
+                    background-color: #fafafa;
+                    padding: 8px 10px;
+                    min-height: 45px;
+                    font-size: 9.5pt;
+                    margin-bottom: 10px;
+                }
+                .sign-grid { display: flex; justify-content: space-between; margin-top: 25px; gap: 15px; }
+                .sign-card {
+                    width: 48%;
+                    border: 1px dashed #94a3b8;
+                    padding: 10px;
+                    border-radius: 4px;
+                    text-align: center;
+                    background: #fafafa;
+                }
+                .sign-space { height: 40px; }
+                .sign-title { font-size: 8.5pt; font-weight: 700; color: #334155; text-transform: uppercase; border-top: 1px solid #cbd5e1; padding-top: 4px; }
+                .footer-note { font-size: 8pt; color: #94a3b8; font-style: italic; margin-top: 20px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 5px; }
             </style>
         </head>
         <body>
-            <div class="text-center font-bold header-title">
-                INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG<br>
-                <span style="text-decoration: underline;">BORANG ADUAN KEROSAKAN</span>
+            <div class="header-container">
+                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" class="header-logo" alt="Logo">
+                <div class="header-text">
+                    <h2>INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG</h2>
+                    <h3>Borang Aduan Kerosakan</h3>
+                </div>
+                <div class="doc-no">
+                    No. Dokumen:<br><b>IKTBN/PKK/B01</b>
+                </div>
             </div>
 
-            <div class="section-title">BAHAGIAN A: DIISI OLEH PEMOHON</div>
+            <div class="section-header">BAHAGIAN A: DIISI OLEH PEMOHON</div>
             <table>
-                <tr><td class="w-1 font-bold">Nama</td><td class="w-1">${item.full_name}</td><td class="w-1 font-bold">Tarikh</td><td class="w-1">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td></tr>
-                <tr><td class="font-bold">Lokasi</td><td>${item.department}</td><td class="font-bold">No. Telefon</td><td>${item.phone}</td></tr>
-                <tr><td colspan="4" style="height: 60px;"><span class="font-bold">Butiran Kerosakan:</span><br>${item.details}</td></tr>
                 <tr>
-                    <td colspan="4">
-                        <span class="font-bold">Jenis Kerosakan (Tindakan):</span>
-                        <div class="flex-space">
-                            <span>[ ${k1} ] i- Peralatan/Mesin</span>
-                            <span>[ ${k2} ] ii- Infrastruktur</span>
-                            <span>[ ${k3} ] iii- Peralatan ICT</span>
-                            <span>[ ${k4} ] iv- Lain-lain</span>
+                    <td class="bg-label">Nama Pemohon</td>
+                    <td class="val-cell" style="width: 32%;">${item.full_name || '-'}</td>
+                    <td class="bg-label">Tarikh Aduan</td>
+                    <td class="val-cell">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
+                </tr>
+                <tr>
+                    <td class="bg-label">Lokasi / Jabatan</td>
+                    <td class="val-cell">${item.department || '-'}</td>
+                    <td class="bg-label">No. Telefon</td>
+                    <td class="val-cell">${item.phone || '-'}</td>
+                </tr>
+                <tr>
+                    <td class="bg-label">Butiran Kerosakan</td>
+                    <td colspan="3" class="val-cell" style="height: 40px;">${item.details || '-'}</td>
+                </tr>
+                <tr>
+                    <td class="bg-label">Jenis Kerosakan</td>
+                    <td colspan="3">
+                        <div class="check-grid">
+                            <div class="check-item"><span class="symbol">${k1}</span> i- Peralatan / Mesin</div>
+                            <div class="check-item"><span class="symbol">${k2}</span> ii- Infrastruktur</div>
+                            <div class="check-item"><span class="symbol">${k3}</span> iii- Peralatan ICT</div>
+                            <div class="check-item"><span class="symbol">${k4}</span> iv- Lain-lain</div>
                         </div>
                     </td>
                 </tr>
             </table>
 
-            <div class="sign-box text-center">.......................................................<br>Tandatangan Pemohon</div>
-            <div class="sign-box text-center">.......................................................<br>Tarikh</div>
+            <div class="sign-grid" style="margin-top: 10px; margin-bottom: 10px;">
+                <div class="sign-card" style="width: 100%;">
+                    <div class="sign-space"></div>
+                    <div class="sign-title">Tandatangan & Nama Pemohon</div>
+                </div>
+            </div>
 
-            <div class="section-title" style="margin-top: 30px;">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN DAN KAWALAN KUALITI</div>
+            <div class="section-header">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN & KAWALAN KUALITI (CPPP)</div>
             <table>
-                <tr class="font-bold text-center"><td style="width: 30px;">Bil</td><td>Kategori Kerosakan</td><td style="width: 100px;">Tindakan ( / )</td></tr>
-                <tr><td class="text-center">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki dengan kadar segera')} ]</td></tr>
-                <tr><td class="text-center">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki terus')} ]</td></tr>
-                <tr><td class="text-center">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td class="text-center font-bold">[ ${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')} ]</td></tr>
-                <tr><td class="text-center">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td class="text-center font-bold">[ ${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')} ]</td></tr>
-                <tr><td class="text-center">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td class="text-center font-bold">[ ${tick('Kerosakan yang tidak ekonomi untuk dibaiki')} ]</td></tr>
-                <tr><td class="text-center">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td class="text-center font-bold">[ ${tick('Lain-lain')} ]</td></tr>
+                <thead>
+                    <tr style="background-color: #f1f5f9; font-weight: bold;">
+                        <td style="width: 35px; text-align: center;">Bil</td>
+                        <td>Kategori Kerosakan / Status Penyenggaraan</td>
+                        <td style="width: 90px; text-align: center;">Tindakan</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="text-align: center;">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang perlu dibaiki dengan kadar segera')}</td></tr>
+                    <tr><td style="text-align: center;">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang boleh dibaiki terus')}</td></tr>
+                    <tr><td style="text-align: center;">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')}</td></tr>
+                    <tr><td style="text-align: center;">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')}</td></tr>
+                    <tr><td style="text-align: center;">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang tidak ekonomi untuk dibaiki')}</td></tr>
+                    <tr><td style="text-align: center;">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Lain-lain')}</td></tr>
+                </tbody>
             </table>
 
-            <div style="border: 1px solid black; padding: 10px; min-height: 60px;">
-                <span class="font-bold">Catatan:</span><br>
-                ${item.action_remarks || ''}
+            <div style="font-weight: 700; font-size: 8.5pt; color: #334155; margin-bottom: 3px; text-transform: uppercase;">Catatan / Syor CPPP / KCPPP:</div>
+            <div class="remarks-box">
+                ${item.action_remarks || item.kcppp_remarks || 'Tiada catatan.'}
             </div>
 
-            <div class="sign-box">
-                <br><br>.......................................................<br>
-                <span class="font-bold">Tandatangan & Nama Pemeriksa:</span><br>
-                Unit Pembangunan dan Penyelenggaraan<br>Tarikh:
-            </div>
-            <div class="sign-box">
-                <br><br>.......................................................<br>
-                <span class="font-bold">Tandatangan & Nama Pegawai:</span><br>
-                Ketua Cawangan Penyelarasan & Kawalan Kualiti<br>Tarikh:
+            <div class="sign-grid">
+                <div class="sign-card">
+                    <div class="sign-space"></div>
+                    <div class="sign-title">Pemeriksa Unit Pembangunan & Penyenggaraan</div>
+                </div>
+                <div class="sign-card">
+                    <div class="sign-space"></div>
+                    <div class="sign-title">Ketua Cawangan Penyelarasan & Kawalan Kualiti (KCPPP)</div>
+                </div>
             </div>
 
-            <div class="footer-note">'Dokumen tidak terkawal jika dicetak'</div>
+            <div class="footer-note">
+                * Dokumen ini dijana secara automatik melalui Sistem Penyenggaraan IKTBN Chembong. Cetakan ini adalah Dokumen Tidak Terkawal.
+            </div>
         </body>
         </html>
         `;
-
         printWindow.document.write(html);
         printWindow.document.close();
         setTimeout(() => { printWindow.print(); }, 800);
