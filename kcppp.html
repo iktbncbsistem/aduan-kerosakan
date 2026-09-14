@@ -94,12 +94,22 @@
 
         <!-- Jadual Data Lebar Penuh -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4 w-full">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div><h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-filter text-orange-500 mr-1.5"></i> Carian & Tapisan Aduan</h3><p class="text-[10px] text-slate-400">Pilih kriteria di bawah untuk menapis senarai rekod aduan</p></div>
+            <!-- Header Tajuk & Butang Toggle Carian -->
+            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleFilterBox()" class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center hover:bg-orange-100 transition shadow-sm" title="Buka/Tutup Carian">
+                        <i id="filter-icon" class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </button>
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Carian & Tapisan Aduan</h3>
+                        <p class="text-[10px] text-slate-400">Tekan ikon kanta untuk paparkan / sembunyikan tapisan</p>
+                    </div>
+                </div>
                 <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">Memaparkan 0 rekod</span>
             </div>
-            <!-- Kotak Borang Tapisan -->
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+
+            <!-- Kotak Borang Tapisan (Disorok secara asal dengan 'hidden') -->
+            <div id="filter-box" class="hidden bg-slate-50 p-3.5 rounded-xl border border-slate-200 transition-all">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
                     <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama</label><input type="text" id="filter-search" placeholder="Taip nama..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition"></div>
                     <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label><select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-orange-500 bg-white transition"><option value="">-- Semua --</option></select></div>
@@ -767,7 +777,19 @@ window.downloadFile = async function(e, url) {
         a.click(); a.remove(); window.URL.revokeObjectURL(urlBlob);
     } catch (err) { window.open(url, '_blank'); } finally { btn.innerHTML = originalText; }
 }
-        
+
+        function toggleFilterBox() {
+        const box = document.getElementById('filter-box');
+        const icon = document.getElementById('filter-icon');
+        if (box) {
+            box.classList.toggle('hidden');
+            if (icon) {
+                icon.className = box.classList.contains('hidden') 
+                    ? 'fa-solid fa-magnifying-glass text-xs' 
+                    : 'fa-solid fa-chevron-up text-xs';
+            }
+        }
+    }
 </script>
 </body>
 </html>
