@@ -493,26 +493,23 @@ function viewComplaintDetail(id) {
    async function saveWhatsapp() { 
         try {
             const num = document.getElementById('wa-number').value.trim(); 
-            const stat = document.getElementById('wa-status').value;
+            const stat = document.getElementById('wa-status').value.trim();
 
-            // Update nombor WA (Tanpa updated_at)
-            const { error: err1 } = await _supabase.from('system_settings')
-                .update({ setting_value: num })
-                .eq('setting_key', 'whatsapp_no');
-                
-            // Update status WA ON/OFF (Tanpa updated_at)
-            const { error: err2 } = await _supabase.from('system_settings')
-                .update({ setting_value: stat })
-                .eq('setting_key', 'whatsapp_status');
-
-            // Jika status WA belum wujud dalam database, kita cipta (insert) rekod baru
-            if (err2) {
-                await _supabase.from('system_settings').insert([
-                    { setting_key: 'whatsapp_status', setting_value: stat }
-                ]);
+            // 1. Simpan / Kemaskini Nombor WhatsApp
+            const { data: d1 } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no');
+            if (d1 && d1.length > 0) {
+                await _supabase.from('system_settings').update({ setting_value: num }).eq('setting_key', 'whatsapp_no');
+            } else {
+                await _supabase.from('system_settings').insert([{ setting_key: 'whatsapp_no', setting_value: num }]);
             }
 
-            if(err1) throw err1;
+            // 2. Simpan / Kemaskini Status WhatsApp (ON/OFF)
+            const { data: d2 } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_status');
+            if (d2 && d2.length > 0) {
+                await _supabase.from('system_settings').update({ setting_value: stat }).eq('setting_key', 'whatsapp_status');
+            } else {
+                await _supabase.from('system_settings').insert([{ setting_key: 'whatsapp_status', setting_value: stat }]);
+            }
 
             alert('✅ Tetapan WhatsApp berjaya dikemaskini!'); 
         } catch (err) {
