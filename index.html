@@ -791,7 +791,8 @@
                                 <h3 class="text-[11px] font-bold text-slate-800 truncate">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
                                 <p class="text-[9px] text-slate-500 truncate">${item.department} • ${new Date(item.created_at).toLocaleDateString('ms-MY')}</p>
                             </div>
-                            <div class="flex-shrink-0">${getStatusBadgeMobile(item.status, item.updated_at || item.created_at)}</div>
+                            <div class="flex-shrink-0">${getStatusBadgeMobile(item.status, item.updated_at || item.created_at)}
+                            </div>
                         </div>`;
                     }).join('');
                 }
