@@ -310,7 +310,7 @@
             if (!item) return;
 
             document.getElementById('view-date').innerText = new Date(item.created_at).toLocaleDateString('ms-MY');
-            document.getElementById('view-status-badge').innerHTML = getStatusBadge(item.status);
+            document.getElementById('view-document.getElementById('view-status-badge').innerHTML = getStatusBadge(item.status, item.updated_at || item.created_at);status-badge').innerHTML = getStatusBadge(item.status);
             document.getElementById('view-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
             document.getElementById('view-details').innerText = item.details || 'Tiada butiran.';
 
@@ -759,7 +759,7 @@
                     <div onclick="openViewComplaintModal('${item.id}')" class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md hover:border-orange-300 transition cursor-pointer">
                         <div class="flex justify-between items-start mb-2.5">
                             <span class="text-[11px] text-slate-400 font-bold"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</span>
-                            ${getStatusBadge(item.status)}
+                            ${getStatusBadge(item.status, item.updated_at || item.created_at)}
                         </div>
                         <h3 class="font-bold text-sm text-slate-800 mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
                         <p class="text-xs text-slate-500 line-clamp-2">${item.details || ''}</p>
@@ -791,7 +791,7 @@
                                 <h3 class="text-[11px] font-bold text-slate-800 truncate">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</h3>
                                 <p class="text-[9px] text-slate-500 truncate">${item.department} • ${new Date(item.created_at).toLocaleDateString('ms-MY')}</p>
                             </div>
-                            <div class="flex-shrink-0">${getStatusBadgeMobile(item.status)}</div>
+                            <div class="flex-shrink-0">${getStatusBadgeMobile(item.status, item.updated_at || item.created_at)}</div>
                         </div>`;
                     }).join('');
                 }
