@@ -687,15 +687,16 @@
                 const details = document.getElementById('details').value || '-';
                 const nama = document.getElementById('display-name').innerText;
                 
+                // Semakan Status WhatsApp ON/OFF (Kemaskini .toUpperCase())
                 const { data: wsData } = await _supabase.from('system_settings').select('*').in('setting_key', ['whatsapp_no', 'whatsapp_status']);
-                let noAdmin = "60123456780";
+                let noAdmin = "60123456789";
                 let waStatus = "ON";
 
                 if (wsData) {
                     const noD = wsData.find(d => d.setting_key === 'whatsapp_no');
                     const statD = wsData.find(d => d.setting_key === 'whatsapp_status');
                     if(noD && noD.setting_value) noAdmin = noD.setting_value.replace(/[^0-9]/g, '');
-                    if(statD && statD.setting_value) waStatus = statD.setting_value;
+                    if(statD && statD.setting_value) waStatus = statD.setting_value.trim().toUpperCase();
                 }
 
                 if (waStatus === 'ON') {
@@ -765,6 +766,7 @@
                 const nama = userProfile.full_name;
 
                 // Semakan Status WhatsApp ON/OFF
+                // Semakan Status WhatsApp ON/OFF (Kemaskini .toUpperCase())
                 const { data: wsData } = await _supabase.from('system_settings').select('*').in('setting_key', ['whatsapp_no', 'whatsapp_status']);
                 let noAdmin = "60123456789";
                 let waStatus = "ON";
@@ -773,7 +775,7 @@
                     const noD = wsData.find(d => d.setting_key === 'whatsapp_no');
                     const statD = wsData.find(d => d.setting_key === 'whatsapp_status');
                     if(noD && noD.setting_value) noAdmin = noD.setting_value.replace(/[^0-9]/g, '');
-                    if(statD && statD.setting_value) waStatus = statD.setting_value;
+                    if(statD && statD.setting_value) waStatus = statD.setting_value.trim().toUpperCase();
                 }
 
                 if (waStatus === 'ON') {
