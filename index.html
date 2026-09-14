@@ -663,11 +663,22 @@
                 const dept = document.getElementById('department').value;
                 const details = document.getElementById('details').value || '-';
                 const nama = document.getElementById('display-name').innerText;
-                const { data: settingData } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
-                let noAdmin = settingData ? settingData.setting_value.replace(/[^0-9]/g, '') : "60123456789";
                 
-                const mesejWA = `*ADUAN BARU*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}`;
-                window.open(`https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`, '_blank');
+                const { data: wsData } = await _supabase.from('system_settings').select('*').in('setting_key', ['whatsapp_no', 'whatsapp_status']);
+                let noAdmin = "60123456780";
+                let waStatus = "ON";
+
+                if (wsData) {
+                    const noD = wsData.find(d => d.setting_key === 'whatsapp_no');
+                    const statD = wsData.find(d => d.setting_key === 'whatsapp_status');
+                    if(noD && noD.setting_value) noAdmin = noD.setting_value.replace(/[^0-9]/g, '');
+                    if(statD && statD.setting_value) waStatus = statD.setting_value;
+                }
+
+                if (waStatus === 'ON') {
+                    const mesejWA = `*ADUAN BARU*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}`;
+                    window.open(`https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`, '_blank');
+                }
                 
                 document.getElementById('complaint-form').reset();
                 selectedAttachmentFiles = []; renderFilePreview();
@@ -724,11 +735,22 @@
                 const dept = document.getElementById('mob-dept').value;
                 const details = document.getElementById('mob-details').value || '-';
                 const nama = userProfile.full_name;
-                const { data: settingData } = await _supabase.from('system_settings').select('setting_value').eq('setting_key', 'whatsapp_no').single();
-                let noAdmin = settingData ? settingData.setting_value.replace(/[^0-9]/g, '') : "60123456789";
+                
+                const { data: wsData } = await _supabase.from('system_settings').select('*').in('setting_key', ['whatsapp_no', 'whatsapp_status']);
+                let noAdmin = "60123456789";
+                let waStatus = "ON";
 
-                const mesejWA = `*ADUAN BARU*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}`;
-                window.open(`https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`, '_blank');
+                if (wsData) {
+                    const noD = wsData.find(d => d.setting_key === 'whatsapp_no');
+                    const statD = wsData.find(d => d.setting_key === 'whatsapp_status');
+                    if(noD && noD.setting_value) noAdmin = noD.setting_value.replace(/[^0-9]/g, '');
+                    if(statD && statD.setting_value) waStatus = statD.setting_value;
+                }
+
+                if (waStatus === 'ON') {
+                    const mesejWA = `*ADUAN BARU*\n\n*Nama:* ${nama}\n*Lokasi:* ${dept}\n*Butiran:* ${details}`;
+                    window.open(`https://wa.me/${noAdmin}?text=${encodeURIComponent(mesejWA)}`, '_blank');
+                }
 
                 closeMobModal();
                 document.getElementById('mob-form').reset();
