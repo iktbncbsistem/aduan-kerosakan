@@ -556,7 +556,18 @@
         let selectedAttachmentFiles = [];
         function handleFileSelection(event) {
             const files = event.target.files;
-            if (files) Array.from(files).forEach(file => selectedAttachmentFiles.push(file));
+            if (!files) return;
+
+            Array.from(files).forEach(file => {
+                const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                
+                // Halang PDF yang melebihi 2MB (2 * 1024 * 1024 bytes)
+                if (isPDF && file.size > 2097152) {
+                    alert(`Gagal: Saiz PDF "${file.name}" melebihi had 2MB! Sila kecilkan fail.`);
+                } else {
+                    selectedAttachmentFiles.push(file);
+                }
+            });
             renderFilePreview();
             event.target.value = ''; 
         }
@@ -567,16 +578,19 @@
             let html = '';
             
             selectedAttachmentFiles.forEach((file, index) => {
+                const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                const icon = isPDF ? '📄' : '📷';
                 html += `
                     <div class="flex items-center justify-between bg-orange-50 px-2 py-1 rounded text-xs border border-orange-100 mb-1">
-                        <span class="truncate text-orange-700 font-bold">📷 ${file.name}</span>
+                        <span class="truncate text-orange-700 font-bold">${icon} ${file.name}</span>
                         <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 bg-red-100 rounded px-1.5 font-bold transition">&times;</button>
                     </div>`;
             });
             
             if(preview) preview.innerHTML = html;
             if(mobPreview) mobPreview.innerHTML = html;
-        }
+        }     
+        
         function removeFile(index) {
             selectedAttachmentFiles.splice(index, 1);
             renderFilePreview();
@@ -630,9 +644,18 @@
                 let imageUrls = [];
                 if (selectedAttachmentFiles.length > 0) {
                     for (let i = 0; i < selectedAttachmentFiles.length; i++) {
-                        const compFile = await compressImage(selectedAttachmentFiles[i]);
-                        const path = `images/${Date.now()}_${i}_${compFile.name}`;
-                        const { error } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
+                        let fileToUpload = selectedAttachmentFiles[i];
+                        const isPDF = fileToUpload.type === 'application/pdf' || fileToUpload.name.toLowerCase().endsWith('.pdf');
+                        
+                        // Jika bukan PDF (iaitu gambar), baru compress
+                        if (!isPDF) {
+                            fileToUpload = await compressImage(fileToUpload);
+                        }
+                        
+                        const cleanName = fileToUpload.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                        const path = `images/${Date.now()}_${i}_${cleanName}`;
+                        
+                        const { error } = await _supabase.storage.from('complaint_attachments').upload(path, fileToUpload);
                         if (!error) imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
                     }
                 }
@@ -699,23 +722,27 @@
                 if (!catValue) { alert('Sila pilih kategori kerosakan.'); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Hantar Permohonan'; return; }
                 const selectedDamageTypes = [catValue];
 
-                let imageUrls = [];
-                // Gunakan array global yang dah kumpul semua gambar (Kamera + Galeri)
-                if (selectedAttachmentFiles.length > 0) {
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik gambar...';
+               if (selectedAttachmentFiles.length > 0) {
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik fail...';
                     
                     for (let i = 0; i < selectedAttachmentFiles.length; i++) {
-                        const compFile = await compressImage(selectedAttachmentFiles[i]);
-                        const cleanName = compFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                        let fileToUpload = selectedAttachmentFiles[i];
+                        const isPDF = fileToUpload.type === 'application/pdf' || fileToUpload.name.toLowerCase().endsWith('.pdf');
+                        
+                        // Jika bukan PDF (iaitu gambar), baru compress
+                        if (!isPDF) {
+                            fileToUpload = await compressImage(fileToUpload);
+                        }
+                        
+                        const cleanName = fileToUpload.name.replace(/[^a-zA-Z0-9.]/g, '_');
                         const path = `images/${Date.now()}_mob_${i}_${cleanName}`;
                         
-                        const { error: uploadError } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
+                        const { error: uploadError } = await _supabase.storage.from('complaint_attachments').upload(path, fileToUpload);
                         if (uploadError) throw new Error('Ralat Muat Naik: ' + uploadError.message);
                         
                         imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
                     }
-                }
-                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
+                }                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
 
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan data...';
                 const newComplaint = {
