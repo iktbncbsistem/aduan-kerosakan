@@ -112,6 +112,35 @@
     </div>
 
     <script>
+
+
+
+// Pengendali butang Back khusus untuk telefon (PWA & Pelayar)
+(function handleMobileBackExit() {
+    // 1. Jika pengguna guna PWA (Add to Home Screen)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+
+    // Kosongkan tindanan history supaya tidak boleh back ke paparan sebelum ini
+    history.pushState(null, null, location.href);
+
+    window.onpopstate = function () {
+        if (isPWA) {
+            // Tutup aplikasi PWA terus ke Home Screen
+            window.close();
+        } else {
+            // Untuk pelayar Chrome/Safari biasa: tutup tab atau lepaskan paparan
+            window.close();
+            setTimeout(() => {
+                // Jika browser sekat window.close(), paksa ke skrin kosong pelayar
+                window.location.href = "about:blank";
+            }, 100);
+        }
+    };
+})();
+
+
+
+        
         const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
