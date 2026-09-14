@@ -150,11 +150,22 @@
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fa-brands fa-whatsapp"></i></div>
                     <h3 class="font-extrabold text-slate-800 text-lg">Notifikasi WhatsApp Admin</h3>
-                    <p class="text-xs text-slate-500 mt-1">Nombor ini akan menerima notifikasi jika ada permohonan baru dihantar.</p>
+                    <p class="text-xs text-slate-500 mt-1">Sistem akan menghantar mesej ke nombor ini jika fungsi diaktifkan.</p>
                 </div>
-                <div class="flex gap-2">
-                    <input type="text" id="wa-number" placeholder="Cth: 60123456789" class="flex-1 border border-slate-300 rounded-lg p-3 text-sm outline-none focus:border-emerald-500 transition">
-                    <button onclick="saveWhatsapp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-lg transition shadow-sm text-sm">Simpan</button>
+                
+                <div class="flex flex-col gap-3 max-w-md mx-auto">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Penghantaran</label>
+                        <select id="wa-status" class="w-full border border-slate-300 rounded-lg p-3 text-sm font-bold outline-none focus:border-emerald-500 text-slate-700 transition">
+                            <option value="ON">🟢 ON (Aktif)</option>
+                            <option value="OFF">🔴 OFF (Tutup)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombor Telefon (Mula dengan 60)</label>
+                        <input type="text" id="wa-number" placeholder="Cth: 60123456789" class="w-full border border-slate-300 rounded-lg p-3 text-sm outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <button onclick="saveWhatsapp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-lg transition shadow-sm text-sm mt-2">Simpan Tetapan</button>
                 </div>
             </div>
 
@@ -463,12 +474,28 @@ function viewComplaintDetail(id) {
         document.getElementById('tab-btn-lokasi').className = tabId === 'lokasi' ? activeClass : inactiveClass;
         document.getElementById('tab-btn-rbac').className = tabId === 'rbac' ? activeClass : inactiveClass;
 
-        if(tabId === 'wa') { const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'whatsapp_no').single(); if(data) document.getElementById('wa-number').value = data.setting_value; }
+        if(tabId === 'wa') { 
+            const { data } = await _supabase.from('system_settings').select('*').in('setting_key', ['whatsapp_no', 'whatsapp_status']);
+            if(data) {
+                const noData = data.find(d => d.setting_key === 'whatsapp_no');
+                const statData = data.find(d => d.setting_key === 'whatsapp_status');
+                if(noData) document.getElementById('wa-number').value = noData.setting_value;
+                if(statData) document.getElementById('wa-status').value = statData.setting_value;
+            }
+        }
         if(tabId === 'lokasi') { loadSettingsLocations(); }
         if(tabId === 'rbac') { loadRBACUsers(); }
     }
 
-    async function saveWhatsapp() { const num = document.getElementById('wa-number').value.trim(); const { error } = await _supabase.from('system_settings').upsert({ setting_key: 'whatsapp_no', setting_value: num, updated_at: new Date() }); if(!error) alert('No WhatsApp dikemaskini!'); }
+    async function saveWhatsapp() { 
+        const num = document.getElementById('wa-number').value.trim(); 
+        const stat = document.getElementById('wa-status').value;
+        const { error } = await _supabase.from('system_settings').upsert([
+            { setting_key: 'whatsapp_no', setting_value: num, updated_at: new Date() },
+            { setting_key: 'whatsapp_status', setting_value: stat, updated_at: new Date() }
+        ]); 
+        if(!error) alert('Tetapan WhatsApp berjaya dikemaskini!'); 
+    }
     
     async function loadSettingsLocations() {
         const { data } = await _supabase.from('departments').select('*').order('name');
