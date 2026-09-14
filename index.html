@@ -90,17 +90,18 @@
                         <div><label class="block font-bold text-slate-500 uppercase mb-1">Anggaran Kos (RM)</label><input type="number" step="0.01" id="mob-cost" placeholder="0.00" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 outline-none mb-3"></div>
 
                         <div>
-                            <label class="block font-bold text-slate-500 uppercase mb-1">Gambar Kerosakan</label>
+                            <div>
+                            <label class="block font-bold text-slate-500 uppercase mb-1">Gambar Kerosakan (Boleh lebih dari 1)</label>
                             <div class="flex gap-2">
                                 <!-- Butang Kamera -->
                                 <label class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-orange-100 transition">
-                                    <input type="file" id="mob-cam" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'📷 '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-gal').value='';">
+                                    <input type="file" id="mob-cam" accept="image/*" capture="environment" multiple class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files.length>0?'📷 '+this.files.length+' gambar dipilih':'Tiada gambar'; document.getElementById('mob-gal').value='';">
                                     <i class="fa-solid fa-camera mb-1 block text-lg"></i>
                                     <span class="text-[9px] font-bold">Kamera</span>
                                 </label>
                                 <!-- Butang Galeri -->
                                 <label class="flex-1 bg-slate-50 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-center cursor-pointer hover:bg-slate-100 transition">
-                                    <input type="file" id="mob-gal" accept="image/*" class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files[0]?'🖼️ '+this.files[0].name:'Tiada gambar'; document.getElementById('mob-cam').value='';">
+                                    <input type="file" id="mob-gal" accept="image/*" multiple class="hidden" onchange="document.getElementById('mob-img-lbl').innerText=this.files.length>0?'🖼️ '+this.files.length+' gambar dipilih':'Tiada gambar'; document.getElementById('mob-cam').value='';">
                                     <i class="fa-solid fa-image mb-1 block text-lg"></i>
                                     <span class="text-[9px] font-bold">Galeri</span>
                                 </label>
@@ -689,20 +690,23 @@
                 const selectedDamageTypes = [catValue];
 
                 let imageUrls = [];
-                const mobImg = document.getElementById('mob-cam').files[0] || document.getElementById('mob-gal').files[0];
+                const camFiles = document.getElementById('mob-cam').files;
+                const galFiles = document.getElementById('mob-gal').files;
+                const selectedFiles = camFiles.length > 0 ? camFiles : galFiles;
                 
-                if (mobImg) {
+                if (selectedFiles.length > 0) {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik gambar...';
-                    const compFile = await compressImage(mobImg);
                     
-                    // Bersihkan nama fail daripada simbol-simbol pelik (penting untuk Supabase)
-                    const cleanName = compFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
-                    const path = `images/${Date.now()}_mob_${cleanName}`;
-                    
-                    const { error: uploadError } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
-                    if (uploadError) throw new Error('Ralat Muat Naik Gambar: ' + uploadError.message);
-                    
-                    imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
+                    for (let i = 0; i < selectedFiles.length; i++) {
+                        const compFile = await compressImage(selectedFiles[i]);
+                        const cleanName = compFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                        const path = `images/${Date.now()}_mob_${i}_${cleanName}`;
+                        
+                        const { error: uploadError } = await _supabase.storage.from('complaint_attachments').upload(path, compFile);
+                        if (uploadError) throw new Error('Ralat Muat Naik Gambar ' + (i+1) + ': ' + uploadError.message);
+                        
+                        imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
+                    }
                 }
                 const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
 
