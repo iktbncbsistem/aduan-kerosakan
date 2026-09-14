@@ -622,6 +622,24 @@ function viewComplaintDetail(id) {
         printWindow.document.close();
         setTimeout(() => { printWindow.print(); }, 800);
     }
+
+window.downloadFile = async function(e, url) {
+    e.preventDefault();
+    const btn = e.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-slate-400"></i>Muat turun...';
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const urlBlob = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = urlBlob;
+        a.download = decodeURIComponent(url.split('/').pop().split('?')[0]);
+        document.body.appendChild(a);
+        a.click(); a.remove(); window.URL.revokeObjectURL(urlBlob);
+    } catch (err) { window.open(url, '_blank'); } finally { btn.innerHTML = originalText; }
+}
+        
 </script>
 </body>
 </html>
