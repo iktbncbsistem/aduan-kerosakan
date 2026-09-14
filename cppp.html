@@ -395,7 +395,7 @@
         let dateHtml = dateStr ? `<div class="text-[9px] font-bold text-slate-500 mt-1.5"><i class="fa-regular fa-clock mr-1"></i>${new Date(dateStr).toLocaleDateString('ms-MY')}</div>` : '';
         return `<div class="flex flex-col items-center justify-center">${badgeHtml}${dateHtml}</div>`;
     }
-    }
+    
     function applyFilters() {
         const search = document.getElementById('filter-search') ? document.getElementById('filter-search').value.toLowerCase() : '';
         const dept = document.getElementById('filter-dept') ? document.getElementById('filter-dept').value : '';
