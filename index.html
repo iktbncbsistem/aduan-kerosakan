@@ -715,16 +715,16 @@
         async function submitMobileComplaint(e) {
             e.preventDefault();
             const btn = document.getElementById('mob-submit-btn');
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Proses...';
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik fail...';
 
             try {
                 const catValue = document.getElementById('mob-cat').value;
                 if (!catValue) { alert('Sila pilih kategori kerosakan.'); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Hantar Permohonan'; return; }
                 const selectedDamageTypes = [catValue];
 
-               if (selectedAttachmentFiles.length > 0) {
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat naik fail...';
-                    
+                let imageUrls = [];
+
+                if (selectedAttachmentFiles.length > 0) {
                     for (let i = 0; i < selectedAttachmentFiles.length; i++) {
                         let fileToUpload = selectedAttachmentFiles[i];
                         const isPDF = fileToUpload.type === 'application/pdf' || fileToUpload.name.toLowerCase().endsWith('.pdf');
@@ -742,7 +742,8 @@
                         
                         imageUrls.push(_supabase.storage.from('complaint_attachments').getPublicUrl(path).data.publicUrl);
                     }
-                }                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
+                }
+                const finalImageUrl = imageUrls.length > 0 ? imageUrls.join(',') : null;
 
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan data...';
                 const newComplaint = {
@@ -762,7 +763,8 @@
                 const dept = document.getElementById('mob-dept').value;
                 const details = document.getElementById('mob-details').value || '-';
                 const nama = userProfile.full_name;
-                
+
+                // Semakan Status WhatsApp ON/OFF
                 const { data: wsData } = await _supabase.from('system_settings').select('*').in('setting_key', ['whatsapp_no', 'whatsapp_status']);
                 let noAdmin = "60123456789";
                 let waStatus = "ON";
