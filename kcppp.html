@@ -444,7 +444,59 @@ function viewComplaintDetail(id) {
         }
         document.getElementById('view-modal').classList.remove('hidden');
     }
-    async function submitKCPPPAction(e) {
+    // FUNGSI EKSPORT MANUAL ADUAN KE PEMANTAUAN PROJEK
+    async function exportToPemantauan(complaintId) {
+        const id = complaintId || currentKcpppId;
+        if (!id) { alert("Sila pilih aduan dahulu."); return; }
+        if (!confirm("Adakah anda pasti untuk menghantar aduan ini ke Modul Pemantauan Projek?")) return;
+
+        try {
+            const { data: aduan, error } = await _supabase
+                .from('complaints')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error || !aduan) { alert("Gagal menarik data aduan."); return; }
+
+            const projectId = "PRJ-" + (aduan.ticket_no || Date.now());
+            const projectData = {
+                id: projectId,
+                code: aduan.ticket_no || "",
+                title: `Penyenggaraan: ${aduan.department} - ${Array.isArray(aduan.damage_types) ? aduan.damage_types.join(', ') : aduan.damage_types}`,
+                category: "Lain-lain",
+                procurement: aduan.kcppp_action || "Tindakan KCPPP",
+                status: "Perancangan",
+                progress: 0,
+                budget: Number(aduan.estimated_cost) || 0,
+                commitment: 0,
+                spent: 0,
+                startDate: "",
+                dueDate: "",
+                schedule: `Eksport manual dari aduan pada ${new Date().toLocaleDateString('ms-MY')}`,
+                pic: "Belum ditetapkan",
+                location: aduan.department || "IKTBN Chembong",
+                issue: aduan.details || "Tiada isu",
+                nextAction: "Tetapkan PIC dan jadual kerja.",
+                lastUpdated: new Date().toLocaleString("ms-MY"),
+                updates: [],
+                photos: aduan.image_url ? [{ data: aduan.image_url, caption: "Gambar Aduan Asal", date: new Date().toLocaleDateString('ms-MY') }] : []
+            };
+
+            const { error: insertError } = await _supabase
+                .from('pemantauan_projek')
+                .upsert([{ id: projectId, data: projectData }]);
+
+            if (insertError) {
+                alert("Ralat simpan ke Pemantauan Projek: " + insertError.message);
+            } else {
+                alert("Berjaya! Aduan telah dihantar ke Modul Pemantauan Projek.");
+            }
+        } catch (err) {
+            alert("Ralat sistem semasa eksport.");
+        }
+    }
+        async function submitKCPPPAction(e) {
         try { if(e) e.preventDefault(); } catch(err) {}
         
         const id = currentKcpppId;
