@@ -341,17 +341,29 @@
         
         document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
     }
+    let monitoredCodes = new Set();
 
-    async function loadComplaintsData() {
-        const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
-        if (error || !data) return;
-        rawComplaintsData = data;
-        
-        let baru = 0, proses = 0, selesai = 0;
-        data.forEach(item => { if(item.status === 'BARU') baru++; else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; else if(item.status === 'SELESAI') selesai++; });
-        document.getElementById('stat-baru').innerText = baru; document.getElementById('stat-proses').innerText = proses; document.getElementById('stat-selesai').innerText = selesai; document.getElementById('stat-total').innerText = data.length;
-        renderKCPPPTable(data);
+async function loadComplaintsData() {
+    // 1. Semak rekod yang dah ada dalam pangkalan data pemantauan
+    const { data: projs } = await _supabase.from('pemantauan_projek').select('id, data');
+    monitoredCodes.clear();
+    if (projs) {
+        projs.forEach(p => {
+            if (p.data && p.data.code) monitoredCodes.add(p.data.code);
+            if (p.id) monitoredCodes.add(p.id);
+        });
     }
+
+    // 2. Tarik data aduan KCPPP
+    const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
+    if (error || !data) return;
+    rawComplaintsData = data;
+    
+    let baru = 0, proses = 0, selesai = 0;
+    data.forEach(item => { if(item.status === 'BARU') baru++; else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; else if(item.status === 'SELESAI') selesai++; });
+    document.getElementById('stat-baru').innerText = baru; document.getElementById('stat-proses').innerText = proses; document.getElementById('stat-selesai').innerText = selesai; document.getElementById('stat-total').innerText = data.length;
+    renderKCPPPTable(data);
+}
 
     function renderKCPPPTable(data) {
         const tbody = document.getElementById('kcppp-complaints-table');
@@ -444,22 +456,32 @@ function viewComplaintDetail(id) {
         }
         document.getElementById('view-modal').classList.remove('hidden');
     }
-    // FUNGSI EKSPORT MANUAL ADUAN KE PEMANTAUAN PROJEK
-    async function exportToPemantauan(complaintId) {
-        const id = complaintId || currentKcpppId;
-        if (!id) { alert("Sila pilih aduan dahulu."); return; }
-        if (!confirm("Adakah anda pasti untuk menghantar aduan ini ke Modul Pemantauan Projek?")) return;
+    // FUNGSI TOGGLE (TAMBAH / PADAM) ADUAN KE PEMANTAUAN PROJEK
+    async function togglePemantauan(complaintId) {
+        const aduan = rawComplaintsData.find(c => c.id === complaintId);
+        if (!aduan) return;
 
-        try {
-            const { data: aduan, error } = await _supabase
-                .from('complaints')
-                .select('*')
-                .eq('id', id)
-                .single();
+        const ticketCode = aduan.ticket_no || aduan.id;
+        const projectId = "PRJ-" + ticketCode;
+        const isMonitored = monitoredCodes.has(ticketCode) || monitoredCodes.has(projectId);
 
-            if (error || !aduan) { alert("Gagal menarik data aduan."); return; }
+        if (isMonitored) {
+            // JIKA SUDAH DIPANTAU -> PADAM BILA DIKLIK
+            if (!confirm(`Padam aduan No. ${ticketCode} daripada Modul Pemantauan Projek?`)) return;
+            
+            const { error } = await _supabase.from('pemantauan_projek').delete().eq('id', projectId);
+            if (error) {
+                alert("Ralat memadam: " + error.message);
+            } else {
+                monitoredCodes.delete(ticketCode);
+                monitoredCodes.delete(projectId);
+                alert("Aduan dikeluarkan daripada Pemantauan Projek.");
+                applyFilters();
+            }
+        } else {
+            // JIKA BELUM DIPANTAU -> TAMBAH BILA DIKLIK
+            if (!confirm(`Hantar aduan No. ${ticketCode} ke Modul Pemantauan Projek?`)) return;
 
-            const projectId = "PRJ-" + (aduan.ticket_no || Date.now());
             const projectData = {
                 id: projectId,
                 code: aduan.ticket_no || "",
@@ -483,17 +505,15 @@ function viewComplaintDetail(id) {
                 photos: aduan.image_url ? [{ data: aduan.image_url, caption: "Gambar Aduan Asal", date: new Date().toLocaleDateString('ms-MY') }] : []
             };
 
-            const { error: insertError } = await _supabase
-                .from('pemantauan_projek')
-                .upsert([{ id: projectId, data: projectData }]);
-
-            if (insertError) {
-                alert("Ralat simpan ke Pemantauan Projek: " + insertError.message);
+            const { error } = await _supabase.from('pemantauan_projek').upsert([{ id: projectId, data: projectData }]);
+            if (error) {
+                alert("Ralat menghantar: " + error.message);
             } else {
+                monitoredCodes.add(ticketCode);
+                monitoredCodes.add(projectId);
                 alert("Berjaya! Aduan telah dihantar ke Modul Pemantauan Projek.");
+                applyFilters();
             }
-        } catch (err) {
-            alert("Ralat sistem semasa eksport.");
         }
     }
         async function submitKCPPPAction(e) {
