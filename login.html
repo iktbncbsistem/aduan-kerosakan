@@ -115,29 +115,25 @@
 
 
 
-// Pengendali butang Back khusus untuk telefon (PWA & Pelayar)
-(function handleMobileBackExit() {
-    // 1. Jika pengguna guna PWA (Add to Home Screen)
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+// ==========================================
+        // KAWALAN BUTANG BACK (PAKSA KE HOME SCREEN)
+        // ==========================================
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            // 1. Cuba tutup secara normal (untuk PWA tertentu)
+            try { window.close(); } catch (e) {}
 
-    // Kosongkan tindanan history supaya tidak boleh back ke paparan sebelum ini
-    history.pushState(null, null, location.href);
-
-    window.onpopstate = function () {
-        if (isPWA) {
-            // Tutup aplikasi PWA terus ke Home Screen
-            window.close();
-        } else {
-            // Untuk pelayar Chrome/Safari biasa: tutup tab atau lepaskan paparan
-            window.close();
-            setTimeout(() => {
-                // Jika browser sekat window.close(), paksa ke skrin kosong pelayar
-                window.location.href = "about:blank";
-            }, 100);
-        }
-    };
-})();
-
+            // 2. Kenal pasti jika pengguna guna Android
+            const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera);
+            
+            if (isAndroid) {
+                // Trik Khas: Arahkan OS Android buka Home Screen
+                window.location.replace("intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.HOME;end");
+            } else {
+                // Untuk iPhone (iOS) atau web biasa, paparkan skrin kosong
+                window.location.replace("about:blank");
+            }
+        };
 
 
         
