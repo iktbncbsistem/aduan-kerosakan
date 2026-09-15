@@ -295,6 +295,25 @@ td { font-size: 12px; }
 <div class="toast" id="toast"></div>
 
 <script>
+function goBackMenu() {
+    if (!currentUserProfile || !currentUserProfile.role) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    const role = currentUserProfile.role.toUpperCase();
+    
+    if (role === 'KCPPP') {
+        window.location.href = 'kcppp.html';
+    } else if (role === 'CPPP') {
+        window.location.href = 'cppp.html';
+    } else if (role === 'ADMIN') {
+        window.location.href = 'admin.html';
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+   
 // ==========================================
 // KONFIGURASI SUPABASE & PEMBOLEHUBAH
 // ==========================================
