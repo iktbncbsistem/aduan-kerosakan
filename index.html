@@ -432,6 +432,7 @@
         }
 
         // FUNGSI AUTHENTICATION
+        // FUNGSI AUTHENTICATION
         async function checkAuth() {
             try {
                 const { data: { session } } = await _supabase.auth.getSession();
@@ -440,6 +441,12 @@
                 
                 const emailHeader = document.getElementById('user-email-header');
                 if(emailHeader) emailHeader.innerText = currentUser.email;
+
+                // --- TAMBAH KOD INI UNTUK UPDATE 'LAST LOGIN / LAST ACTIVE' ---
+                await _supabase.from('user_profiles')
+                    .update({ last_login: new Date().toISOString() })
+                    .eq('email', currentUser.email);
+                // --------------------------------------------------------------
 
                 const fullNameFallback = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
                 
@@ -475,17 +482,16 @@
                 menuContainer.innerHTML = '';
                 const roleUpper = profile && profile.role ? profile.role.trim().toUpperCase() : 'STAF';
 
-                if (roleUpper === 'ADMIN') {
-                    menuContainer.innerHTML = `<a href="admin.html" class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-purple-100 transition"><i class="fa-solid fa-gear mr-1"></i> Admin</a>`;
-                } else if (roleUpper === 'CPPP') {
+                // Gabungkan ADMIN dan KCPPP untuk akses Panel Pengurusan (kcppp.html)
+                if (roleUpper === 'CPPP') {
                     menuContainer.innerHTML = `<a href="cppp.html" class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-100 transition"><i class="fa-solid fa-wrench mr-1"></i> CPPP</a>`;
-                } else if (roleUpper === 'KCPPP') {
-                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-emerald-100 transition"><i class="fa-solid fa-sliders mr-1"></i> KCPPP</a>`;
+                } else if (roleUpper === 'KCPPP' || roleUpper === 'ADMIN') {
+                    menuContainer.innerHTML = `<a href="kcppp.html" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-emerald-100 transition"><i class="fa-solid fa-sliders mr-1"></i> Panel Pengurusan</a>`;
                 }
                 
                 menuContainer.classList.remove('hidden');
 
-// --- KOD MENU TELEFON (GAYA APLIKASI TNG) ---
+                // --- KOD MENU TELEFON (GAYA APLIKASI TNG) ---
                 const mobAdminPanel = document.getElementById('mob-admin-panel');
                 const mobAdminGrid = document.getElementById('mob-admin-grid');
                 
@@ -493,16 +499,14 @@
                     mobAdminGrid.innerHTML = '';
                     let hasAdminMenu = false;
 
-                    if (roleUpper === 'ADMIN') {
-                        mobAdminGrid.innerHTML += `<a href="admin.html" class="flex flex-col items-center gap-2 active:scale-90 transition-transform"><div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-gear"></i></div><span class="text-[10px] font-bold text-slate-700">Admin</span></a>`;
-                        hasAdminMenu = true;
-                    }
+                    // ADMIN dan CPPP nampak butang CPPP
                     if (roleUpper === 'ADMIN' || roleUpper === 'CPPP') {
                         mobAdminGrid.innerHTML += `<a href="cppp.html" class="flex flex-col items-center gap-2 active:scale-90 transition-transform"><div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-wrench"></i></div><span class="text-[10px] font-bold text-slate-700">CPPP</span></a>`;
                         hasAdminMenu = true;
                     }
+                    // ADMIN dan KCPPP nampak butang KCPPP (Pengurusan)
                     if (roleUpper === 'ADMIN' || roleUpper === 'KCPPP') {
-                        mobAdminGrid.innerHTML += `<a href="kcppp.html" class="flex flex-col items-center gap-2 active:scale-90 transition-transform"><div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-sliders"></i></div><span class="text-[10px] font-bold text-slate-700">KCPPP</span></a>`;
+                        mobAdminGrid.innerHTML += `<a href="kcppp.html" class="flex flex-col items-center gap-2 active:scale-90 transition-transform"><div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-sliders"></i></div><span class="text-[10px] font-bold text-slate-700">Pengurusan</span></a>`;
                         hasAdminMenu = true;
                     }
 
@@ -510,14 +514,12 @@
                 }
                 // --- TAMAT KOD MENU TELEFON ---
 
-
-                
-
+                // --- REDIRECT AUTOMATIK ---
                 if (!sessionStorage.getItem('sudah_redirect')) {
                     sessionStorage.setItem('sudah_redirect', 'true');
                     if (roleUpper === 'CPPP') { window.location.href = 'cppp.html'; return; } 
-                    else if (roleUpper === 'KCPPP') { window.location.href = 'kcppp.html'; return; } 
-                    else if (roleUpper === 'ADMIN') { window.location.href = 'admin.html'; return; }
+                    // Jika ADMIN atau KCPPP, terus bawa ke kcppp.html
+                    else if (roleUpper === 'KCPPP' || roleUpper === 'ADMIN') { window.location.href = 'kcppp.html'; return; } 
                 }
 
                 await loadMasterData();
@@ -526,7 +528,6 @@
                 console.error("Ralat Auth:", error);
             }
         }
-
         function updateProfileUI() {
             const displayName = userProfile?.full_name || currentUser?.email?.split('@')[0] || 'Pengguna';
             
