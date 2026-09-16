@@ -213,7 +213,7 @@
                     <button id="tab-btn-wa" onclick="switchSettingsTab('wa')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-[#12304a] bg-slate-100 rounded-lg transition-all"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1.5 text-base align-middle"></i> Notifikasi WhatsApp</button>
                     <button id="tab-btn-lokasi" onclick="switchSettingsTab('lokasi')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-[#12304a] rounded-lg transition-all"><i class="fa-solid fa-building text-blue-500 mr-1.5 text-base align-middle"></i> Urus Lokasi</button>
                     <button id="tab-btn-rbac" onclick="switchSettingsTab('rbac')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-[#12304a] rounded-lg transition-all"><i class="fa-solid fa-users-gear text-purple-500 mr-1.5 text-base align-middle"></i> Kawalan Pengguna (RBAC)</button>
-                    <button id="tab-btn-log" onclick="switchSettingsTab('log')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-[#12304a] rounded-lg transition-all"><i class="fa-solid fa-clock-rotate-left text-orange-500 mr-1.5 text-base align-middle"></i> Log Aktiviti</button>
+                    
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 min-h-[400px]">
@@ -257,27 +257,8 @@
     </tr>
 </thead><tbody id="rbac-table-body" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan...</td></tr></tbody></table></div>
                     </div>
-                </div>
-<!-- Tab Log Aktiviti -->
-<div id="tab-log" class="hidden space-y-4">
-    <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-2">
-        <div><h3 class="font-extrabold text-[#12304a] text-base">Jejak Log Aktiviti Sistem</h3><p class="text-xs text-slate-500">Pantau aktiviti pengguna dan log masuk terkini.</p></div>
-        <button onclick="loadActivityLog()" class="btn outline bg-white"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
-    </div>
-    <div class="overflow-y-auto w-full border border-slate-200 rounded-xl max-h-96">
-        <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px] sticky top-0">
-                <tr><th class="p-3 w-10 text-center">Bil</th><th class="p-3 w-40">Tarikh & Masa</th><th class="p-3 w-48">Pengguna</th><th class="p-3">Aktiviti / Tindakan</th></tr>
-            </thead>
-            <tbody id="log-table-body" class="divide-y divide-slate-100">
-                <tr><td colspan="4" class="p-8 text-center text-slate-400">Memuatkan rekod aktiviti...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-                
+                </div>          
             </div>
-
         </main>
     </div>
 
@@ -582,7 +563,7 @@
                 <td class="p-3 text-center"><button onclick="saveRBAC('${u.id}')" class="btn outline py-1 px-3 text-[10px]">Simpan</button></td>
             </tr>`;
         }).join('');
-        loadActivityLog(); 
+        
     }
     async function saveRBAC(id) { const r = document.getElementById(`role-${id}`).value; const b = document.getElementById(`status-${id}`).value === 'true'; await _supabase.from('user_profiles').update({ role: r, is_blocked: b }).eq('id', id); alert('Disimpan!'); loadRBACUsers(); }
 
