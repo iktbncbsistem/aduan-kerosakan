@@ -195,15 +195,22 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await _supabase.auth.signInWithPassword({
+        email: emailValue,
+        password: passwordValue
+    });
 
-            if (error) {
-                showNotice("E-mel atau kata laluan tidak tepat.", true);
-                btn.disabled = false; btn.innerText = 'Log Masuk Sistem';
-            } else {
-                window.location.href = 'index.html';
-            }
-        }
+    if (error) {
+        
+    } else {
+        await _supabase.from('user_profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('email', emailValue);
+        // ------------------------------------------------
+
+        // (Kod asal bos)
+        window.location.href = 'index.html'; // atau pemantauan.html
+    }
 
         // FUNGSI DAFTAR AKAUN BAHARU (SIGN UP)
         async function handleSignup(e) {
