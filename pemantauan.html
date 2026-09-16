@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- TAMBAH LIBRARY INI UNTUK EKSPORT EXCEL -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -159,10 +159,10 @@
         </div>
     </div>
 <div class="top-actions">
-    <button class="btn ghost" onclick="window.print()"><i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Cetak / PDF</span></button>
-    <button class="btn ghost" onclick="exportDataExcel()"><i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Eksport XLS</span></button>
-    <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
-</div>
+        <!-- Kita letak butang shortcut ke Laporan sebagai ganti -->
+        <button class="btn ghost" onclick="window.location.href='laporan.html'"><i class="fa-solid fa-file-lines"></i> <span class="hidden sm:inline">Jana Laporan</span></button>
+        <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
+    </div>
 </header>
 
 <div class="shell">
@@ -175,6 +175,12 @@
         <div class="nav-item active" id="nav-dash" onclick="clearFilters()">
             <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Dashboard Pemantauan</span> <span class="count" id="navCount">0</span>
         </div>
+        
+        <!-- TAMBAH BARIS INI UNTUK PERGI KE LAPORAN -->
+        <div class="nav-item" onclick="window.location.href='laporan.html'">
+            <i class="fa-solid fa-print"></i> <span class="nav-text">Jana Laporan</span>
+        </div>
+
         <div class="side-label mt-2">Kategori Projek</div>
         <div id="sideCategories"></div>
     </aside>
@@ -748,127 +754,7 @@ async function removePhoto(i) {
 }
 
 function closeModal() { document.getElementById("projectModal").classList.remove("open"); currentId = null; }
-// ==========================================
-// FUNGSI EKSPORT KE EXCEL (FORMAT ch_2.xlsx BERKOTAK)
-// ==========================================
-function exportDataExcel() {
-    if (projects.length === 0) {
-        toast("Tiada data untuk dieksport.");
-        return;
-    }
 
-    // 1. Sediakan Data (Format Array)
-    const aoa = [];
-    
-    // Tajuk Utama
-    aoa.push(["SENARAI PROJEK PENYENGGARAAN & PEMBANGUNAN TAHUN 2026"]);
-    aoa.push([]); // Baris kosong selang
-    
-    // Header Jadual
-    const headers = [
-        "BIL", "ILKBS", "KOD PROJEK", "NAMA PROJEK", "KATEGORI", 
-        "JENIS PEROLEHAN", "STATUS PROJEK", "KOS PROJEK\n(RM)", 
-        "TANGGUNGAN\n(RM)", "BELANJA\n(RM)", "BAKI\n(RM)", 
-        "TARIKH MULA", "TARIKH SIAP", "PEGAWAI PEMANTAU", "CATATAN"
-    ];
-    aoa.push(headers);
-
-    // Loop & Masukkan Data Projek
-    projects.forEach((p, index) => {
-        const kos = Number(p.budget) || 0;
-        const belanja = Number(p.spent) || 0;
-        const tanggungan = Number(p.commitment) || 0;
-        const baki = kos - belanja;
-
-        aoa.push([
-            index + 1,
-            "IKTBN CHEMBONG",
-            p.code || "-",
-            p.title || "-",
-            p.category || "-",
-            p.procurement || "-",
-            p.status || "-",
-            kos,
-            tanggungan,
-            belanja,
-            baki,
-            p.startDate || "-",
-            p.dueDate || "-",
-            p.pic || "Belum ditetapkan",
-            p.issue || "Tiada isu"
-        ]);
-    });
-
-    // 2. Bina Worksheet Excel
-    const worksheet = XLSX.utils.aoa_to_sheet(aoa);
-
-    // 3. Tambah Kotak (Border) & Setting Font
-    const range = XLSX.utils.decode_range(worksheet['!ref']);
-    
-    // Setting Garisan Kotak Hitam Nipis
-    const borderAll = {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } }
-    };
-
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
-            if (!worksheet[cellRef]) worksheet[cellRef] = { v: "", t: "s" }; // Elak error sel kosong
-            
-            // Tambah kotak mula baris ke-3 (index 2) ke bawah
-            if (R >= 2) {
-                if (!worksheet[cellRef].s) worksheet[cellRef].s = {};
-                worksheet[cellRef].s.border = borderAll; // Assign border
-                worksheet[cellRef].s.alignment = { vertical: "top", wrapText: true };
-                
-                // Kalau ini adalah Header Jadual (Baris 3)
-                if (R === 2) {
-                    worksheet[cellRef].s.font = { bold: true };
-                    worksheet[cellRef].s.alignment = { vertical: "center", horizontal: "center", wrapText: true };
-                }
-            } else if (R === 0 && C === 0) {
-                // Style untuk Tajuk Utama (Baris 1)
-                worksheet[cellRef].s = {
-                    font: { bold: true, sz: 12 },
-                    alignment: { horizontal: "left" }
-                };
-            }
-        }
-    }
-
-    // Merge Cells (Gabungkan sel untuk Tajuk Utama)
-    worksheet['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 14 } } // Merge dari A1 ke O1
-    ];
-
-    // 4. Tetapkan Lebar Lajur (Supaya teks tak terpotong)
-    worksheet['!cols'] = [
-        { wch: 5 },   // BIL
-        { wch: 18 },  // ILKBS
-        { wch: 18 },  // KOD PROJEK
-        { wch: 45 },  // NAMA PROJEK
-        { wch: 18 },  // KATEGORI
-        { wch: 25 },  // JENIS PEROLEHAN
-        { wch: 15 },  // STATUS
-        { wch: 13 },  // KOS
-        { wch: 13 },  // TANGGUNGAN
-        { wch: 13 },  // BELANJA
-        { wch: 13 },  // BAKI
-        { wch: 13 },  // TARIKH MULA
-        { wch: 13 },  // TARIKH SIAP
-        { wch: 18 },  // PIC
-        { wch: 30 }   // CATATAN
-    ];
-
-    // 5. Muat Turun Fail
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Unjuran Projek");
-    XLSX.writeFile(workbook, "Laporan_KCPPP_2026.xlsx");
-    toast("Laporan Excel berjaya dieksport.");
-}
 initSystem();
 
 // FUNGSI KEMAS KINI PIC DARI JADUAL UTAMA (AUTO-SAVE)
