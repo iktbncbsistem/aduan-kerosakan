@@ -10,35 +10,60 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style> 
         /* ==========================================
-           REKA BENTUK UTAMA (Tema Pemantauan)
+           REKA BENTUK UTAMA (Penyatuan dgn Pemantauan)
            ========================================== */
         :root {
             --navy: #12304a; --navy-dark: #0a1c2e; --blue: #1665a7; --blue-light: #eaf4fb;
             --teal: #0d9488; --bg: #f4f7fb; --card: #ffffff; --text: #1e293b; --muted: #64748b;
-            --line: #cbd5e1; --line-light: #e2e8f0;
+            --line: #cbd5e1; --line-light: #e2e8f0; --red: #e11d48; --red-bg: #ffe4e6;
+            --amber: #d97706; --amber-bg: #fef3c7; --green: #059669; --green-bg: #d1fae5;
             --radius: 12px;
+            --shadow: 0 10px 25px -5px rgba(18, 48, 74, 0.08), 0 8px 10px -6px rgba(18, 48, 74, 0.04);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; overflow: hidden; } 
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; overflow: hidden; margin: 0; line-height: 1.5; -webkit-font-smoothing: antialiased; } 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* TOPBAR */
-        .topbar { background: linear-gradient(135deg, var(--navy), #194b72 60%, var(--teal)); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 40; box-shadow: 0 4px 20px rgba(10, 28, 46, 0.15); position: relative;}
-        .logo-box { width: 40px; height: 40px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.15); display: grid; place-items: center; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 14px; }
+        /* BUTANG STANDARD */
+        button, input, select, textarea { font: inherit; outline: none; }
+        .btn { border: 0; border-radius: 8px; padding: 9px 15px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+        .btn:hover { transform: translateY(-1px); }
+        .btn.outline { background: #fff; color: var(--navy); border: 1px solid var(--line); box-shadow: none; }
+        .btn.outline:hover { background: #f8fafc; border-color: var(--blue); }
+        .btn.ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: none; }
+        .btn.ghost:hover { background: rgba(255, 255, 255, 0.22); }
+        .btn.danger { background: var(--red-bg); color: var(--red); box-shadow: none; }
+
+        /* TOPBAR (Saiz Sama Seperti Pemantauan) */
+        .topbar { background: linear-gradient(135deg, var(--navy), #194b72 60%, var(--teal)); color: white; padding: 16px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; position: sticky; top: 0; z-index: 40; box-shadow: 0 4px 20px rgba(10, 28, 46, 0.18); }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .logo { width: 44px; height: 44px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.15); display: grid; place-items: center; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 16px; }
+        .brand h1 { font-size: 19px; margin: 0 0 2px; font-weight: 800; line-height: 1.2; }
+        .brand p { margin: 0; color: #dcecf7; font-size: 12px; }
         
         /* SIDEBAR COLLAPSIBLE */
-        .shell { display: flex; height: calc(100vh - 64px); overflow: hidden; }
-        .sidebar { width: 250px; background: #fff; border-right: 1px solid var(--line-light); transition: width 0.3s ease; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; z-index: 20; }
-        .sidebar.collapsed { width: 70px; }
-        .sidebar.collapsed .side-label, .sidebar.collapsed .nav-text, .sidebar.collapsed .logo-title { opacity: 0; display: none; }
+        .shell { display: flex; height: calc(100vh - 76px); overflow: hidden; } /* 76px adalah anggaran saiz topbar */
+        .sidebar { width: 250px; background: #fff; border-right: 1px solid var(--line-light); padding: 20px 14px; transition: width 0.3s ease; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; z-index: 20; flex-shrink: 0; }
+        .sidebar.collapsed { width: 70px; padding: 20px 10px; }
+        .sidebar.collapsed .side-label, .sidebar.collapsed .nav-text { opacity: 0; display: none; }
         
-        .nav-item { display: flex; align-items: center; padding: 12px 14px; margin: 4px 12px; border-radius: 8px; color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; gap: 12px; }
-        .nav-item:hover { background: #f8fafc; color: var(--navy); transform: translateX(2px); }
-        .nav-item.active { background: var(--blue-light); color: var(--blue); font-weight: 700; }
+        .nav-item { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; margin: 3px 0; font-weight: 700; font-size: 13px; color: #475569; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+        .nav-item:hover { background: #f1f5f9; color: var(--navy); }
+        .nav-item.active { background: var(--blue-light); color: var(--blue); }
         .nav-item i { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-        .side-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin: 16px 16px 8px; letter-spacing: 0.5px; white-space: nowrap; }
+        .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 800; margin: 16px 8px 8px; white-space: nowrap; }
 
-        .main-content { flex-grow: 1; overflow-y: auto; background: var(--bg); padding-bottom: 40px; }
+        /* KANDUNGAN UTAMA */
+        .main-content { flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 24px; min-width: 0; }
+        
+        /* FILTERS (Tiru Pemantauan) */
+        .filters { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; }
+        .field { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: #fff; font-size: 13px; outline: none; transition: 0.2s; }
+        .field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 101, 167, 0.12); }
+        
+        @media (max-width: 1000px) { .filters { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px) { .brand h1 { font-size: 16px; } .brand p { display: none; } .filters { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -46,12 +71,12 @@
     <!-- BAR ATAS (TOPBAR) -->
     <header class="topbar">
         <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="text-white hover:text-blue-200 transition text-xl p-1"><i class="fa-solid fa-bars"></i></button>
-            <div class="flex items-center gap-3">
-                <div class="logo-box">SPPP</div>
-                <div class="logo-title hidden sm:block">
-                    <h1 class="text-sm font-extrabold tracking-tight leading-none">Panel Pengurusan KCPPP</h1>
-                    <p class="text-[11px] text-blue-100 mt-0.5">Sistem Pembangunan & Penyelenggaraan</p>
+            <button onclick="toggleSidebar()" class="text-white hover:text-blue-200 transition text-xl p-1 px-2"><i class="fa-solid fa-bars"></i></button>
+            <div class="brand">
+                <div class="logo">SPPP</div>
+                <div>
+                    <h1>Panel Pengurusan KCPPP</h1>
+                    <p>Sistem Pembangunan & Penyelenggaraan • IKTBN Chembong</p>
                 </div>
             </div>
         </div>
@@ -68,7 +93,7 @@
     <div class="shell">
         <!-- NAVIGASI SISI (SIDEBAR) -->
         <aside class="sidebar" id="app-sidebar">
-            <div class="side-label">Menu Pengurusan</div>
+            <div class="side-label">Menu Utama</div>
             <div class="nav-item active" id="nav-dash" onclick="switchView('dashboard')">
                 <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Dashboard KCPPP</span>
             </div>
@@ -86,81 +111,85 @@
         </aside>
 
         <!-- KANDUNGAN UTAMA (MAIN) -->
-        <main class="main-content p-4 sm:p-6 w-full">
+        <main class="main-content">
             
             <!-- VIEW 1: DASHBOARD UTAMA -->
-            <div id="dashboard-view" class="max-w-[1400px] mx-auto space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200 pb-4">
+            <div id="dashboard-view" class="max-w-[1400px] mx-auto space-y-5">
+                
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-[#12304a] tracking-tight">Dashboard Analitik KCPPP</h2>
-                        <p class="text-sm text-slate-500">Selamat Datang, <span id="welcome-user-name" class="font-bold text-slate-700">Pengguna</span></p>
+                        <h2 class="text-2xl font-extrabold text-[#12304a] tracking-tight m-0 mb-1">Dashboard Analitik KCPPP</h2>
+                        <p class="text-sm text-slate-500 m-0">Selamat Datang, <span id="welcome-user-name" class="font-bold text-slate-700">Pengguna</span></p>
                     </div>
-                    <button onclick="loadComplaintsData()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition"><i class="fa-solid fa-rotate-right mr-1.5"></i> Refresh Data</button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleKpi()" class="btn outline" id="btn-toggle-kpi"><i class="fa-solid fa-eye-slash"></i> Sembunyi Statistik</button>
+                        <button onclick="loadComplaintsData()" class="btn outline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                    </div>
                 </div>
 
-                <!-- Kad Statistik -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <!-- Kad Statistik (Boleh Disembunyikan) -->
+                <div id="kpi-cards" class="grid grid-cols-2 md:grid-cols-4 gap-3 transition-all duration-300">
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                         <div class="flex items-center gap-2.5 mb-2">
                             <div class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-inbox"></i></div>
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase">Aduan Baru</h3>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Aduan Baru</h3>
                         </div>
-                        <p id="stat-baru" class="text-3xl font-extrabold text-[#12304a]">0</p>
+                        <p id="stat-baru" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                         <div class="flex items-center gap-2.5 mb-2">
                             <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-spinner"></i></div>
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase">Sedang Diproses</h3>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Sedang Diproses</h3>
                         </div>
-                        <p id="stat-proses" class="text-3xl font-extrabold text-[#12304a]">0</p>
+                        <p id="stat-proses" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                         <div class="flex items-center gap-2.5 mb-2">
                             <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-check-double"></i></div>
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase">Aduan Selesai</h3>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Aduan Selesai</h3>
                         </div>
-                        <p id="stat-selesai" class="text-3xl font-extrabold text-[#12304a]">0</p>
+                        <p id="stat-selesai" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                         <div class="flex items-center gap-2.5 mb-2">
                             <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase">Jumlah Terkumpul</h3>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Jumlah Terkumpul</h3>
                         </div>
-                        <p id="stat-total" class="text-3xl font-extrabold text-[#12304a]">0</p>
+                        <p id="stat-total" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
                     </div>
                 </div>
 
-                <!-- Jadual Data Lebar Penuh -->
+                <!-- Jadual Data & Penapis Carian -->
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
-                    <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                        <div class="flex items-center gap-3">
-                            <button type="button" onclick="toggleFilterBox()" class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center hover:bg-orange-100 transition shadow-sm" title="Buka/Tutup Carian">
-                                <i id="filter-icon" class="fa-solid fa-magnifying-glass text-xs"></i>
-                            </button>
-                            <h3 class="text-sm font-bold text-[#12304a] uppercase tracking-wider">Senarai Aduan & Tindakan</h3>
-                        </div>
-                        <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold">Memaparkan 0 rekod</span>
+                    
+                    <div class="flex justify-between items-end border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="text-sm font-bold text-[#12304a] uppercase tracking-wider m-0">Senarai Aduan & Tindakan</h3>
+                        <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold m-0">Memaparkan 0 rekod</span>
                     </div>
 
-                    <!-- Kotak Borang Tapisan -->
-                    <div id="filter-box" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 transition-all">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carian Nama</label><input type="text" id="filter-search" placeholder="Taip nama..." class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-[#1665a7] bg-white"></div>
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi</label><select id="filter-dept" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-[#1665a7] bg-white"><option value="">-- Semua --</option></select></div>
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori</label><select id="filter-category" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-[#1665a7] bg-white"><option value="">-- Semua --</option></select></div>
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label><select id="filter-status" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-[#1665a7] bg-white"><option value="">-- Semua --</option><option value="BARU">BARU</option><option value="PROSES">PROSES</option><option value="SELESAI">SELESAI</option></select></div>
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tahun</label><select id="filter-year" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-[#1665a7] bg-white"><option value="">-- Semua --</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option></select></div>
-                        </div>
-                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
-                            <button onclick="resetFilters()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">Reset</button>
-                            <button onclick="applyFilters()" class="bg-[#1665a7] hover:bg-[#12304a] text-white px-5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass text-[10px]"></i> Carian</button>
-                        </div>
-                    </div>
+                    <!-- PENAPIS SENARAI (Gaya Pemantauan.html) -->
+                    <section class="filters">
+                        <input class="field" id="filter-search" placeholder="Cari pemohon, butiran..." oninput="applyFilters()" />
+                        <select class="field" id="filter-dept" onchange="applyFilters()"><option value="">Semua Lokasi</option></select>
+                        <select class="field" id="filter-category" onchange="applyFilters()"><option value="">Semua Kategori</option></select>
+                        <select class="field" id="filter-status" onchange="applyFilters()"><option value="">Semua Status</option><option value="BARU">BARU</option><option value="PROSES">PROSES</option><option value="SELESAI">SELESAI</option></select>
+                        <select class="field" id="filter-year" onchange="applyFilters()"><option value="">Semua Tahun</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option></select>
+                        <button class="btn outline" onclick="resetFilters()">Reset</button>
+                    </section>
 
                     <div class="overflow-x-auto w-full border border-slate-200 rounded-xl max-h-[600px] relative">
-                        <table class="w-full text-left text-xs whitespace-nowrap">
-                            <thead class="bg-slate-50 text-[#12304a] font-extrabold uppercase text-[10px] border-b border-slate-200 tracking-wider sticky top-0 z-10">
-                                <tr><th class="p-3 w-10 text-center">Bil</th><th class="p-3 w-48">Pemohon & Tarikh</th><th class="p-3 w-28">Lokasi</th><th class="p-3">Kategori & Butiran</th><th class="p-3 min-w-[100px]">Justifikasi</th><th class="p-3 text-right w-24">Kos (RM)</th><th class="p-3 text-center w-24">Status</th><th class="p-3 text-center w-24">Tindakan</th></tr>
+                        <table class="w-full text-left text-xs whitespace-nowrap border-collapse">
+                            <thead class="bg-[#f8fafc] text-[#475569] font-extrabold uppercase text-[10px] border-b border-slate-200 tracking-wider sticky top-0 z-10">
+                                <tr>
+                                    <th class="p-3 w-10 text-center border-b border-slate-200">Bil</th>
+                                    <th class="p-3 w-48 border-b border-slate-200">Pemohon & Tarikh</th>
+                                    <th class="p-3 w-28 border-b border-slate-200">Lokasi</th>
+                                    <th class="p-3 border-b border-slate-200">Kategori & Butiran</th>
+                                    <th class="p-3 min-w-[100px] border-b border-slate-200">Justifikasi</th>
+                                    <th class="p-3 text-right w-24 border-b border-slate-200">Kos (RM)</th>
+                                    <th class="p-3 text-center w-24 border-b border-slate-200">Status</th>
+                                    <th class="p-3 text-center w-24 border-b border-slate-200">Tindakan</th>
+                                </tr>
                             </thead>
                             <tbody id="kcppp-complaints-table" class="divide-y divide-slate-100">
                                 <tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
@@ -174,8 +203,8 @@
             <div id="settings-view" class="hidden max-w-[1400px] mx-auto space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-[#12304a] tracking-tight">Tetapan Sistem & Pengguna</h2>
-                        <p class="text-sm text-slate-500">Urus notifikasi, lokasi dan peranan (RBAC).</p>
+                        <h2 class="text-2xl font-extrabold text-[#12304a] tracking-tight m-0 mb-1">Tetapan Sistem & Pengguna</h2>
+                        <p class="text-sm text-slate-500 m-0">Urus notifikasi, lokasi dan peranan (RBAC).</p>
                     </div>
                 </div>
 
@@ -206,15 +235,15 @@
                             <div><h3 class="font-extrabold text-[#12304a] text-base">Senarai Jabatan / Lokasi</h3><p class="text-xs text-slate-500">Urus senarai lokasi permohonan.</p></div>
                             <div class="flex gap-2 w-full sm:w-auto"><input type="text" id="new-location" placeholder="Lokasi baru..." class="flex-1 sm:w-64 border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-blue-500"><button onclick="addLocation()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs"><i class="fa-solid fa-plus mr-1"></i> Tambah</button></div>
                         </div>
-                        <div class="overflow-y-auto w-full border border-slate-200 rounded-xl max-h-96"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b sticky top-0"><tr><th class="p-3 w-16 text-center">No.</th><th class="p-3">Nama Lokasi</th><th class="p-3 w-28 text-center">Tindakan</th></tr></thead><tbody id="settings-dept-list" class="divide-y divide-slate-100"></tbody></table></div>
+                        <div class="overflow-y-auto w-full border border-slate-200 rounded-xl max-h-96"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b sticky top-0"><tr><th class="p-3 w-16 text-center border-b border-slate-200">No.</th><th class="p-3 border-b border-slate-200">Nama Lokasi</th><th class="p-3 w-28 text-center border-b border-slate-200">Tindakan</th></tr></thead><tbody id="settings-dept-list" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                     <!-- Tab RBAC -->
                     <div id="tab-rbac" class="hidden space-y-4">
                         <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-2">
                             <div><h3 class="font-extrabold text-[#12304a] text-base">Pengurusan Akaun Pengguna</h3><p class="text-xs text-slate-500">Ubah peranan pengguna sistem.</p></div>
-                            <button onclick="loadRBACUsers()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+                            <button onclick="loadRBACUsers()" class="btn outline bg-white"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
                         </div>
-                        <div class="overflow-x-auto w-full border border-slate-200 rounded-xl"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px]"><tr><th class="p-3 w-10 text-center">Bil</th><th class="p-3">Nama & Emel</th><th class="p-3 w-40 text-center">Peranan</th><th class="p-3 w-32 text-center">Status</th><th class="p-3 w-28 text-center">Tindakan</th></tr></thead><tbody id="rbac-table-body" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan...</td></tr></tbody></table></div>
+                        <div class="overflow-x-auto w-full border border-slate-200 rounded-xl"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px]"><tr><th class="p-3 w-10 text-center border-b border-slate-200">Bil</th><th class="p-3 border-b border-slate-200">Nama & Emel</th><th class="p-3 w-40 text-center border-b border-slate-200">Peranan</th><th class="p-3 w-32 text-center border-b border-slate-200">Status</th><th class="p-3 w-28 text-center border-b border-slate-200">Tindakan</th></tr></thead><tbody id="rbac-table-body" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan...</td></tr></tbody></table></div>
                     </div>
                 </div>
             </div>
@@ -250,10 +279,10 @@
                 <div class="border-t border-slate-200 pt-5 mt-2">
                     <h4 class="text-xs font-bold text-[#1665a7] mb-4 border-l-4 border-[#1665a7] pl-2 uppercase tracking-wide">Keputusan & Arahan KCPPP</h4>
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ubah Status</label><select id="kcppp-status" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:border-[#1665a7] font-bold text-[#12304a]"><option value="PROSES">Kekal: SEDANG DIPROSES</option><option value="SELESAI">Tukar ke: SELESAI</option></select></div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Keputusan Rasmi</label><select id="kcppp-action" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:border-[#1665a7] font-bold text-purple-700"><option value="">-- Tiada Tindakan --</option><option value="LULUS">LULUS (Dibaiki Segera)</option><option value="SYOR PEROLEHAN">SYOR PEROLEHAN (Beli Alat Ganti)</option><option value="SYOR PEMBEKAL LUAR">SYOR PEMBEKAL LUAR</option><option value="KIV">KIV (Tangguh / Tidak Ekonomi)</option><option value="DITOLAK">DITOLAK</option></select></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ubah Status</label><select id="kcppp-status" class="field w-full font-bold text-[#12304a]"><option value="PROSES">Kekal: SEDANG DIPROSES</option><option value="SELESAI">Tukar ke: SELESAI</option></select></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Keputusan Rasmi</label><select id="kcppp-action" class="field w-full font-bold text-purple-700"><option value="">-- Tiada Tindakan --</option><option value="LULUS">LULUS (Dibaiki Segera)</option><option value="SYOR PEROLEHAN">SYOR PEROLEHAN (Beli Alat Ganti)</option><option value="SYOR PEMBEKAL LUAR">SYOR PEMBEKAL LUAR</option><option value="KIV">KIV (Tangguh / Tidak Ekonomi)</option><option value="DITOLAK">DITOLAK</option></select></div>
                     </div>
-                    <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Tambahan (Pilihan)</label><textarea id="kcppp-remarks" rows="2" class="w-full p-3 border border-slate-300 rounded-lg text-xs outline-none focus:border-[#1665a7] bg-slate-50" placeholder="Tuliskan ulasan, had bajet, dsb..."></textarea></div>
+                    <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Tambahan (Pilihan)</label><textarea id="kcppp-remarks" rows="2" class="field w-full bg-slate-50" placeholder="Tuliskan ulasan, had bajet, dsb..."></textarea></div>
                 </div>
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end items-center gap-2">
@@ -274,8 +303,21 @@
     let monitoredCodes = new Set();
     let currentKcpppId = null;
 
-    // --- SIDEBAR LOGIC ---
+    // --- SIDEBAR & UI LOGIC ---
     function toggleSidebar() { document.getElementById('app-sidebar').classList.toggle('collapsed'); }
+    
+    function toggleKpi() {
+        const kpi = document.getElementById('kpi-cards');
+        const btn = document.getElementById('btn-toggle-kpi');
+        if(kpi.style.display === 'none') {
+            kpi.style.display = 'grid';
+            btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sembunyi Statistik';
+        } else {
+            kpi.style.display = 'none';
+            btn.innerHTML = '<i class="fa-solid fa-eye"></i> Papar Statistik';
+        }
+    }
+
     function switchView(view) {
         document.getElementById('dashboard-view').classList.add('hidden');
         document.getElementById('settings-view').classList.add('hidden');
@@ -305,21 +347,16 @@
         document.getElementById('user-name-display').innerText = nameDisplay;
         document.getElementById('welcome-user-name').innerText = nameDisplay;
         
-        loadSystemTheme(); loadMasterData(); loadComplaintsData();
-    }
-
-    async function loadSystemTheme() {
-        const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
-        if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+        loadMasterData(); loadComplaintsData();
     }
 
     async function loadMasterData() {
         const { data: locations } = await _supabase.from('departments').select('*').order('name');
-        if (locations) document.getElementById('filter-dept').innerHTML = '<option value="">-- Semua --</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+        if (locations) document.getElementById('filter-dept').innerHTML = '<option value="">Semua Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
         const { data: settings } = await _supabase.from('system_settings').select('*');
         let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
         if (settings) { const ts = settings.find(s => s.setting_key === 'damage_types'); if (ts && ts.setting_value) { try { damageTypes = JSON.parse(ts.setting_value); } catch(e){} } }
-        document.getElementById('filter-category').innerHTML = '<option value="">-- Semua --</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+        document.getElementById('filter-category').innerHTML = '<option value="">Semua Kategori</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
     async function loadComplaintsData() {
@@ -350,7 +387,7 @@
                 : `<button onclick="togglePemantauan('${item.id}')" class="w-full bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold px-2 py-1.5 rounded-lg text-[10px] transition flex items-center justify-center gap-1.5 shadow-sm"><i class="fa-solid fa-circle-xmark text-red-500"></i> + Pemantauan</button>`;
 
             return `
-            <tr class="hover:bg-slate-50 transition-colors">
+            <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200">
                 <td class="p-4 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
                 <td class="p-4 align-top whitespace-normal min-w-[140px]"><div class="font-bold text-[#12304a] uppercase">${item.full_name || 'Tanpa Nama'}</div><div class="text-[10px] text-slate-500 mt-1"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div></td>
                 <td class="p-4 align-top"><div class="font-bold text-slate-700">${item.department || '-'}</div><div class="text-[10px] text-slate-400">${item.phone || '-'}</div></td>
@@ -375,7 +412,6 @@
         return `<span class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
     }
 
-    function toggleFilterBox() { document.getElementById('filter-box').classList.toggle('hidden'); }
     function resetFilters() { document.querySelectorAll('#filter-search, #filter-dept, #filter-category, #filter-status, #filter-year').forEach(el => el.value = ''); renderKCPPPTable(rawComplaintsData); }
     function applyFilters() {
         const search = document.getElementById('filter-search').value.toLowerCase();
@@ -493,7 +529,7 @@
     
     async function loadSettingsLocations() {
         const { data } = await _supabase.from('departments').select('*').order('name');
-        if(data) document.getElementById('settings-dept-list').innerHTML = data.map((l, i) => `<tr><td class="p-3 text-center font-medium">${i+1}</td><td class="p-3 font-bold text-slate-700">${l.name}</td><td class="p-3 text-center"><button onclick="deleteLocation('${l.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+        if(data) document.getElementById('settings-dept-list').innerHTML = data.map((l, i) => `<tr><td class="p-3 text-center font-medium border-b">${i+1}</td><td class="p-3 font-bold text-slate-700 border-b">${l.name}</td><td class="p-3 text-center border-b"><button onclick="deleteLocation('${l.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
     }
     async function addLocation() { const name = document.getElementById('new-location').value.trim(); if(name) { await _supabase.from('departments').insert([{ name: name.toUpperCase() }]); document.getElementById('new-location').value = ''; loadSettingsLocations(); } }
     async function deleteLocation(id) { if(confirm("Padam?")) { await _supabase.from('departments').delete().eq('id', id); loadSettingsLocations(); } }
@@ -501,11 +537,11 @@
     async function loadRBACUsers() {
         const { data } = await _supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
         if(data) document.getElementById('rbac-table-body').innerHTML = data.map((u, i) => `
-            <tr class="hover:bg-slate-50">
+            <tr class="hover:bg-slate-50 border-b border-slate-200">
                 <td class="p-3 text-center font-medium">${i+1}</td><td class="p-3"><div class="font-bold text-slate-800">${u.full_name || '-'}</div><div class="text-[10px] text-slate-500">${u.email}</div></td>
-                <td class="p-3 text-center"><select id="role-${u.id}" class="border rounded p-1 text-xs font-bold"><option ${u.role==='STAF'?'selected':''}>STAF</option><option ${u.role==='CPPP'?'selected':''}>CPPP</option><option ${u.role==='KCPPP'?'selected':''}>KCPPP</option><option ${u.role==='ADMIN'?'selected':''}>ADMIN</option></select></td>
-                <td class="p-3 text-center"><select id="status-${u.id}" class="border rounded p-1 text-xs"><option value="false" ${!u.is_blocked?'selected':''}>Aktif</option><option value="true" ${u.is_blocked?'selected':''}>Disekat</option></select></td>
-                <td class="p-3 text-center"><button onclick="saveRBAC('${u.id}')" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-[10px] font-bold">Simpan</button></td>
+                <td class="p-3 text-center"><select id="role-${u.id}" class="field font-bold text-xs"><option ${u.role==='STAF'?'selected':''}>STAF</option><option ${u.role==='CPPP'?'selected':''}>CPPP</option><option ${u.role==='KCPPP'?'selected':''}>KCPPP</option><option ${u.role==='ADMIN'?'selected':''}>ADMIN</option></select></td>
+                <td class="p-3 text-center"><select id="status-${u.id}" class="field text-xs"><option value="false" ${!u.is_blocked?'selected':''}>Aktif</option><option value="true" ${u.is_blocked?'selected':''}>Disekat</option></select></td>
+                <td class="p-3 text-center"><button onclick="saveRBAC('${u.id}')" class="btn outline py-1 px-3 text-[10px]">Simpan</button></td>
             </tr>`).join('');
     }
     async function saveRBAC(id) { const r = document.getElementById(`role-${id}`).value; const b = document.getElementById(`status-${id}`).value === 'true'; await _supabase.from('user_profiles').update({ role: r, is_blocked: b }).eq('id', id); alert('Disimpan!'); loadRBACUsers(); }
@@ -550,46 +586,15 @@
             <title>Cetak Borang - ${item.full_name}</title>
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-                @media print {
-                    @page { size: A4; margin: 12mm; }
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .no-print { display: none; }
-                }
-                body { 
-                    font-family: 'Inter', Arial, sans-serif; 
-                    font-size: 11pt; 
-                    line-height: 1.4; 
-                    color: #0f172a; 
-                    max-width: 800px; 
-                    margin: 0 auto; 
-                    padding: 20px;
-                    background: #fff;
-                }
-                .header-container {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    border-bottom: 3px double #1e3a8a;
-                    padding-bottom: 12px;
-                    margin-bottom: 15px;
-                }
+                @media print { @page { size: A4; margin: 12mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
+                body { font-family: 'Inter', Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #0f172a; max-width: 800px; margin: 0 auto; padding: 20px; background: #fff; }
+                .header-container { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #1e3a8a; padding-bottom: 12px; margin-bottom: 15px; }
                 .header-logo { width: 70px; height: auto; }
                 .header-text { text-align: center; flex-grow: 1; padding: 0 10px; }
                 .header-text h2 { margin: 0; font-size: 13pt; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px; }
                 .header-text h3 { margin: 2px 0 0 0; font-size: 11pt; font-weight: 700; color: #334155; text-transform: uppercase; }
                 .doc-no { font-size: 8pt; color: #64748b; font-weight: 600; text-align: right; width: 120px; }
-                .section-header {
-                    background-color: #1e3a8a;
-                    color: #ffffff;
-                    padding: 5px 10px;
-                    font-size: 9.5pt;
-                    font-weight: 700;
-                    letter-spacing: 0.5px;
-                    text-transform: uppercase;
-                    margin-top: 15px;
-                    margin-bottom: 8px;
-                    border-radius: 2px;
-                }
+                .section-header { background-color: #1e3a8a; color: #ffffff; padding: 5px 10px; font-size: 9.5pt; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 15px; margin-bottom: 8px; border-radius: 2px; }
                 table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt; }
                 th, td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; }
                 .bg-label { background-color: #f8fafc; font-weight: 700; color: #334155; width: 18%; }
@@ -597,23 +602,9 @@
                 .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px 0; }
                 .check-item { display: flex; align-items: center; gap: 6px; font-size: 9pt; }
                 .symbol { font-size: 11pt; font-weight: bold; color: #1e3a8a; }
-                .remarks-box {
-                    border: 1px solid #cbd5e1;
-                    background-color: #fafafa;
-                    padding: 8px 10px;
-                    min-height: 45px;
-                    font-size: 9.5pt;
-                    margin-bottom: 10px;
-                }
+                .remarks-box { border: 1px solid #cbd5e1; background-color: #fafafa; padding: 8px 10px; min-height: 45px; font-size: 9.5pt; margin-bottom: 10px; }
                 .sign-grid { display: flex; justify-content: space-between; margin-top: 25px; gap: 15px; }
-                .sign-card {
-                    width: 48%;
-                    border: 1px dashed #94a3b8;
-                    padding: 10px;
-                    border-radius: 4px;
-                    text-align: center;
-                    background: #fafafa;
-                }
+                .sign-card { width: 48%; border: 1px dashed #94a3b8; padding: 10px; border-radius: 4px; text-align: center; background: #fafafa; }
                 .sign-space { height: 40px; }
                 .sign-title { font-size: 8.5pt; font-weight: 700; color: #334155; text-transform: uppercase; border-top: 1px solid #cbd5e1; padding-top: 4px; }
                 .footer-note { font-size: 8pt; color: #94a3b8; font-style: italic; margin-top: 20px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 5px; }
