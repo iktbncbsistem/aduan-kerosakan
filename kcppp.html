@@ -213,6 +213,7 @@
                     <button id="tab-btn-wa" onclick="switchSettingsTab('wa')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-[#12304a] bg-slate-100 rounded-lg transition-all"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1.5 text-base align-middle"></i> Notifikasi WhatsApp</button>
                     <button id="tab-btn-lokasi" onclick="switchSettingsTab('lokasi')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-[#12304a] rounded-lg transition-all"><i class="fa-solid fa-building text-blue-500 mr-1.5 text-base align-middle"></i> Urus Lokasi</button>
                     <button id="tab-btn-rbac" onclick="switchSettingsTab('rbac')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-[#12304a] rounded-lg transition-all"><i class="fa-solid fa-users-gear text-purple-500 mr-1.5 text-base align-middle"></i> Kawalan Pengguna (RBAC)</button>
+                    <button id="tab-btn-log" onclick="switchSettingsTab('log')" class="flex-shrink-0 px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-[#12304a] rounded-lg transition-all"><i class="fa-solid fa-clock-rotate-left text-orange-500 mr-1.5 text-base align-middle"></i> Log Aktiviti</button>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 min-h-[400px]">
@@ -238,6 +239,8 @@
                         <div class="overflow-y-auto w-full border border-slate-200 rounded-xl max-h-96"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b sticky top-0"><tr><th class="p-3 w-16 text-center border-b border-slate-200">No.</th><th class="p-3 border-b border-slate-200">Nama Lokasi</th><th class="p-3 w-28 text-center border-b border-slate-200">Tindakan</th></tr></thead><tbody id="settings-dept-list" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                     <!-- Tab RBAC -->
+
+                    
                     <div id="tab-rbac" class="hidden space-y-4">
                         <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-2">
                             <div><h3 class="font-extrabold text-[#12304a] text-base">Pengurusan Akaun Pengguna</h3><p class="text-xs text-slate-500">Ubah peranan pengguna sistem.</p></div>
@@ -246,6 +249,24 @@
                         <div class="overflow-x-auto w-full border border-slate-200 rounded-xl"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px]"><tr><th class="p-3 w-10 text-center border-b border-slate-200">Bil</th><th class="p-3 border-b border-slate-200">Nama & Emel</th><th class="p-3 w-40 text-center border-b border-slate-200">Peranan</th><th class="p-3 w-32 text-center border-b border-slate-200">Status</th><th class="p-3 w-28 text-center border-b border-slate-200">Tindakan</th></tr></thead><tbody id="rbac-table-body" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan...</td></tr></tbody></table></div>
                     </div>
                 </div>
+<!-- Tab Log Aktiviti -->
+<div id="tab-log" class="hidden space-y-4">
+    <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-2">
+        <div><h3 class="font-extrabold text-[#12304a] text-base">Jejak Log Aktiviti Sistem</h3><p class="text-xs text-slate-500">Pantau aktiviti pengguna dan log masuk terkini.</p></div>
+        <button onclick="loadActivityLog()" class="btn outline bg-white"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+    </div>
+    <div class="overflow-y-auto w-full border border-slate-200 rounded-xl max-h-96">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px] sticky top-0">
+                <tr><th class="p-3 w-10 text-center">Bil</th><th class="p-3 w-40">Tarikh & Masa</th><th class="p-3 w-48">Pengguna</th><th class="p-3">Aktiviti / Tindakan</th></tr>
+            </thead>
+            <tbody id="log-table-body" class="divide-y divide-slate-100">
+                <tr><td colspan="4" class="p-8 text-center text-slate-400">Memuatkan rekod aktiviti...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+                
             </div>
 
         </main>
