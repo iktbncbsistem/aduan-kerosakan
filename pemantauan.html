@@ -1,224 +1,245 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pemantauan Projek - Sistem Penyenggaraan</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-/* ==========================================
-   REKA BENTUK UTAMA & PEMATUHAN PEMINDAH
-   ========================================== */
-:root {
-  --navy: #12304a; --navy-dark: #0a1c2e; --blue: #1665a7; --blue-light: #eaf4fb;
-  --teal: #0d9488; --bg: #f4f7fb; --card: #ffffff; --text: #1e293b; --muted: #64748b;
-  --line: #cbd5e1; --line-light: #e2e8f0; --red: #e11d48; --red-bg: #ffe4e6;
-  --amber: #d97706; --amber-bg: #fef3c7; --green: #059669; --green-bg: #d1fae5;
-  --purple: #7c3aed; --purple-bg: #f3e8ff;
-  --shadow: 0 10px 25px -5px rgba(18, 48, 74, 0.08), 0 8px 10px -6px rgba(18, 48, 74, 0.04);
-  --radius: 12px;
-}
-* { box-sizing: border-box; }
-body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; }
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; transition: all 0.2s ease; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pemantauan Projek - Sistem Penyenggaraan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ==========================================
+           REKA BENTUK UTAMA & PEMATUHAN PEMINDAH
+           ========================================== */
+        :root {
+            --navy: #12304a; --navy-dark: #0a1c2e; --blue: #1665a7; --blue-light: #eaf4fb;
+            --teal: #0d9488; --bg: #f4f7fb; --card: #ffffff; --text: #1e293b; --muted: #64748b;
+            --line: #cbd5e1; --line-light: #e2e8f0; --red: #e11d48; --red-bg: #ffe4e6;
+            --amber: #d97706; --amber-bg: #fef3c7; --green: #059669; --green-bg: #d1fae5;
+            --purple: #7c3aed; --purple-bg: #f3e8ff;
+            --shadow: 0 10px 25px -5px rgba(18, 48, 74, 0.08), 0 8px 10px -6px rgba(18, 48, 74, 0.04);
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; }
+        button, input, select, textarea { font: inherit; outline: none; }
+        
+        .btn { border: 0; border-radius: 8px; padding: 9px 15px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+        .btn:hover { transform: translateY(-1px); }
+        .btn.primary { background: #f7b731; color: #1e293b; }
+        .btn.outline { background: #fff; color: var(--navy); border: 1px solid var(--line); box-shadow: none; }
+        .btn.outline:hover { background: #f8fafc; border-color: var(--blue); }
+        .btn.ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: none; }
+        .btn.ghost:hover { background: rgba(255, 255, 255, 0.22); }
+        .btn.small { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
+        .btn.danger { background: var(--red-bg); color: var(--red); box-shadow: none; }
 
-.topbar { background: linear-gradient(135deg, var(--navy), #194b72 60%, var(--teal)); color: white; padding: 16px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; position: sticky; top: 0; z-index: 30; box-shadow: 0 4px 20px rgba(10, 28, 46, 0.18); }
-.brand { display: flex; align-items: center; gap: 14px; }
-.logo { width: 44px; height: 44px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.15); display: grid; place-items: center; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 16px; }
-.brand h1 { font-size: 19px; margin: 0 0 2px; font-weight: 800; }
-.brand p { margin: 0; color: #dcecf7; font-size: 12px; }
-.top-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.btn { border: 0; border-radius: 8px; padding: 9px 15px; font-weight: 700; font-size: 13px; background: #fff; color: var(--navy); display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
-.btn:hover { opacity: 0.92; transform: translateY(-1px); }
-.btn.primary { background: #f7b731; color: #1e293b; }
-.btn.ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: none; }
-.btn.ghost:hover { background: rgba(255, 255, 255, 0.22); }
-.btn.small { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
-.btn.danger { background: var(--red-bg); color: var(--red); }
+        /* TOPBAR */
+        .topbar { background: linear-gradient(135deg, var(--navy), #194b72 60%, var(--teal)); color: white; padding: 16px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; position: sticky; top: 0; z-index: 40; box-shadow: 0 4px 20px rgba(10, 28, 46, 0.18); }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .logo { width: 44px; height: 44px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.15); display: grid; place-items: center; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 16px; }
+        .brand h1 { font-size: 19px; margin: 0 0 2px; font-weight: 800; line-height: 1.2; }
+        .brand p { margin: 0; color: #dcecf7; font-size: 12px; }
+        .top-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-.shell { display: grid; grid-template-columns: 250px 1fr; min-height: calc(100vh - 76px); }
-.sidebar { background: #fff; border-right: 1px solid var(--line-light); padding: 20px 14px; position: sticky; top: 76px; height: calc(100vh - 76px); overflow-y: auto; }
-.side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 800; margin: 16px 8px 8px; }
-.nav-item { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; margin: 3px 0; font-weight: 700; font-size: 13px; color: #475569; cursor: pointer; transition: all 0.15s ease; }
-.nav-item:hover { background: #f1f5f9; color: var(--navy); }
-.nav-item.active { background: var(--blue-light); color: var(--blue); }
-.nav-item .count { margin-left: auto; background: #e2e8f0; color: #334155; padding: 2px 7px; border-radius: 12px; font-size: 11px; }
+        /* SIDEBAR COLLAPSIBLE */
+        .shell { display: flex; height: calc(100vh - 76px); overflow: hidden; }
+        .sidebar { width: 250px; background: #fff; border-right: 1px solid var(--line-light); padding: 20px 14px; transition: width 0.3s ease; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; z-index: 20; flex-shrink: 0; }
+        .sidebar.collapsed { width: 70px; padding: 20px 10px; }
+        .sidebar.collapsed .side-label, .sidebar.collapsed .nav-text, .sidebar.collapsed .count { opacity: 0; display: none; }
+        
+        .nav-item { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; margin: 3px 0; font-weight: 700; font-size: 13px; color: #475569; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+        .nav-item:hover { background: #f1f5f9; color: var(--navy); }
+        .nav-item.active { background: var(--blue-light); color: var(--blue); }
+        .nav-item i { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+        .nav-item .count { margin-left: auto; background: #e2e8f0; color: #334155; padding: 2px 7px; border-radius: 12px; font-size: 11px; }
+        .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 800; margin: 16px 8px 8px; white-space: nowrap; }
 
-.content { padding: 24px; min-width: 0; }
-.welcome { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 20px; }
-.welcome h2 { margin: 0 0 4px; font-size: 22px; color: var(--navy); font-weight: 800; }
-.welcome p { margin: 0; color: var(--muted); font-size: 13px; }
+        /* KANDUNGAN UTAMA */
+        .main-content { flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 24px; min-width: 0; }
 
-.kpis { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.kpi { background: var(--card); border: 1px solid var(--line-light); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
-.kpi .label { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 800; }
-.kpi .value { font-size: 22px; font-weight: 800; margin: 6px 0 2px; color: var(--navy); }
-.kpi .sub { font-size: 11px; color: var(--muted); }
+        .kpis { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .kpi { background: var(--card); border: 1px solid var(--line-light); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+        .kpi .label { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 800; }
+        .kpi .value { font-size: 22px; font-weight: 800; margin: 6px 0 2px; color: var(--navy); }
+        .kpi .sub { font-size: 11px; color: var(--muted); }
 
-.overview { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; margin-bottom: 20px; }
-.panel { background: #fff; border: 1px solid var(--line-light); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
-.panel h3 { margin: 0 0 14px; font-size: 15px; color: var(--navy); font-weight: 800; }
-.status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.status-mini { border: 1px solid var(--line-light); background: #f8fafc; border-radius: 10px; padding: 10px; text-align: center; }
-.status-mini strong { display: block; font-size: 20px; color: var(--navy); margin-bottom: 2px; }
-.status-mini span { font-size: 11px; color: var(--muted); font-weight: 600; }
-.cat-row { display: grid; grid-template-columns: 170px 1fr 45px; gap: 12px; align-items: center; margin: 10px 0; font-size: 12px; font-weight: 600; }
-.bar-track, .progress-track { height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
-.bar-fill, .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--blue), var(--teal)); }
+        .overview { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; margin-bottom: 20px; }
+        .panel { background: #fff; border: 1px solid var(--line-light); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+        .panel h3 { margin: 0 0 14px; font-size: 15px; color: var(--navy); font-weight: 800; }
+        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .status-mini { border: 1px solid var(--line-light); background: #f8fafc; border-radius: 10px; padding: 10px; text-align: center; }
+        .status-mini strong { display: block; font-size: 20px; color: var(--navy); margin-bottom: 2px; }
+        .status-mini span { font-size: 11px; color: var(--muted); font-weight: 600; }
+        .cat-row { display: grid; grid-template-columns: 170px 1fr 45px; gap: 12px; align-items: center; margin: 10px 0; font-size: 12px; font-weight: 600; }
+        .bar-track, .progress-track { height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .bar-fill, .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--blue), var(--teal)); }
 
-.filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; }
-.field { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: #fff; font-size: 13px; outline: none; }
-.field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 101, 167, 0.12); }
+        .filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; }
+        .field { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: #fff; font-size: 13px; outline: none; transition: 0.2s; }
+        .field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 101, 167, 0.12); }
 
-.table-panel { padding: 0; overflow: hidden; }
-.table-head { padding: 16px; border-bottom: 1px solid var(--line-light); display: flex; justify-content: space-between; align-items: center; }
-.table-head h3 { margin: 0; }
-.table-wrap { overflow-x: auto; max-height: 580px; }
-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-th { background: #f8fafc; color: #475569; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 2; font-weight: 800; border-bottom: 1px solid var(--line-light); }
-th, td { padding: 12px 14px; border-bottom: 1px solid var(--line-light); vertical-align: middle; }
-td { font-size: 12px; }
-.project-title { font-weight: 700; max-width: 380px; line-height: 1.4; color: var(--navy); }
-.code { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: monospace; }
-.badge { display: inline-flex; align-items: center; border-radius: 20px; padding: 4px 9px; font-size: 10px; font-weight: 800; white-space: nowrap; }
-.badge.Selesai { background: var(--green-bg); color: var(--green); }
-.badge.Dalam-Pelaksanaan { background: var(--blue-light); color: var(--blue); }
-.badge.Penilaian { background: var(--amber-bg); color: var(--amber); }
-.badge.Perolehan { background: var(--purple-bg); color: var(--purple); }
-.badge.Belum-Mula, .badge.Perancangan { background: #f1f5f9; color: #64748b; }
-.money { font-variant-numeric: tabular-nums; font-weight: 700; }
-.progress-cell { min-width: 120px; }
-.progress-meta { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; color: var(--muted); }
-.attention { color: var(--red); font-weight: 800; }
-.muted { color: var(--muted); }
-.empty { padding: 40px; text-align: center; color: var(--muted); }
+        .table-panel { padding: 0; overflow: hidden; }
+        .table-head { padding: 16px; border-bottom: 1px solid var(--line-light); display: flex; justify-content: space-between; align-items: center; }
+        .table-head h3 { margin: 0; }
+        .table-wrap { overflow-x: auto; max-height: 580px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th { background: #f8fafc; color: #475569; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 2; font-weight: 800; border-bottom: 1px solid var(--line-light); }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--line-light); vertical-align: middle; }
+        td { font-size: 12px; }
+        .project-title { font-weight: 700; max-width: 380px; line-height: 1.4; color: var(--navy); }
+        .code { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: monospace; }
+        .badge { display: inline-flex; align-items: center; border-radius: 20px; padding: 4px 9px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+        .badge.Selesai { background: var(--green-bg); color: var(--green); }
+        .badge.Dalam-Pelaksanaan { background: var(--blue-light); color: var(--blue); }
+        .badge.Penilaian { background: var(--amber-bg); color: var(--amber); }
+        .badge.Perolehan { background: var(--purple-bg); color: var(--purple); }
+        .badge.Belum-Mula, .badge.Perancangan { background: #f1f5f9; color: #64748b; }
+        .money { font-variant-numeric: tabular-nums; font-weight: 700; }
+        .progress-cell { min-width: 120px; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; color: var(--muted); }
+        .attention { color: var(--red); font-weight: 800; }
+        .muted { color: var(--muted); }
+        .empty { padding: 40px; text-align: center; color: var(--muted); }
 
-.modal { display: none; position: fixed; inset: 0; background: rgba(10, 28, 46, 0.65); backdrop-filter: blur(4px); z-index: 50; padding: 20px; overflow-y: auto; }
-.modal.open { display: block; }
-.modal-card { max-width: 1000px; margin: 10px auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; }
-.modal-head { background: linear-gradient(120deg, var(--navy), #1e527b); color: #fff; padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
-.modal-head h2 { font-size: 18px; margin: 0 0 4px; font-weight: 800; }
-.modal-head p { margin: 0; color: #d2e4f1; font-size: 12px; }
-.close { border: 0; background: rgba(255, 255, 255, 0.15); color: #fff; width: 32px; height: 32px; border-radius: 8px; font-size: 20px; display: grid; place-items: center; }
-.close:hover { background: rgba(255, 255, 255, 0.3); }
-.modal-body { padding: 20px; max-height: calc(85vh - 120px); overflow-y: auto; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.section { border: 1px solid var(--line-light); border-radius: var(--radius); padding: 16px; background: #fff; }
-.section.full { grid-column: 1 / -1; }
-.section h3 { margin: 0 0 12px; color: var(--navy); font-size: 14px; font-weight: 800; border-bottom: 1px solid var(--line-light); padding-bottom: 6px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-row label { display: block; font-size: 10px; color: var(--muted); font-weight: 800; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.form-row input, .form-row select, .form-row textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: #fff; font-size: 12px; }
-.form-row textarea { min-height: 70px; resize: vertical; }
-.span-2 { grid-column: 1 / -1; }
-.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-.photo-card { border: 1px solid var(--line-light); border-radius: 8px; overflow: hidden; background: #f8fafc; }
-.photo-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
-.photo-card div { padding: 6px; font-size: 10px; color: var(--muted); }
-.upload-box { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 14px; text-align: center; background: #f8fafc; }
-.timeline { border-left: 2px solid #cbd5e1; margin-left: 6px; padding-left: 14px; }
-.event { margin-bottom: 12px; position: relative; }
-.event:before { content: ""; position: absolute; left: -19px; top: 5px; width: 8px; height: 8px; background: var(--teal); border-radius: 50%; }
-.event strong { font-size: 12px; color: var(--navy); }
-.event p { margin: 2px 0; color: #475569; font-size: 11px; }
-.event time { font-size: 10px; color: var(--muted); }
-.modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--line-light); background: #f8fafc; }
-.toast { position: fixed; right: 20px; bottom: 20px; background: var(--navy); color: #fff; border-radius: 8px; padding: 10px 16px; box-shadow: var(--shadow); display: none; z-index: 100; font-size: 12px; font-weight: 600; }
-.toast.show { display: block; animation: fadeIn 0.2s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } .shell { grid-template-columns: 1fr; } .sidebar { display: none; } .overview { grid-template-columns: 1fr; } .filters { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 700px) { .topbar { align-items: flex-start; flex-direction: column; } .top-actions { width: 100%; justify-content: flex-start; } .content { padding: 14px; } .kpis { grid-template-columns: repeat(2, 1fr); } .filters { grid-template-columns: 1fr; } .detail-grid, .form-grid { grid-template-columns: 1fr; } .span-2, .section.full { grid-column: 1; } .welcome { align-items: flex-start; flex-direction: column; } }
-@media print { .topbar, .sidebar, .filters, .overview, .table-panel, .modal-actions, .close, .upload-box { display: none !important; } body { background: #fff; } .shell { display: block; } .content { padding: 0; } .modal { display: block !important; position: static; background: #fff; padding: 0; } .modal-card { box-shadow: none; margin: 0; max-width: none; } .modal-head { color: #000; background: #fff; border-bottom: 2px solid #000; padding: 10px 0; } .modal-body { padding: 10px 0; max-height: none; } .form-row input, .form-row select, .form-row textarea { border: 0; padding: 2px; } .photo-card img { height: 140px; } }
-</style>
+        .modal { display: none; position: fixed; inset: 0; background: rgba(10, 28, 46, 0.65); backdrop-filter: blur(4px); z-index: 50; padding: 20px; overflow-y: auto; }
+        .modal.open { display: block; }
+        .modal-card { max-width: 1000px; margin: 10px auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; }
+        .modal-head { background: linear-gradient(120deg, var(--navy), #1e527b); color: #fff; padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+        .modal-head h2 { font-size: 18px; margin: 0 0 4px; font-weight: 800; }
+        .modal-head p { margin: 0; color: #dcecf7; font-size: 12px; }
+        .close { border: 0; background: rgba(255, 255, 255, 0.15); color: #fff; width: 32px; height: 32px; border-radius: 8px; font-size: 20px; display: grid; place-items: center; }
+        .close:hover { background: rgba(255, 255, 255, 0.3); }
+        .modal-body { padding: 20px; max-height: calc(85vh - 120px); overflow-y: auto; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .section { border: 1px solid var(--line-light); border-radius: var(--radius); padding: 16px; background: #fff; }
+        .section.full { grid-column: 1 / -1; }
+        .section h3 { margin: 0 0 12px; color: var(--navy); font-size: 14px; font-weight: 800; border-bottom: 1px solid var(--line-light); padding-bottom: 6px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-row label { display: block; font-size: 10px; color: var(--muted); font-weight: 800; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: #fff; font-size: 12px; }
+        .form-row textarea { min-height: 70px; resize: vertical; }
+        .span-2 { grid-column: 1 / -1; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .photo-card { border: 1px solid var(--line-light); border-radius: 8px; overflow: hidden; background: #f8fafc; }
+        .photo-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
+        .photo-card div { padding: 6px; font-size: 10px; color: var(--muted); }
+        .upload-box { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 14px; text-align: center; background: #f8fafc; }
+        .timeline { border-left: 2px solid #cbd5e1; margin-left: 6px; padding-left: 14px; }
+        .event { margin-bottom: 12px; position: relative; }
+        .event:before { content: ""; position: absolute; left: -19px; top: 5px; width: 8px; height: 8px; background: var(--teal); border-radius: 50%; }
+        .event strong { font-size: 12px; color: var(--navy); }
+        .event p { margin: 2px 0; color: #475569; font-size: 11px; }
+        .event time { font-size: 10px; color: var(--muted); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--line-light); background: #f8fafc; }
+        .toast { position: fixed; right: 20px; bottom: 20px; background: var(--navy); color: #fff; border-radius: 8px; padding: 10px 16px; box-shadow: var(--shadow); display: none; z-index: 100; font-size: 12px; font-weight: 600; }
+        .toast.show { display: block; animation: fadeIn 0.2s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } .shell { flex-direction: column; height: auto; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line-light); height: auto; display: none; } .sidebar.collapsed { display: none; } .overview { grid-template-columns: 1fr; } .filters { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px) { .brand h1 { font-size: 16px; } .brand p { display: none; } .kpis { grid-template-columns: repeat(2, 1fr); } .filters { grid-template-columns: 1fr; } .detail-grid, .form-grid { grid-template-columns: 1fr; } .span-2, .section.full { grid-column: 1; } }
+        @media print { .topbar, .sidebar, .filters, .overview, .table-panel, .modal-actions, .close, .upload-box, #btn-toggle-dash { display: none !important; } body { background: #fff; } .shell { display: block; height: auto; } .main-content { padding: 0; overflow: visible; } .modal { display: block !important; position: static; background: #fff; padding: 0; } .modal-card { box-shadow: none; margin: 0; max-width: none; } .modal-head { color: #000; background: #fff; border-bottom: 2px solid #000; padding: 10px 0; } .modal-body { padding: 10px 0; max-height: none; overflow: visible; } .form-row input, .form-row select, .form-row textarea { border: 0; padding: 2px; } .photo-card img { height: 140px; } }
+    </style>
 </head>
 <body>
 
-<!-- BAR ATAS -->
+<!-- BAR ATAS (TOPBAR) -->
 <header class="topbar">
-  <div class="brand">
-    <div class="logo">SPPP</div>
-    <div>
-      <h1>Modul Pemantauan Projek</h1>
-      <p>Sistem Pembangunan & Penyelenggaraan • IKTBN Chembong</p>
+    <div class="flex items-center gap-4">
+        <button onclick="toggleSidebar()" class="text-white hover:text-blue-200 transition text-xl p-1 px-2"><i class="fa-solid fa-bars"></i></button>
+        <div class="brand">
+            <div class="logo">SPPP</div>
+            <div>
+                <h1>Modul Pemantauan Projek</h1>
+                <p>Sistem Pembangunan & Penyelenggaraan • IKTBN Chembong</p>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="top-actions">
-    <button class="btn ghost" onclick="goBackMenu()">Kembali ke Menu Utama</button>
-    <button class="btn ghost" onclick="window.print()">Cetak</button>
-    <button class="btn ghost" onclick="exportData()">Eksport Data</button>
-    <button class="btn primary" onclick="addProject()">＋ Tambah Projek</button>
-  </div>
+    <div class="top-actions">
+        <button class="btn ghost" onclick="window.print()"><i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Cetak</span></button>
+        <button class="btn ghost" onclick="exportData()"><i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Eksport</span></button>
+        <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
+    </div>
 </header>
 
 <div class="shell">
-  <!-- NAVIGASI SISI -->
-  <aside class="sidebar">
-    <div class="side-label">Menu Utama</div>
-    <div class="nav-item active">▦ Dashboard <span class="count" id="navCount">0</span></div>
-    <div class="nav-item" onclick="clearFilters()">▤ Semua Projek</div>
-    <div class="side-label">Kategori Projek</div>
-    <div id="sideCategories"></div>
-  </aside>
+    <!-- NAVIGASI SISI (SIDEBAR) -->
+    <aside class="sidebar" id="app-sidebar">
+        <div class="side-label">Menu Utama</div>
+        <div class="nav-item" onclick="goBackMenu()">
+            <i class="fa-solid fa-clipboard-list"></i> <span class="nav-text">Dashboard Aduan</span>
+        </div>
+        <div class="nav-item active" id="nav-dash" onclick="clearFilters()">
+            <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Dashboard Pemantauan</span> <span class="count" id="navCount">0</span>
+        </div>
+        <div class="side-label mt-2">Kategori Projek</div>
+        <div id="sideCategories"></div>
+    </aside>
 
-  <!-- KANDUNGAN UTAMA -->
-  <main class="content">
-    <section class="welcome">
-      <div>
-        <h2>Dashboard Pemantauan Semasa</h2>
-        <p>Ringkasan fizikal, status perolehan, peruntukan kewangan, dan isu semasa.</p>
-      </div>
-    </section>
+    <!-- KANDUNGAN UTAMA (MAIN) -->
+    <main class="main-content">
+        
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4">
+            <div>
+                <h2 class="text-2xl font-extrabold text-[#12304a] tracking-tight m-0 mb-1">Dashboard Pemantauan Semasa</h2>
+                <p class="text-sm text-slate-500 m-0">Ringkasan fizikal, status perolehan, peruntukan kewangan, dan isu semasa.</p>
+            </div>
+            <button onclick="toggleDashboardStats()" id="btn-toggle-dash" class="btn outline px-4" title="Buka/Tutup Dashboard"><i class="fa-solid fa-bars"></i></button>
+        </div>
 
-    <!-- KAD KPI -->
-    <section class="kpis" id="kpis"></section>
+        <!-- DASHBOARD STATS (Boleh dilipat) -->
+        <div id="dashboard-stats" class="transition-all duration-300">
+            <!-- KAD KPI -->
+            <section class="kpis" id="kpis"></section>
 
-    <!-- ANALSIS CARTA & STATUS -->
-    <section class="overview">
-      <div class="panel">
-        <h3>Kemajuan Purata Mengikut Kategori</h3>
-        <div id="categoryChart"></div>
-      </div>
-      <div class="panel">
-        <h3>Ringkasan Status Projek</h3>
-        <div class="status-grid" id="statusGrid"></div>
-      </div>
-    </section>
+            <!-- ANALSIS CARTA & STATUS -->
+            <section class="overview">
+                <div class="panel">
+                    <h3>Kemajuan Purata Mengikut Kategori</h3>
+                    <div id="categoryChart"></div>
+                </div>
+                <div class="panel">
+                    <h3>Ringkasan Status Projek</h3>
+                    <div class="status-grid" id="statusGrid"></div>
+                </div>
+            </section>
+        </div>
 
-    <!-- PENAPIS SENARAI -->
-    <section class="filters">
-      <input class="field" id="searchInput" placeholder="Cari tajuk, kod, atau PIC..." oninput="renderTable()" />
-      <select class="field" id="categoryFilter" onchange="renderTable()"><option value="">Semua Kategori</option></select>
-      <select class="field" id="statusFilter" onchange="renderTable()"><option value="">Semua Status</option></select>
-      <select class="field" id="picFilter" onchange="renderTable()"><option value="">Semua PIC</option></select>
-      <button class="btn" onclick="clearFilters()">Reset Penapis</button>
-    </section>
+        <!-- PENAPIS SENARAI -->
+        <section class="filters">
+            <input class="field" id="searchInput" placeholder="Cari tajuk, kod, atau PIC..." oninput="renderTable()" />
+            <select class="field" id="categoryFilter" onchange="renderTable()"><option value="">Semua Kategori</option></select>
+            <select class="field" id="statusFilter" onchange="renderTable()"><option value="">Semua Status</option></select>
+            <select class="field" id="picFilter" onchange="renderTable()"><option value="">Semua PIC</option></select>
+            <button class="btn outline" onclick="clearFilters()">Reset Penapis</button>
+        </section>
 
-    <!-- JADUAL PROJEK -->
-    <section class="panel table-panel">
-      <div class="table-head">
-        <h3>Senarai Projek Penyenggaraan & Pembangunan</h3>
-        <span class="muted" id="resultCount"></span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Projek & Kod</th>
-              <th>Kategori</th>
-              <th>Status</th>
-              <th>Kemajuan Fizikal</th>
-              <th>Peruntukan</th>
-              <th>Tarikh Siap</th>
-              <th>PIC</th>
-              <th>Tindakan</th>
-            </tr>
-          </thead>
-          <tbody id="projectRows"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+        <!-- JADUAL PROJEK -->
+        <section class="panel table-panel">
+            <div class="table-head">
+                <h3>Senarai Projek Penyenggaraan & Pembangunan</h3>
+                <span class="muted" id="resultCount"></span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Projek & Kod</th>
+                            <th>Kategori</th>
+                            <th>Status</th>
+                            <th>Kemajuan Fizikal</th>
+                            <th>Peruntukan</th>
+                            <th>Tarikh Siap</th>
+                            <th>PIC</th>
+                            <th>Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectRows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 </div>
 
 <!-- MODAL BUTIRAN PROJEK -->
@@ -295,25 +316,28 @@ td { font-size: 12px; }
 <div class="toast" id="toast"></div>
 
 <script>
+// ==========================================
+// FUNGSI UI & NAVIGASI PINTAR
+// ==========================================
+function toggleSidebar() { document.getElementById('app-sidebar').classList.toggle('collapsed'); }
+
+function toggleDashboardStats() {
+    const stats = document.getElementById('dashboard-stats');
+    if(stats.style.display === 'none') { stats.style.display = 'block'; } 
+    else { stats.style.display = 'none'; }
+}
+
 function goBackMenu() {
     if (!currentUserProfile || !currentUserProfile.role) {
-        window.location.href = 'index.html';
-        return;
+        window.location.href = 'index.html'; return;
     }
-    
     const role = currentUserProfile.role.toUpperCase();
-    
-    if (role === 'KCPPP') {
-        window.location.href = 'kcppp.html';
-    } else if (role === 'CPPP') {
-        window.location.href = 'cppp.html';
-    } else if (role === 'ADMIN') {
-        window.location.href = 'admin.html';
-    } else {
-        window.location.href = 'index.html';
-    }
+    if (role === 'KCPPP') { window.location.href = 'kcppp.html'; } 
+    else if (role === 'CPPP') { window.location.href = 'cppp.html'; } 
+    else if (role === 'ADMIN') { window.location.href = 'admin.html'; } 
+    else { window.location.href = 'index.html'; }
 }
-   
+
 // ==========================================
 // KONFIGURASI SUPABASE & PEMBOLEHUBAH
 // ==========================================
@@ -443,7 +467,7 @@ function renderTable() {
     document.getElementById("resultCount").textContent = `${list.length} daripada ${projects.length} projek`;
 
     const rows = list.map(p => `
-    <tr>
+    <tr class="hover:bg-[#f8fafc] transition-colors">
       <td><div class="project-title">${esc(p.title)}</div><div class="code">${esc(p.code || "Tiada kod")}</div></td>
       <td>${esc(p.category)}</td>
       <td><span class="badge ${statusClass(p.status)}">${esc(p.status)}</span>${needsAttention(p) ? '<div class="attention" style="font-size:10px;margin-top:4px;">⚠ Perlu tindakan</div>' : ''}</td>
@@ -451,7 +475,7 @@ function renderTable() {
       <td class="money">${money(p.budget)}</td>
       <td class="${isOverdue(p) ? 'attention' : ''}">${dateDisplay(p.dueDate)}</td>
       <td>${esc(p.pic || "Belum ditetapkan")}</td>
-      <td><button class="btn small" onclick="openProject('${esc(p.id)}')">Buka</button></td>
+      <td><button class="btn outline small" onclick="openProject('${esc(p.id)}')"><i class="fa-solid fa-magnifying-glass"></i> Perinci</button></td>
     </tr>`).join("");
 
     document.getElementById("projectRows").innerHTML = rows || `<tr><td colspan="8" class="empty">Tiada projek sepadan.</td></tr>`;
@@ -474,7 +498,7 @@ function renderSidebar() {
     document.getElementById("navCount").textContent = projects.length;
     const cats = [...new Set(projects.map(p => p.category))];
     document.getElementById("sideCategories").innerHTML = cats.map(c => `
-      <div class="nav-item" onclick="filterCategory('${esc(c)}')">${esc(c)}<span class="count">${projects.filter(p => p.category === c).length}</span></div>
+      <div class="nav-item" onclick="filterCategory('${esc(c)}')"><i class="fa-regular fa-folder"></i> <span class="nav-text">${esc(c)}</span><span class="count">${projects.filter(p => p.category === c).length}</span></div>
     `).join("");
 }
 
@@ -510,18 +534,16 @@ function applyRole() {
     const canUpdateProgress = isManager || isAssignedPic;
 
     document.querySelectorAll("#projectModal input, #projectModal textarea, #projectModal select").forEach(el => {
-        if (canEditAll) {
-            el.disabled = false;
-        } else if (canUpdateProgress) {
+        if (canEditAll) { el.disabled = false; } 
+        else if (canUpdateProgress) {
             const allowedIds = ['fProgress', 'fStatus', 'fUpdateNote', 'photoInput'];
             el.disabled = !allowedIds.includes(el.id);
-        } else {
-            el.disabled = true;
-        }
+        } 
+        else { el.disabled = true; }
     });
 
-    document.getElementById("saveBtn").style.display = (canEditAll || canUpdateProgress) ? "inline-block" : "none";
-    document.getElementById("deleteBtn").style.display = isManager ? "inline-block" : "none";
+    document.getElementById("saveBtn").style.display = (canEditAll || canUpdateProgress) ? "inline-flex" : "none";
+    document.getElementById("deleteBtn").style.display = isManager ? "inline-flex" : "none";
     document.querySelector(".upload-box").style.display = (canEditAll || canUpdateProgress) ? "block" : "none";
 }
 
@@ -563,9 +585,7 @@ function openProject(id) {
 }
 
 async function addProject() {
-    if (!['ADMIN', 'CPPP', 'KCPPP'].includes(currentUserProfile?.role)) {
-        toast("Hanya pengurusan boleh menambah projek."); return;
-    }
+    if (!['ADMIN', 'CPPP', 'KCPPP'].includes(currentUserProfile?.role)) { toast("Hanya pengurusan boleh menambah projek."); return; }
     const id = "PRJ-" + Date.now();
     const p = { id, code: "", title: "Projek Baharu", category: "Lain-lain", procurement: "", status: "Belum Mula", progress: 0, budget: 0, commitment: 0, spent: 0, startDate: "", dueDate: "", schedule: "", pic: "Belum ditetapkan", location: "IKTBN Chembong", issue: "Tiada isu direkodkan", nextAction: "Tetapkan skop, PIC dan jadual projek.", lastUpdated: "Belum dikemas kini", updates: [], photos: [] };
     projects.unshift(p);
