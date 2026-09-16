@@ -403,24 +403,24 @@ function filteredProjects() {
     const q = document.getElementById("searchInput").value.toLowerCase().trim();
     const cat = document.getElementById("categoryFilter").value;
     const st = document.getElementById("statusFilter").value;
-    const pic = document.getElementById("picFilter").value;
+    const picFilterValue = document.getElementById("picFilter").value;
     
-    // Semak adakah pengguna ini Pengurusan (KCPPP/CPPP/ADMIN)
-    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(currentUserProfile?.role?.toUpperCase());
+    // Semak adakah pengguna ini Pengurusan (Kebal)
+    const role = currentUserProfile?.role?.toUpperCase() || "";
+    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(role);
 
     return projects.filter(p => {
         const matchSearch = (!q || [p.title, p.code, p.pic, p.procurement].join(" ").toLowerCase().includes(q));
         const matchCat = (!cat || p.category === cat);
         const matchSt = (!st || p.status === st);
-        const matchPic = (!pic || p.pic === pic);
+        const matchPic = (!picFilterValue || p.pic === picFilterValue);
         
-        // KESELAMATAN: Jika bukan pengurusan, hanya tunjuk projek yang PIC-nya sama dengan nama pengguna
-        const matchAccess = isManager || p.pic === currentUserProfile.full_name;
+        // KESELAMATAN: Pengurusan nampak semua (true). Staf biasa nampak nama mereka sahaja.
+        const matchAccess = isManager ? true : (p.pic === currentUserProfile?.full_name);
 
         return matchSearch && matchCat && matchSt && matchPic && matchAccess;
     });
 }
-
 function fillSelect(id, items, value) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -627,10 +627,15 @@ async function addProject() {
 }
 
 async function saveProject() {
+    // 1. POP-UP PENGESAHAN YA/TIDAK
+    if (!confirm("Anda pasti untuk simpan kemaskini?")) {
+        return; // Henti jika tekan 'Tidak', borang akan kekal terbuka
+    }
+
     const p = projects.find(x => x.id === currentId);
     if (!p) return;
     
-    const roleUpper = currentUserProfile?.role?.toUpperCase();
+    const roleUpper = currentUserProfile?.role?.toUpperCase() || "";
     const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(roleUpper);
 
     // Ambil nilai baharu dari borang
@@ -640,12 +645,12 @@ async function saveProject() {
     const newIssue = document.getElementById("fIssue").value.trim();
     const newAction = document.getElementById("fAction").value.trim();
     
-    // JEJAK AUDIT PINTAR: Rekodkan perubahan yang dibuat oleh PIC/Pengguna
+    // JEJAK AUDIT PINTAR
     let changes = [];
     if (p.progress != newProgress) changes.push(`Fizikal: ${p.progress}% ➔ ${newProgress}%`);
     if (p.status !== newStatus) changes.push(`Status: ${p.status} ➔ ${newStatus}`);
 
-    // Jika Pengurusan, simpan maklumat utama
+    // Jika Pengurusan, simpan semua maklumat utama
     if (isManager) {
         p.title = document.getElementById("fTitle").value.trim() || "Projek Tanpa Nama";
         p.code = document.getElementById("fCode").value.trim();
@@ -660,7 +665,7 @@ async function saveProject() {
         p.location = document.getElementById("fLocation").value.trim();
     }
 
-    // Simpan data kemajuan (Dibenarkan untuk PIC & Pengurusan)
+    // Simpan data kemajuan 
     p.status = newStatus;
     p.progress = newProgress;
     p.schedule = newSchedule;
@@ -676,15 +681,19 @@ async function saveProject() {
             title: `Kemas kini • ${p.status}`, 
             note: changeLog + userNote, 
             date: new Date().toLocaleString("ms-MY"), 
-            by: currentUserProfile.full_name 
+            by: currentUserProfile?.full_name || "Pengguna" 
         });
     }
 
     p.lastUpdated = new Date().toLocaleString("ms-MY");
+    
+    // Proses simpan ke Pangkalan Data
     await syncToDb(p);
     renderAll();
-    openProject(p.id);
-    toast("Kemas kini berjaya disimpan.");
+    
+    // 2. TUTUP MODAL SECARA AUTO SETELAH "YA"
+    closeModal();
+    toast("Kemaskini berjaya disimpan.");
 }
 
 async function deleteProject() {
