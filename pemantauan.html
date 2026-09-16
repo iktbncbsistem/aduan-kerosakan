@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pemantauan Projek - Sistem Penyenggaraan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- TAMBAH LIBRARY INI UNTUK EKSPORT EXCEL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -156,11 +158,11 @@
             </div>
         </div>
     </div>
-    <div class="top-actions">
-        <button class="btn ghost" onclick="window.print()"><i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Cetak</span></button>
-        <button class="btn ghost" onclick="exportData()"><i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Eksport</span></button>
-        <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
-    </div>
+<div class="top-actions">
+    <button class="btn ghost" onclick="window.print()"><i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Cetak / PDF</span></button>
+    <button class="btn ghost" onclick="exportDataExcel()"><i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Eksport XLS</span></button>
+    <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
+</div>
 </header>
 
 <div class="shell">
@@ -737,10 +739,63 @@ async function removePhoto(i) {
 }
 
 function closeModal() { document.getElementById("projectModal").classList.remove("open"); currentId = null; }
-function exportData() {
-    const blob = new Blob([JSON.stringify(projects, null, 2)], { type: "application/json" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = "Senarai_Projek_IKTBN.json"; a.click(); URL.revokeObjectURL(a.href);
+// ==========================================
+// FUNGSI EKSPORT KE EXCEL (FORMAT ch.xlsx)
+// ==========================================
+function exportDataExcel() {
+    if (projects.length === 0) {
+        toast("Tiada data untuk dieksport.");
+        return;
+    }
+
+    // Susun data mengikut format (seakan ch.xlsx)
+    const exportData = projects.map((p, index) => {
+        return {
+            "BIL": index + 1,
+            "KOD PROJEK": p.code || "-",
+            "NAMA PROJEK": p.title || "-",
+            "KATEGORI": p.category || "-",
+            "JENIS PEROLEHAN": p.procurement || "-",
+            "STATUS PROJEK": p.status || "-",
+            "KEMAJUAN FIZIKAL (%)": p.progress || 0,
+            "KOS PROJEK (RM)": p.budget || 0,
+            "TANGGUNGAN (RM)": p.commitment || 0,
+            "BELANJA (RM)": p.spent || 0,
+            "TARIKH MULA": p.startDate || "-",
+            "TARIKH SIAP": p.dueDate || "-",
+            "CATATAN / ISU": p.issue || "Tiada isu",
+            "PEGAWAI PEMANTAU": p.pic || "Belum ditetapkan"
+        };
+    });
+
+    // Cipta Workbook baru
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    
+    // Lebarkan lajur supaya kemas
+    const wscols = [
+        {wch: 5},  // BIL
+        {wch: 20}, // KOD
+        {wch: 50}, // NAMA PROJEK
+        {wch: 20}, // KATEGORI
+        {wch: 30}, // PEROLEHAN
+        {wch: 15}, // STATUS
+        {wch: 20}, // FIZIKAL
+        {wch: 15}, // KOS
+        {wch: 15}, // TANGGUNGAN
+        {wch: 15}, // BELANJA
+        {wch: 15}, // MULA
+        {wch: 15}, // SIAP
+        {wch: 40}, // CATATAN
+        {wch: 25}  // PIC
+    ];
+    worksheet['!cols'] = wscols;
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Projek 2026");
+
+    // Muat turun fail Excel
+    XLSX.writeFile(workbook, "Unjuran_Projek_IKTBN_Chembong.xlsx");
+    toast("Fail Excel berjaya dimuat turun.");
 }
 
 initSystem();
