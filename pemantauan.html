@@ -402,11 +402,21 @@ function filteredProjects() {
     const cat = document.getElementById("categoryFilter").value;
     const st = document.getElementById("statusFilter").value;
     const pic = document.getElementById("picFilter").value;
+    
+    // Semak adakah pengguna ini Pengurusan (KCPPP/CPPP/ADMIN)
+    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(currentUserProfile?.role?.toUpperCase());
 
-    return projects.filter(p =>
-        (!q || [p.title, p.code, p.pic, p.procurement].join(" ").toLowerCase().includes(q)) &&
-        (!cat || p.category === cat) && (!st || p.status === st) && (!pic || p.pic === pic)
-    );
+    return projects.filter(p => {
+        const matchSearch = (!q || [p.title, p.code, p.pic, p.procurement].join(" ").toLowerCase().includes(q));
+        const matchCat = (!cat || p.category === cat);
+        const matchSt = (!st || p.status === st);
+        const matchPic = (!pic || p.pic === pic);
+        
+        // KESELAMATAN: Jika bukan pengurusan, hanya tunjuk projek yang PIC-nya sama dengan nama pengguna
+        const matchAccess = isManager || p.pic === currentUserProfile.full_name;
+
+        return matchSearch && matchCat && matchSt && matchPic && matchAccess;
+    });
 }
 
 function fillSelect(id, items, value) {
@@ -531,22 +541,24 @@ function applyRole() {
     const isAssignedPic = p.pic === currentUserProfile.full_name;
 
     const canEditAll = isManager;
-    const canUpdateProgress = isManager || isAssignedPic;
+    const canUpdateProgress = isAssignedPic && !isManager;
 
     document.querySelectorAll("#projectModal input, #projectModal textarea, #projectModal select").forEach(el => {
-        if (canEditAll) { el.disabled = false; } 
-        else if (canUpdateProgress) {
-            const allowedIds = ['fProgress', 'fStatus', 'fUpdateNote', 'photoInput'];
+        if (canEditAll) { 
+            el.disabled = false; 
+        } else if (canUpdateProgress) {
+            // KESELAMATAN MEDAN: Hanya ID kotak ini sahaja yang PIC boleh edit
+            const allowedIds = ['fStatus', 'fProgress', 'fSchedule', 'fIssue', 'fAction', 'fUpdateNote', 'photoInput'];
             el.disabled = !allowedIds.includes(el.id);
-        } 
-        else { el.disabled = true; }
+        } else { 
+            el.disabled = true; 
+        }
     });
 
     document.getElementById("saveBtn").style.display = (canEditAll || canUpdateProgress) ? "inline-flex" : "none";
     document.getElementById("deleteBtn").style.display = isManager ? "inline-flex" : "none";
     document.querySelector(".upload-box").style.display = (canEditAll || canUpdateProgress) ? "block" : "none";
 }
-
 function openProject(id) {
     currentId = id;
     const p = projects.find(x => x.id === id);
@@ -597,8 +609,23 @@ async function addProject() {
 async function saveProject() {
     const p = projects.find(x => x.id === currentId);
     if (!p) return;
-    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(currentUserProfile?.role);
+    
+    const roleUpper = currentUserProfile?.role?.toUpperCase();
+    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(roleUpper);
 
+    // Ambil nilai baharu dari borang
+    const newStatus = document.getElementById("fStatus").value;
+    const newProgress = Math.max(0, Math.min(100, Number(document.getElementById("fProgress").value) || 0));
+    const newSchedule = document.getElementById("fSchedule").value.trim();
+    const newIssue = document.getElementById("fIssue").value.trim();
+    const newAction = document.getElementById("fAction").value.trim();
+    
+    // JEJAK AUDIT PINTAR: Rekodkan perubahan yang dibuat oleh PIC/Pengguna
+    let changes = [];
+    if (p.progress != newProgress) changes.push(`Fizikal: ${p.progress}% ➔ ${newProgress}%`);
+    if (p.status !== newStatus) changes.push(`Status: ${p.status} ➔ ${newStatus}`);
+
+    // Jika Pengurusan, simpan maklumat utama
     if (isManager) {
         p.title = document.getElementById("fTitle").value.trim() || "Projek Tanpa Nama";
         p.code = document.getElementById("fCode").value.trim();
@@ -611,18 +638,26 @@ async function saveProject() {
         p.commitment = Number(document.getElementById("fCommitment").value) || 0;
         p.spent = Number(document.getElementById("fSpent").value) || 0;
         p.location = document.getElementById("fLocation").value.trim();
-        p.schedule = document.getElementById("fSchedule").value.trim();
-        p.issue = document.getElementById("fIssue").value.trim() || "Tiada isu direkodkan";
-        p.nextAction = document.getElementById("fAction").value.trim();
     }
 
-    p.status = document.getElementById("fStatus").value;
-    p.progress = Math.max(0, Math.min(100, Number(document.getElementById("fProgress").value) || 0));
+    // Simpan data kemajuan (Dibenarkan untuk PIC & Pengurusan)
+    p.status = newStatus;
+    p.progress = newProgress;
+    p.schedule = newSchedule;
+    p.issue = newIssue || "Tiada isu direkodkan";
+    p.nextAction = newAction;
 
-    const note = document.getElementById("fUpdateNote").value.trim();
-    if (note) {
+    // Masukkan Nota Kemas Kini & Jejak Audit
+    const userNote = document.getElementById("fUpdateNote").value.trim();
+    if (userNote || changes.length > 0) {
         p.updates = p.updates || [];
-        p.updates.unshift({ title: `Kemajuan ${p.progress}% • ${p.status}`, note, date: new Date().toLocaleString("ms-MY"), by: currentUserProfile.full_name });
+        const changeLog = changes.length > 0 ? `[Perubahan: ${changes.join(', ')}] ` : "";
+        p.updates.unshift({ 
+            title: `Kemas kini • ${p.status}`, 
+            note: changeLog + userNote, 
+            date: new Date().toLocaleString("ms-MY"), 
+            by: currentUserProfile.full_name 
+        });
     }
 
     p.lastUpdated = new Date().toLocaleString("ms-MY");
