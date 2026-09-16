@@ -476,17 +476,35 @@ function renderTable() {
     const list = filteredProjects();
     document.getElementById("resultCount").textContent = `${list.length} daripada ${projects.length} projek`;
 
-    const rows = list.map(p => `
-    <tr class="hover:bg-[#f8fafc] transition-colors">
-      <td><div class="project-title">${esc(p.title)}</div><div class="code">${esc(p.code || "Tiada kod")}</div></td>
-      <td>${esc(p.category)}</td>
-      <td><span class="badge ${statusClass(p.status)}">${esc(p.status)}</span>${needsAttention(p) ? '<div class="attention" style="font-size:10px;margin-top:4px;">⚠ Perlu tindakan</div>' : ''}</td>
-      <td class="progress-cell"><div class="progress-meta"><span>Fizikal</span><b>${Number(p.progress) || 0}%</b></div><div class="progress-track"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, Number(p.progress) || 0))}%"></div></div></td>
-      <td class="money">${money(p.budget)}</td>
-      <td class="${isOverdue(p) ? 'attention' : ''}">${dateDisplay(p.dueDate)}</td>
-      <td>${esc(p.pic || "Belum ditetapkan")}</td>
-      <td><button class="btn outline small" onclick="openProject('${esc(p.id)}')"><i class="fa-solid fa-magnifying-glass"></i> Perinci</button></td>
-    </tr>`).join("");
+    // Semak adakah pengguna adalah KCPPP / CPPP / ADMIN
+    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(currentUserProfile?.role?.toUpperCase());
+
+    const rows = list.map(p => {
+        // Logik Paparan Kotak PIC
+        let picCellContent;
+        if (isManager) {
+            // Bina dropdown untuk Pengurusan
+            const options = staffNames.map(name => 
+                `<option value="${esc(name)}" ${p.pic === name ? 'selected' : ''}>${esc(name)}</option>`
+            ).join('');
+            picCellContent = `<select class="field" style="padding: 4px; font-size: 11px; width: 100%; max-width: 140px; cursor: pointer;" onchange="updatePICFromTable('${esc(p.id)}', this)">${options}</select>`;
+        } else {
+            // Teks biasa untuk Staf
+            picCellContent = esc(p.pic || "Belum ditetapkan");
+        }
+
+        return `
+        <tr class="hover:bg-[#f8fafc] transition-colors border-b border-slate-200">
+          <td><div class="project-title">${esc(p.title)}</div><div class="code">${esc(p.code || "Tiada kod")}</div></td>
+          <td>${esc(p.category)}</td>
+          <td><span class="badge ${statusClass(p.status)}">${esc(p.status)}</span>${needsAttention(p) ? '<div class="attention" style="font-size:10px;margin-top:4px;">⚠ Perlu tindakan</div>' : ''}</td>
+          <td class="progress-cell"><div class="progress-meta"><span>Fizikal</span><b>${Number(p.progress) || 0}%</b></div><div class="progress-track"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, Number(p.progress) || 0))}%"></div></div></td>
+          <td class="money">${money(p.budget)}</td>
+          <td class="${isOverdue(p) ? 'attention' : ''}">${dateDisplay(p.dueDate)}</td>
+          <td>${picCellContent}</td>
+          <td><button class="btn outline small" onclick="openProject('${esc(p.id)}')"><i class="fa-solid fa-magnifying-glass"></i> Perinci</button></td>
+        </tr>`;
+    }).join("");
 
     document.getElementById("projectRows").innerHTML = rows || `<tr><td colspan="8" class="empty">Tiada projek sepadan.</td></tr>`;
 }
@@ -726,6 +744,36 @@ function exportData() {
 }
 
 initSystem();
+
+// FUNGSI KEMAS KINI PIC DARI JADUAL UTAMA (AUTO-SAVE)
+async function updatePICFromTable(projectId, selectElement) {
+    const p = projects.find(x => x.id === projectId);
+    if (!p) return;
+    
+    const oldPic = p.pic;
+    const newPic = selectElement.value;
+    
+    if (oldPic === newPic) return; // Tiada perubahan
+
+    // Tukar PIC
+    p.pic = newPic;
+    
+    // Masukkan dalam Jejak Audit (Sejarah)
+    p.updates = p.updates || [];
+    p.updates.unshift({ 
+        title: `Kemas kini PIC`, 
+        note: `[Perubahan: PIC ditukar dari ${oldPic || 'Belum ditetapkan'} ➔ ${newPic}]`, 
+        date: new Date().toLocaleString("ms-MY"), 
+        by: currentUserProfile.full_name 
+    });
+    
+    p.lastUpdated = new Date().toLocaleString("ms-MY");
+
+    // Simpan ke database
+    await syncToDb(p);
+    toast(`PIC projek dikemas kini kepada ${newPic}`);
+}
+    
 </script>
 </body>
 </html>
