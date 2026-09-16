@@ -568,7 +568,6 @@
         const { data } = await _supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
         
         if(data) document.getElementById('rbac-table-body').innerHTML = data.map((u, i) => {
-            // Format masa log terakhir (Contoh: 16/9/2026, 3:15 PM)
             const lastLogin = u.last_login 
                 ? new Date(u.last_login).toLocaleString('ms-MY', {dateStyle: 'short', timeStyle: 'short'}) 
                 : '<span class="text-slate-400 italic">Belum Login</span>';
@@ -583,6 +582,7 @@
                 <td class="p-3 text-center"><button onclick="saveRBAC('${u.id}')" class="btn outline py-1 px-3 text-[10px]">Simpan</button></td>
             </tr>`;
         }).join('');
+        loadActivityLog(); 
     }
     async function saveRBAC(id) { const r = document.getElementById(`role-${id}`).value; const b = document.getElementById(`status-${id}`).value === 'true'; await _supabase.from('user_profiles').update({ role: r, is_blocked: b }).eq('id', id); alert('Disimpan!'); loadRBACUsers(); }
 
