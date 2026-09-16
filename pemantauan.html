@@ -411,17 +411,20 @@ function filteredProjects() {
     const st = document.getElementById("statusFilter").value;
     const picFilterValue = document.getElementById("picFilter").value;
     
-    // Semak adakah pengguna ini Pengurusan (Kebal)
-    const role = currentUserProfile?.role?.toUpperCase() || "";
-    const isManager = ['ADMIN', 'CPPP', 'KCPPP'].includes(role);
+    let isManager = false;
+    if (currentUserProfile && currentUserProfile.role) {
+        const r = currentUserProfile.role.toUpperCase();
+        if (r === 'KCPPP' || r === 'CPPP' || r === 'ADMIN') {
+            isManager = true;
+        }
+    }
 
     return projects.filter(p => {
         const matchSearch = (!q || [p.title, p.code, p.pic, p.procurement].join(" ").toLowerCase().includes(q));
         const matchCat = (!cat || p.category === cat);
         const matchSt = (!st || p.status === st);
         const matchPic = (!picFilterValue || p.pic === picFilterValue);
-        
-        // KESELAMATAN: Pengurusan nampak semua (true). Staf biasa nampak nama mereka sahaja.
+
         const matchAccess = isManager ? true : (p.pic === currentUserProfile?.full_name);
 
         return matchSearch && matchCat && matchSt && matchPic && matchAccess;
