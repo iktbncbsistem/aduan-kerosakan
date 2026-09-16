@@ -246,7 +246,16 @@
                             <div><h3 class="font-extrabold text-[#12304a] text-base">Pengurusan Akaun Pengguna</h3><p class="text-xs text-slate-500">Ubah peranan pengguna sistem.</p></div>
                             <button onclick="loadRBACUsers()" class="btn outline bg-white"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
                         </div>
-                        <div class="overflow-x-auto w-full border border-slate-200 rounded-xl"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px]"><tr><th class="p-3 w-10 text-center border-b border-slate-200">Bil</th><th class="p-3 border-b border-slate-200">Nama & Emel</th><th class="p-3 w-40 text-center border-b border-slate-200">Peranan</th><th class="p-3 w-32 text-center border-b border-slate-200">Status</th><th class="p-3 w-28 text-center border-b border-slate-200">Tindakan</th></tr></thead><tbody id="rbac-table-body" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan...</td></tr></tbody></table></div>
+                        <div class="overflow-x-auto w-full border border-slate-200 rounded-xl"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-[#12304a] font-bold uppercase border-b text-[10px]">
+    <tr>
+        <th class="p-3 w-10 text-center border-b border-slate-200">Bil</th>
+        <th class="p-3 border-b border-slate-200">Nama & Emel</th>
+        <th class="p-3 w-40 text-center border-b border-slate-200">Log Terakhir</th>
+        <th class="p-3 w-32 text-center border-b border-slate-200">Peranan</th>
+        <th class="p-3 w-32 text-center border-b border-slate-200">Status</th>
+        <th class="p-3 w-28 text-center border-b border-slate-200">Tindakan</th>
+    </tr>
+</thead><tbody id="rbac-table-body" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-8 text-center text-slate-400">Memuatkan...</td></tr></tbody></table></div>
                     </div>
                 </div>
 <!-- Tab Log Aktiviti -->
@@ -557,13 +566,23 @@
 
     async function loadRBACUsers() {
         const { data } = await _supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
-        if(data) document.getElementById('rbac-table-body').innerHTML = data.map((u, i) => `
+        
+        if(data) document.getElementById('rbac-table-body').innerHTML = data.map((u, i) => {
+            // Format masa log terakhir (Contoh: 16/9/2026, 3:15 PM)
+            const lastLogin = u.last_login 
+                ? new Date(u.last_login).toLocaleString('ms-MY', {dateStyle: 'short', timeStyle: 'short'}) 
+                : '<span class="text-slate-400 italic">Belum Login</span>';
+
+            return `
             <tr class="hover:bg-slate-50 border-b border-slate-200">
-                <td class="p-3 text-center font-medium">${i+1}</td><td class="p-3"><div class="font-bold text-slate-800">${u.full_name || '-'}</div><div class="text-[10px] text-slate-500">${u.email}</div></td>
+                <td class="p-3 text-center font-medium">${i+1}</td>
+                <td class="p-3"><div class="font-bold text-slate-800">${u.full_name || '-'}</div><div class="text-[10px] text-slate-500">${u.email}</div></td>
+                <td class="p-3 text-center text-[11px] font-medium text-slate-600">${lastLogin}</td>
                 <td class="p-3 text-center"><select id="role-${u.id}" class="field font-bold text-xs"><option ${u.role==='STAF'?'selected':''}>STAF</option><option ${u.role==='CPPP'?'selected':''}>CPPP</option><option ${u.role==='KCPPP'?'selected':''}>KCPPP</option><option ${u.role==='ADMIN'?'selected':''}>ADMIN</option></select></td>
                 <td class="p-3 text-center"><select id="status-${u.id}" class="field text-xs"><option value="false" ${!u.is_blocked?'selected':''}>Aktif</option><option value="true" ${u.is_blocked?'selected':''}>Disekat</option></select></td>
                 <td class="p-3 text-center"><button onclick="saveRBAC('${u.id}')" class="btn outline py-1 px-3 text-[10px]">Simpan</button></td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
     async function saveRBAC(id) { const r = document.getElementById(`role-${id}`).value; const b = document.getElementById(`status-${id}`).value === 'true'; await _supabase.from('user_profiles').update({ role: r, is_blocked: b }).eq('id', id); alert('Disimpan!'); loadRBACUsers(); }
 
