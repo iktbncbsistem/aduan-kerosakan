@@ -151,18 +151,32 @@
     <div class="flex items-center gap-4">
         <button onclick="toggleSidebar()" class="text-white hover:text-blue-200 transition text-xl p-1 px-2"><i class="fa-solid fa-bars"></i></button>
         <div class="brand">
-            <div class="logo">SPPP</div>
+            <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="w-10 h-10 object-contain bg-white/10 p-1 rounded-lg sys-logo">
             <div>
                 <h1>Modul Pemantauan Projek</h1>
                 <p>Sistem Pembangunan & Penyelenggaraan • IKTBN Chembong</p>
+
+
+                
             </div>
         </div>
     </div>
-<div class="top-actions">
-        <!-- Kita letak butang shortcut ke Laporan sebagai ganti -->
-        <button class="btn ghost" onclick="window.location.href='laporan.html'"><i class="fa-solid fa-file-lines"></i> <span class="hidden sm:inline">Jana Laporan</span></button>
-        <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
+<div class="top-actions flex items-center gap-2 sm:gap-3">
+    <!-- Kita letak butang shortcut ke Laporan sebagai ganti -->
+    <button class="btn ghost" onclick="window.location.href='laporan.html'"><i class="fa-solid fa-file-lines"></i> <span class="hidden sm:inline">Jana Laporan</span></button>
+    <button class="btn primary" onclick="addProject()"><i class="fa-solid fa-plus"></i> Tambah Projek</button>
+    
+    <!-- Garisan Pemisah -->
+    <div class="w-px h-6 bg-white/20 mx-1 hidden sm:block"></div>
+
+    <!-- AVATAR & LOG OUT DI SINI -->
+    <div class="w-8 h-8 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm" id="user-avatar">
+        <i class="fa-solid fa-user"></i>
     </div>
+    <button onclick="logout()" class="p-1.5 text-blue-200 hover:text-red-400 transition-colors" title="Log Keluar">
+        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+    </button>
+</div>
 </header>
 
 <div class="shell">
@@ -376,7 +390,12 @@ async function initSystem() {
         if (users) {
             staffNames = ["Belum ditetapkan", ...users.map(u => u.full_name)];
         }
-
+// Update Avatar Initials
+    const avatarEl = document.getElementById('user-avatar');
+    if (avatarEl && currentUserProfile && currentUserProfile.full_name) {
+        const initial = currentUserProfile.full_name.charAt(0).toUpperCase();
+        avatarEl.innerHTML = `<span class="uppercase font-bold text-sm">${initial}</span>`;
+    }
         const { data: projs } = await _supabase.from('pemantauan_projek').select('*');
         if (projs && projs.length > 0) {
             projects = projs.map(r => r.data);
@@ -787,6 +806,12 @@ async function updatePICFromTable(projectId, selectElement) {
     // Simpan ke database
     await syncToDb(p);
     toast(`PIC projek dikemas kini kepada ${newPic}`);
+}
+
+async function logout() { 
+    sessionStorage.clear(); 
+    await _supabase.auth.signOut(); 
+    window.location.href = 'login.html'; 
 }
     
 </script>
