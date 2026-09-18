@@ -1044,12 +1044,13 @@
 
 
 async function goToPengurusan() {
-            if (!currentUserProfile) {
+            // Guna userProfile (seperti yang ditetapkan dalam index.html)
+            if (!userProfile) {
                 alert("Sila log masuk terlebih dahulu.");
                 return;
             }
 
-            const role = currentUserProfile.role ? currentUserProfile.role.toUpperCase() : 'STAF';
+            const role = userProfile.role ? userProfile.role.toUpperCase() : 'STAF';
 
             if (role === 'KCPPP' || role === 'ADMIN') {
                 window.location.href = 'kcppp.html';
@@ -1059,19 +1060,19 @@ async function goToPengurusan() {
                 // Logik untuk STAF biasa
                 try {
                     const btn = document.querySelector('button[onclick="goToPengurusan()"]');
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg"></i><span class="text-[9px] font-bold">Menyemak...</span>`;
+                    const originalHTML = btn ? btn.innerHTML : '';
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg"></i><span class="text-[9px] font-bold">Menyemak...</span>`;
 
                     const { data: projs, error } = await _supabase
                         .from('pemantauan_projek')
                         .select('data');
                     
-                    btn.innerHTML = originalHTML;
+                    if (btn) btn.innerHTML = originalHTML;
 
                     if (error) throw error;
 
-                    // Semak jika nama Staf ini ada ditetapkan sebagai PIC
-                    const isPic = projs && projs.some(p => p.data && p.data.pic === currentUserProfile.full_name);
+                    // Semak jika nama Staf ini ada ditetapkan sebagai PIC (Guna userProfile.full_name)
+                    const isPic = projs && projs.some(p => p.data && p.data.pic === userProfile.full_name);
 
                     if (isPic) {
                         window.location.href = 'pemantauan.html';
