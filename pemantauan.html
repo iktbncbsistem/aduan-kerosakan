@@ -820,14 +820,6 @@ async function handlePhotos(event) {
         toast("Gambar berjaya dipadam.");
     }
 
-async function removePhoto(i) {
-    const p = projects.find(x => x.id === currentId);
-    if (!p) return;
-    p.photos.splice(i, 1);
-    await syncToDb(p);
-    renderPhotos(p);
-}
-
 function closeModal() { document.getElementById("projectModal").classList.remove("open"); currentId = null; }
 
 initSystem();
