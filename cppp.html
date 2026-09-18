@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280">
+    <title>Panel CPPP - Sistem Penyenggaraan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style> 
+        /* ==========================================
+           REKA BENTUK UTAMA (Penyatuan dgn KCPPP)
+           ========================================== */
+        :root {
+            --navy: #12304a; --navy-dark: #0a1c2e; --blue: #1665a7; --blue-light: #eaf4fb;
+            --teal: #0d9488; --bg: #f4f7fb; --card: #ffffff; --text: #1e293b; --muted: #64748b;
+            --line: #cbd5e1; --line-light: #e2e8f0; --red: #e11d48; --red-bg: #ffe4e6;
+            --amber: #d97706; --amber-bg: #fef3c7; --green: #059669; --green-bg: #d1fae5;
+            --radius: 12px;
+            --shadow: 0 10px 25px -5px rgba(18, 48, 74, 0.08), 0 8px 10px -6px rgba(18, 48, 74, 0.04);
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; overflow: hidden; margin: 0; line-height: 1.5; -webkit-font-smoothing: antialiased; } 
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* BUTANG STANDARD */
+        button, input, select, textarea { font: inherit; outline: none; }
+        .btn { border: 0; border-radius: 8px; padding: 9px 15px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+        .btn:hover { transform: translateY(-1px); }
+        .btn.outline { background: #fff; color: var(--navy); border: 1px solid var(--line); box-shadow: none; }
+        .btn.outline:hover { background: #f8fafc; border-color: var(--blue); }
+        .btn.ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: none; }
+        .btn.ghost:hover { background: rgba(255, 255, 255, 0.22); }
+
+        /* TOPBAR */
+        .topbar { background: linear-gradient(135deg, var(--navy), #194b72 60%, var(--teal)); color: white; padding: 16px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; position: sticky; top: 0; z-index: 40; box-shadow: 0 4px 20px rgba(10, 28, 46, 0.18); }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .logo { width: 44px; height: 44px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.15); display: grid; place-items: center; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 16px; }
+        .brand h1 { font-size: 19px; margin: 0 0 2px; font-weight: 800; line-height: 1.2; }
+        .brand p { margin: 0; color: #dcecf7; font-size: 12px; }
+        
+        /* SIDEBAR COLLAPSIBLE */
+        .shell { display: flex; height: calc(100vh - 76px); overflow: hidden; }
+        .sidebar { width: 250px; background: #fff; border-right: 1px solid var(--line-light); padding: 20px 14px; transition: width 0.3s ease; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; z-index: 20; flex-shrink: 0; }
+        .sidebar.collapsed { width: 70px; padding: 20px 10px; }
+        .sidebar.collapsed .side-label, .sidebar.collapsed .nav-text { opacity: 0; display: none; }
+        
+        .nav-item { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; margin: 3px 0; font-weight: 700; font-size: 13px; color: #475569; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+        .nav-item:hover { background: #f1f5f9; color: var(--navy); }
+        .nav-item.active { background: var(--blue-light); color: var(--blue); }
+        .nav-item i { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+        .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 800; margin: 16px 8px 8px; white-space: nowrap; }
+
+        /* KANDUNGAN UTAMA */
+        .main-content { flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 24px; min-width: 0; }
+        
+        /* FILTERS */
+        .filters { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; }
+        .field { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: #fff; font-size: 13px; outline: none; transition: 0.2s; }
+        .field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 101, 167, 0.12); }
+    </style>
+</head>
+<body>
+
+    <!-- BAR ATAS (TOPBAR) -->
+    <header class="topbar">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="text-white hover:text-blue-200 transition text-xl p-1 px-2"><i class="fa-solid fa-bars"></i></button>
+            <div class="brand">
+                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo" class="w-10 h-10 object-contain bg-white/10 p-1 rounded-lg sys-logo">
+                <div>
+                    <h1>Panel Pengurusan CPPP</h1>
+                    <p>Sistem Pembangunan & Penyelenggaraan • IKTBN Chembong</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
+                <div class="w-6 h-6 rounded-full bg-orange-400 text-white font-bold text-[10px] flex items-center justify-center shadow-sm" id="user-avatar"><i class="fa-solid fa-user"></i></div>
+                <span id="user-name-display" class="text-xs font-bold text-white hidden sm:inline-block">Memuatkan...</span>
+            </div>
+            <button onclick="logout()" class="p-2 text-blue-100 hover:text-white hover:bg-red-500/80 rounded-lg transition-colors" title="Log Keluar"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+        </div>
+    </header>
+
+    <!-- SHELL UTAMA -->
+    <div class="shell">
+        <!-- NAVIGASI SISI (SIDEBAR) -->
+        <aside class="sidebar" id="app-sidebar">
+            <div class="side-label">Menu Utama</div>
+            <div class="nav-item active" id="nav-dash">
+                <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Dashboard CPPP</span>
+            </div>
+            <div class="nav-item" onclick="window.location.href='pemantauan.html'">
+                <i class="fa-solid fa-bars-progress"></i> <span class="nav-text">Pemantauan Projek</span>
+            </div>
+            <div class="nav-item" onclick="window.location.href='index.html'">
+                <i class="fa-solid fa-file-pen"></i> <span class="nav-text">Hantar Aduan</span>
+            </div>
+        </aside>
+
+        <!-- KANDUNGAN UTAMA (MAIN) -->
+        <main class="main-content">
+            <div id="dashboard-view" class="max-w-[1400px] mx-auto space-y-5">
+                
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-[#12304a] tracking-tight m-0 mb-1">Dashboard Analitik CPPP</h2>
+                        <p class="text-sm text-slate-500 m-0">Selamat Datang, <span id="welcome-user-name" class="font-bold text-slate-700">Pengguna</span></p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleKpi()" class="btn outline" id="btn-toggle-kpi"><i class="fa-solid fa-eye-slash"></i> Sembunyi Statistik</button>
+                        <button onclick="loadComplaintsData()" class="btn outline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Kad Statistik (Boleh Disembunyikan) -->
+                <div id="kpi-cards" class="grid grid-cols-2 md:grid-cols-4 gap-3 transition-all duration-300">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <div class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-inbox"></i></div>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Aduan Baru</h3>
+                        </div>
+                        <p id="stat-baru" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-spinner"></i></div>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Sedang Diproses</h3>
+                        </div>
+                        <p id="stat-proses" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-check-double"></i></div>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Aduan Selesai</h3>
+                        </div>
+                        <p id="stat-selesai" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase m-0">Jumlah Terkumpul</h3>
+                        </div>
+                        <p id="stat-total" class="text-3xl font-extrabold text-[#12304a] m-0">0</p>
+                    </div>
+                </div>
+
+                <!-- Jadual Data & Penapis Carian -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+                    
+                    <div class="flex justify-between items-end border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="text-sm font-bold text-[#12304a] uppercase tracking-wider m-0">Senarai Aduan & Tugasan Semasa</h3>
+                        <span id="total-records-count" class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-bold m-0">Memaparkan 0 rekod</span>
+                    </div>
+
+                    <!-- PENAPIS SENARAI -->
+                    <section class="filters">
+                        <input class="field" id="filter-search" placeholder="Cari pemohon, butiran..." oninput="applyFilters()" />
+                        <select class="field" id="filter-dept" onchange="applyFilters()"><option value="">Semua Lokasi</option></select>
+                        <select class="field" id="filter-category" onchange="applyFilters()"><option value="">Semua Kategori</option></select>
+                        <select class="field" id="filter-status" onchange="applyFilters()"><option value="">Semua Status</option><option value="BARU">BARU</option><option value="PROSES">PROSES</option><option value="SELESAI">SELESAI</option></select>
+                        <select class="field" id="filter-year" onchange="applyFilters()"><option value="">Semua Tahun</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option></select>
+                        <button class="btn outline" onclick="resetFilters()">Reset</button>
+                    </section>
+
+                    <div class="overflow-x-auto w-full border border-slate-200 rounded-xl max-h-[600px] relative">
+                        <table class="w-full text-left text-xs whitespace-nowrap border-collapse">
+                            <thead class="bg-[#f8fafc] text-[#475569] font-extrabold uppercase text-[10px] border-b border-slate-200 tracking-wider sticky top-0 z-10">
+                                <tr>
+                                    <th class="p-3 w-10 text-center border-b border-slate-200">Bil</th>
+                                    <th class="p-3 w-48 border-b border-slate-200">Pemohon & Tarikh</th>
+                                    <th class="p-3 w-28 border-b border-slate-200">Lokasi</th>
+                                    <th class="p-3 border-b border-slate-200">Kategori & Butiran</th>
+                                    <th class="p-3 min-w-[100px] border-b border-slate-200">Justifikasi</th>
+                                    <th class="p-3 text-right w-24 border-b border-slate-200">Kos (RM)</th>
+                                    <th class="p-3 text-center w-24 border-b border-slate-200">Status</th>
+                                    <th class="p-3 text-center w-24 border-b border-slate-200">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cppp-complaints-table" class="divide-y divide-slate-100">
+                                <tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Memuatkan senarai aduan...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PERINCIAN CPPP -->
+    <div id="view-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="p-5 bg-gradient-to-r from-[#12304a] to-[#1e527b] text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-wrench text-blue-200 mr-2"></i>Tindakan & Sokongan CPPP</h3>
+                <button type="button" onclick="closeViewModal()" class="w-8 h-8 bg-white/20 hover:bg-red-500 rounded-lg flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form onsubmit="submitCPPPAction(event)" class="flex flex-col flex-grow overflow-hidden">
+                <div class="p-5 overflow-y-auto space-y-5 flex-grow">
+                    <!-- Maklumat Asas -->
+                    <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Pemohon</p><p id="vm-name" class="font-bold text-sm text-[#12304a]"></p></div>
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Lokasi</p><p id="vm-dept" class="font-bold text-sm text-[#12304a]"></p></div>
+                    </div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Jenis Kerosakan</p><p id="vm-types" class="text-sm font-bold text-orange-600"></p></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Butiran Kerosakan</p><p id="vm-details" class="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 whitespace-pre-wrap min-h-[60px]"></p></div>
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Justifikasi</p><p id="vm-justification" class="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 whitespace-pre-wrap min-h-[60px]"></p></div>
+                    </div>
+                    
+                    <!-- Lampiran -->
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Lampiran</p>
+                        <div id="vm-attachments" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    
+                    <!-- BORANG CPPP (Kriteria & Syor) -->
+                    <div class="border-t border-slate-200 pt-5 mt-2">
+                        <h4 class="text-xs font-bold text-[#1665a7] mb-3 border-l-4 border-[#1665a7] pl-2 uppercase tracking-wide">Borang Klasifikasi Kerosakan (CPPP)</h4>
+                        
+                        <div class="mb-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200 pb-2 mb-2">Kriteria Kerosakan (Tandakan yang berkaitan)</label>
+                            <div class="space-y-2 text-xs">
+                                <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1.5 rounded transition">
+                                    <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki dengan kadar segera" class="mt-0.5 w-4 h-4 text-[#1665a7] rounded border-slate-300">
+                                    <span class="font-medium text-slate-700 leading-tight">a. Kerosakan yang perlu dibaiki dengan kadar segera</span>
+                                </label>
+                                <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1.5 rounded transition">
+                                    <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki terus" class="mt-0.5 w-4 h-4 text-[#1665a7] rounded border-slate-300">
+                                    <span class="font-medium text-slate-700 leading-tight">b. Kerosakan yang boleh dibaiki terus</span>
+                                </label>
+                                <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1.5 rounded transition">
+                                    <input type="checkbox" name="cppp_kategori" value="Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti" class="mt-0.5 w-4 h-4 text-[#1665a7] rounded border-slate-300">
+                                    <span class="font-medium text-slate-700 leading-tight">c. Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</span>
+                                </label>
+                                <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1.5 rounded transition">
+                                    <input type="checkbox" name="cppp_kategori" value="Kerosakan yang perlu dibaiki oleh pembekal luar" class="mt-0.5 w-4 h-4 text-[#1665a7] rounded border-slate-300">
+                                    <span class="font-medium text-slate-700 leading-tight">d. Kerosakan yang perlu dibaiki oleh pembekal luar</span>
+                                </label>
+                                <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1.5 rounded transition">
+                                    <input type="checkbox" name="cppp_kategori" value="Kerosakan yang tidak ekonomi untuk dibaiki" class="mt-0.5 w-4 h-4 text-[#1665a7] rounded border-slate-300">
+                                    <span class="font-medium text-slate-700 leading-tight">e. Kerosakan yang tidak ekonomi untuk dibaiki</span>
+                                </label>
+                                <label class="flex items-start gap-2.5 cursor-pointer hover:bg-white p-1.5 rounded transition">
+                                    <input type="checkbox" name="cppp_kategori" value="Lain-lain" class="mt-0.5 w-4 h-4 text-[#1665a7] rounded border-slate-300">
+                                    <span class="font-medium text-slate-700 leading-tight">f. Lain-lain (Nyatakan di ruangan catatan)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan / Syor kepada KCPPP</label>
+                            <textarea id="modal-remarks" rows="2" class="field w-full bg-slate-50" placeholder="Contoh: Disyorkan untuk perolehan alat ganti baru..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ubah Status Laporan</label>
+                            <select id="action-status" class="field w-full font-bold text-[#12304a]">
+                                <option value="BARU">BARU</option>
+                                <option value="PROSES">SEDANG DIPROSES</option>
+                                <option value="SELESAI">SELESAI</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end items-center gap-2">
+                    <button type="button" onclick="cetakBorang(currentActionId)" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs shadow-sm transition mr-auto"><i class="fa-solid fa-print mr-1.5"></i>Cetak</button>
+                    <button type="button" onclick="closeViewModal()" class="px-5 py-2 bg-white border border-slate-300 text-slate-600 font-bold rounded-lg text-xs hover:bg-slate-100 transition">Batal</button>
+                    <button type="submit" class="px-6 py-2 bg-[#1665a7] hover:bg-[#12304a] text-white font-bold rounded-lg text-xs shadow-md transition">Simpan Sokongan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FUNGSI JS UTAMA -->
+    <script>
+    const SUPABASE_URL = 'https://cetaoxubcdityyhcvtsy.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldGFveHViY2RpdHl5aGN2dHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTgyMjAsImV4cCI6MjEwMzkzNDIyMH0.vlhUaxM8VDSiOIgtwpPgdbC-xrDczFrx5g5iMqUjObc';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let rawComplaintsData = []; 
+    let currentUser = null;
+    let currentActionId = null;
+
+    // --- SIDEBAR & UI LOGIC ---
+    function toggleSidebar() { document.getElementById('app-sidebar').classList.toggle('collapsed'); }
+    
+    function toggleKpi() {
+        const kpi = document.getElementById('kpi-cards');
+        const btn = document.getElementById('btn-toggle-kpi');
+        if(kpi.style.display === 'none') {
+            kpi.style.display = 'grid';
+            btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sembunyi Statistik';
+        } else {
+            kpi.style.display = 'none';
+            btn.innerHTML = '<i class="fa-solid fa-eye"></i> Papar Statistik';
+        }
+    }
+
+    async function initCPPP() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'login.html'; return; }
+        currentUser = session.user;
+        
+        const { data: profile } = await _supabase.from('user_profiles').select('*').eq('email', currentUser.email).single();
+        if (!profile || !['CPPP', 'KCPPP', 'ADMIN'].includes(profile.role)) { alert('Akses Ditolak!'); window.location.href = 'index.html'; return; }
+        
+        const nameDisplay = profile.full_name || currentUser.email.split('@')[0];
+        document.getElementById('user-name-display').innerText = nameDisplay;
+        document.getElementById('welcome-user-name').innerText = nameDisplay;
+        
+        const avatarEl = document.getElementById('user-avatar');
+        if (avatarEl && nameDisplay) {
+            avatarEl.innerHTML = `<span class="uppercase font-bold text-sm">${nameDisplay.charAt(0)}</span>`;
+        }
+
+        loadSystemTheme();
+        loadMasterData(); 
+        loadComplaintsData();
+    }
+
+    async function loadSystemTheme() {
+        const { data } = await _supabase.from('system_settings').select('*').eq('setting_key', 'system_logo').single();
+        if(data && data.setting_value) document.querySelectorAll('.sys-logo').forEach(img => img.src = data.setting_value);
+    }
+
+    async function loadMasterData() {
+        const { data: locations } = await _supabase.from('departments').select('*').order('name');
+        if (locations) document.getElementById('filter-dept').innerHTML = '<option value="">Semua Lokasi</option>' + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+        
+        const { data: settings } = await _supabase.from('system_settings').select('*');
+        let damageTypes = ["Peralatan / Mesin", "Infrastruktur", "Peralatan ICT", "Lain-lain"];
+        if (settings) { const ts = settings.find(s => s.setting_key === 'damage_types'); if (ts && ts.setting_value) { try { damageTypes = JSON.parse(ts.setting_value); } catch(e){} } }
+        document.getElementById('filter-category').innerHTML = '<option value="">Semua Kategori</option>' + damageTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    async function loadComplaintsData() {
+        const { data, error } = await _supabase.from('complaints').select('*').order('created_at', { ascending: false });
+        if (error || !data) return;
+        rawComplaintsData = data;
+        
+        let baru = 0, proses = 0, selesai = 0;
+        data.forEach(item => { if(item.status === 'BARU') baru++; else if(['PROSES','SEDANG DIPROSES'].includes(item.status)) proses++; else if(item.status === 'SELESAI') selesai++; });
+        
+        document.getElementById('stat-baru').innerText = baru; 
+        document.getElementById('stat-proses').innerText = proses; 
+        document.getElementById('stat-selesai').innerText = selesai; 
+        document.getElementById('stat-total').innerText = data.length;
+        
+        renderCPPPTable(data);
+    }
+
+    function renderCPPPTable(data) {
+        const tbody = document.getElementById('cppp-complaints-table');
+        document.getElementById('total-records-count').innerText = `Memaparkan ${data.length} daripada ${rawComplaintsData.length} item`;
+        
+        if (data.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Tiada rekod dijumpai.</td></tr>'; 
+            return; 
+        }
+        
+        tbody.innerHTML = data.map((item, idx) => {
+            return `
+            <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200">
+                <td class="p-4 text-center font-bold text-slate-400 align-top">${idx + 1}</td>
+                <td class="p-4 align-top whitespace-normal min-w-[140px]"><div class="font-bold text-[#12304a] uppercase">${item.full_name || 'Tanpa Nama'}</div><div class="text-[10px] text-slate-500 mt-1"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.created_at).toLocaleDateString('ms-MY')}</div></td>
+                <td class="p-4 align-top"><div class="font-bold text-slate-700">${item.department || '-'}</div><div class="text-[10px] text-slate-400">${item.phone || '-'}</div></td>
+                <td class="p-4 align-top max-w-[200px] whitespace-normal"><span class="inline-block bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-md text-[9px] font-bold mb-1">${Array.isArray(item.damage_types) ? item.damage_types.join(', ') : item.damage_types}</span><p class="text-[11px] text-slate-500 line-clamp-3">${item.details || '-'}</p></td>
+                <td class="p-4 align-top min-w-[100px] max-w-[300px] whitespace-normal"><p class="text-[11px] text-slate-500 line-clamp-3">${item.justification || '-'}</p></td>
+                <td class="p-4 align-top text-right font-extrabold text-[#12304a] whitespace-nowrap">RM ${parseFloat(item.estimated_cost || 0).toFixed(2)}</td>
+                <td class="p-4 align-top text-center">${getStatusBadge(item.status)}</td>
+                <td class="p-4 align-top text-center">
+                    <button onclick="viewComplaintDetail('${item.id}')" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-lg text-[10px] shadow-sm transition"><i class="fa-solid fa-wrench mr-1"></i> Tindakan</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function getStatusBadge(status) {
+        if(status === 'BARU') return '<span class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-[9px] font-bold">BARU</span>';
+        if(['PROSES','SEDANG DIPROSES'].includes(status)) return '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-[9px] font-bold">PROSES</span>';
+        if(status === 'SELESAI') return '<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-[9px] font-bold">SELESAI</span>';
+        return `<span class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-[9px] font-bold">${status || 'BARU'}</span>`;
+    }
+
+    function resetFilters() { document.querySelectorAll('#filter-search, #filter-dept, #filter-category, #filter-status, #filter-year').forEach(el => el.value = ''); renderCPPPTable(rawComplaintsData); }
+    
+    function applyFilters() {
+        const search = document.getElementById('filter-search').value.toLowerCase();
+        const filtered = rawComplaintsData.filter(item => {
+            return (!search || (item.full_name && item.full_name.toLowerCase().includes(search)) || (item.details && item.details.toLowerCase().includes(search))) &&
+                   (!document.getElementById('filter-dept').value || item.department === document.getElementById('filter-dept').value) &&
+                   (!document.getElementById('filter-category').value || (Array.isArray(item.damage_types) ? item.damage_types.includes(document.getElementById('filter-category').value) : item.damage_types === document.getElementById('filter-category').value)) &&
+                   (!document.getElementById('filter-status').value || item.status === document.getElementById('filter-status').value) &&
+                   (!document.getElementById('filter-year').value || new Date(item.created_at).getFullYear().toString() === document.getElementById('filter-year').value);
+        });
+        renderCPPPTable(filtered);
+    }
+
+    function viewComplaintDetail(id) {
+        const item = rawComplaintsData.find(c => c.id === id);
+        if(!item) return;
+        
+        currentActionId = id; 
+        document.getElementById('vm-name').innerText = item.full_name || '-'; 
+        document.getElementById('vm-dept').innerText = item.department || '-';
+        document.getElementById('vm-types').innerText = Array.isArray(item.damage_types) ? item.damage_types.join(', ') : (item.damage_types || '-');
+        document.getElementById('vm-details').innerText = item.details || 'Tiada butiran.'; 
+        document.getElementById('vm-justification').innerText = item.justification || 'Tiada justifikasi.';
+        
+        document.getElementById('action-status').value = item.status || 'PROSES';
+        document.getElementById('modal-remarks').value = item.action_remarks || '';
+
+        // Reset Checkboxes
+        document.querySelectorAll('input[name="cppp_kategori"]').forEach(cb => cb.checked = false);
+        if(item.cppp_kategori) {
+            const katArray = item.cppp_kategori.split(', ');
+            katArray.forEach(k => {
+                const cb = document.querySelector(`input[name="cppp_kategori"][value="${k}"]`);
+                if(cb) cb.checked = true;
+            });
+        }
+
+        const attachContainer = document.getElementById('vm-attachments');
+        attachContainer.innerHTML = '';
+        let hasAttachment = false;
+        
+        if (item.image_url) {
+            hasAttachment = true;
+            item.image_url.split(',').forEach((url) => {
+                if(!url.trim()) return;
+                const cleanUrl = url.trim(); const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
+                attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="inline-flex items-center px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition shadow-sm mr-2 mb-2"><i class="fa-solid fa-download text-orange-500 mr-2"></i>Gambar: ${fileName.slice(-15)}</button>`;
+            });
+        }
+        if (item.quotation_url) {
+            hasAttachment = true;
+            const cleanUrl = item.quotation_url.trim(); const fileName = decodeURIComponent(cleanUrl.split('/').pop().split('?')[0]);
+            attachContainer.innerHTML += `<button type="button" onclick="downloadFile(event, '${cleanUrl}')" class="inline-flex items-center px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition shadow-sm mr-2 mb-2"><i class="fa-solid fa-download text-red-500 mr-2"></i>Sebut Harga</button>`;
+        }
+        if (!hasAttachment) attachContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Tiada lampiran disertakan.</span>';
+        
+        document.getElementById('view-modal').classList.remove('hidden');
+    }
+
+    function closeViewModal() { document.getElementById('view-modal').classList.add('hidden'); }
+
+    async function submitCPPPAction(e) {
+        try { if(e) e.preventDefault(); } catch(err) {}
+        const id = currentActionId; if (!id) return;
+        
+        const newStatus = document.getElementById('action-status').value;
+        const remarks = document.getElementById('modal-remarks').value;
+        
+        let checkedKat = "";
+        try {
+            const checkboxes = document.querySelectorAll('input[name="cppp_kategori"]:checked');
+            let vals = [];
+            checkboxes.forEach(cb => { if(cb.value && cb.value !== 'on') vals.push(cb.value); });
+            checkedKat = vals.join(', ');
+        } catch(err) {}
+
+        const { error } = await _supabase.from('complaints').update({
+            status: newStatus,
+            action_remarks: remarks,
+            cppp_kategori: checkedKat,
+            updated_at: new Date().toISOString()
+        }).eq('id', id);
+
+        if(error) {
+            alert('Ralat Supabase: ' + error.message);
+        } else {
+            alert('Tindakan & Sokongan berjaya disimpan!');
+            closeViewModal();
+            loadComplaintsData(); 
+        }
+    }
+
+    window.downloadFile = async function(e, url) { 
+        e.preventDefault();
+        const btn = e.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-slate-400"></i>Muat turun...';
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const urlBlob = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = urlBlob;
+            a.download = decodeURIComponent(url.split('/').pop().split('?')[0]);
+            document.body.appendChild(a);
+            a.click(); a.remove(); window.URL.revokeObjectURL(urlBlob);
+        } catch (err) { window.open(url, '_blank'); } finally { btn.innerHTML = originalText; }
+    }
+
+    async function logout() { sessionStorage.clear(); await _supabase.auth.signOut(); window.location.href = 'login.html'; }
+    
+    // --- CETAK BORANG ---
+    function cetakBorang(id) {
+        const item = rawComplaintsData.find(c => c.id === id);
+        if(!item) return;
+
+        const cpppKat = item.cppp_kategori || "";
+        const tick = (val) => cpppKat.includes(val) ? '☑' : '☐';
+        
+        const dmg = Array.isArray(item.damage_types) ? item.damage_types.join('') : (item.damage_types || '');
+        const k1 = (dmg.includes('Peralatan / Mesin')) ? '☑' : '☐';
+        const k2 = (dmg.includes('Infrastruktur')) ? '☑' : '☐';
+        const k3 = (dmg.includes('Peralatan ICT')) ? '☑' : '☐';
+        const k4 = (dmg.includes('Lain-lain')) ? '☑' : '☐';
+
+        const printWindow = window.open('', '_blank');
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Cetak Borang - ${item.full_name}</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                @media print { @page { size: A4; margin: 12mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
+                body { font-family: 'Inter', Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #0f172a; max-width: 800px; margin: 0 auto; padding: 20px; background: #fff; }
+                .header-container { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #1e3a8a; padding-bottom: 12px; margin-bottom: 15px; }
+                .header-logo { width: 70px; height: auto; }
+                .header-text { text-align: center; flex-grow: 1; padding: 0 10px; }
+                .header-text h2 { margin: 0; font-size: 13pt; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px; }
+                .header-text h3 { margin: 2px 0 0 0; font-size: 11pt; font-weight: 700; color: #334155; text-transform: uppercase; }
+                .doc-no { font-size: 8pt; color: #64748b; font-weight: 600; text-align: right; width: 120px; }
+                .section-header { background-color: #1e3a8a; color: #ffffff; padding: 5px 10px; font-size: 9.5pt; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 15px; margin-bottom: 8px; border-radius: 2px; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt; }
+                th, td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; }
+                .bg-label { background-color: #f8fafc; font-weight: 700; color: #334155; width: 18%; }
+                .val-cell { color: #0f172a; }
+                .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px 0; }
+                .check-item { display: flex; align-items: center; gap: 6px; font-size: 9pt; }
+                .symbol { font-size: 11pt; font-weight: bold; color: #1e3a8a; }
+                .remarks-box { border: 1px solid #cbd5e1; background-color: #fafafa; padding: 8px 10px; min-height: 45px; font-size: 9.5pt; margin-bottom: 10px; }
+                .sign-grid { display: flex; justify-content: space-between; margin-top: 25px; gap: 15px; }
+                .sign-card { width: 48%; border: 1px dashed #94a3b8; padding: 10px; border-radius: 4px; text-align: center; background: #fafafa; }
+                .sign-space { height: 40px; }
+                .sign-title { font-size: 8.5pt; font-weight: 700; color: #334155; text-transform: uppercase; border-top: 1px solid #cbd5e1; padding-top: 4px; }
+                .footer-note { font-size: 8pt; color: #94a3b8; font-style: italic; margin-top: 20px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="header-container">
+                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" class="header-logo" alt="Logo">
+                <div class="header-text">
+                    <h2>INSTITUT KEMAHIRAN TINGGI BELIA NEGARA CHEMBONG</h2>
+                    <h3>Borang Aduan Kerosakan</h3>
+                </div>
+                <div class="doc-no">
+                    No. Dokumen:<br><b>IKTBN/PKK/B01</b>
+                </div>
+            </div>
+
+            <div class="section-header">BAHAGIAN A: DIISI OLEH PEMOHON</div>
+            <table>
+                <tr>
+                    <td class="bg-label">Nama Pemohon</td>
+                    <td class="val-cell" style="width: 32%;">${item.full_name || '-'}</td>
+                    <td class="bg-label">Tarikh Aduan</td>
+                    <td class="val-cell">${new Date(item.created_at).toLocaleDateString('ms-MY')}</td>
+                </tr>
+                <tr>
+                    <td class="bg-label">Lokasi / Jabatan</td>
+                    <td class="val-cell">${item.department || '-'}</td>
+                    <td class="bg-label">No. Telefon</td>
+                    <td class="val-cell">${item.phone || '-'}</td>
+                </tr>
+                <tr>
+                    <td class="bg-label">Butiran Kerosakan</td>
+                    <td colspan="3" class="val-cell" style="height: 40px;">${item.details || '-'}</td>
+                </tr>
+                <tr>
+                    <td class="bg-label">Jenis Kerosakan</td>
+                    <td colspan="3">
+                        <div class="check-grid">
+                            <div class="check-item"><span class="symbol">${k1}</span> i- Peralatan / Mesin</div>
+                            <div class="check-item"><span class="symbol">${k2}</span> ii- Infrastruktur</div>
+                            <div class="check-item"><span class="symbol">${k3}</span> iii- Peralatan ICT</div>
+                            <div class="check-item"><span class="symbol">${k4}</span> iv- Lain-lain</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="sign-grid" style="margin-top: 10px; margin-bottom: 10px;">
+                <div class="sign-card" style="width: 100%;">
+                    <div class="sign-space"></div>
+                    <div class="sign-title">Tandatangan & Nama Pemohon</div>
+                </div>
+            </div>
+
+            <div class="section-header">BAHAGIAN B: PENGESAHAN CAWANGAN PENYELARASAN & KAWALAN KUALITI (CPPP)</div>
+            <table>
+                <thead>
+                    <tr style="background-color: #f1f5f9; font-weight: bold;">
+                        <td style="width: 35px; text-align: center;">Bil</td>
+                        <td>Kategori Kerosakan / Status Penyenggaraan</td>
+                        <td style="width: 90px; text-align: center;">Tindakan</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="text-align: center;">a.</td><td>Kerosakan yang perlu dibaiki dengan kadar segera</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang perlu dibaiki dengan kadar segera')}</td></tr>
+                    <tr><td style="text-align: center;">b.</td><td>Kerosakan yang boleh dibaiki terus</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang boleh dibaiki terus')}</td></tr>
+                    <tr><td style="text-align: center;">c.</td><td>Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang boleh dibaiki tetapi memerlukan perolehan alat ganti')}</td></tr>
+                    <tr><td style="text-align: center;">d.</td><td>Kerosakan yang perlu dibaiki oleh pembekal luar</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang perlu dibaiki oleh pembekal luar')}</td></tr>
+                    <tr><td style="text-align: center;">e.</td><td>Kerosakan yang tidak ekonomi untuk dibaiki</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Kerosakan yang tidak ekonomi untuk dibaiki')}</td></tr>
+                    <tr><td style="text-align: center;">f.</td><td>Lain-lain (Sila nyatakan dalam ruangan catatan)</td><td align="center" style="font-weight: bold; color: #1e3a8a;">${tick('Lain-lain')}</td></tr>
+                </tbody>
+            </table>
+
+            <div style="font-weight: 700; font-size: 8.5pt; color: #334155; margin-bottom: 3px; text-transform: uppercase;">Catatan / Syor CPPP / KCPPP:</div>
+            <div class="remarks-box">
+                ${item.action_remarks || item.kcppp_remarks || 'Tiada catatan.'}
+            </div>
+
+            <div class="sign-grid">
+                <div class="sign-card">
+                    <div class="sign-space"></div>
+                    <div class="sign-title">Pemeriksa Unit Pembangunan & Penyenggaraan</div>
+                </div>
+                <div class="sign-card">
+                    <div class="sign-space"></div>
+                    <div class="sign-title">Ketua Cawangan Penyelarasan & Kawalan Kualiti (KCPPP)</div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                * Dokumen ini dijana secara automatik melalui Sistem Penyenggaraan IKTBN Chembong. Cetakan ini adalah Dokumen Tidak Terkawal.
+            </div>
+        </body>
+        </html>
+        `;
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 800);
+    }
+
+    initCPPP();
+    </script>
+</body>
+</html>
