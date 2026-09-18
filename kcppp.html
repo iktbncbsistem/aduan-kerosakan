@@ -701,9 +701,10 @@
                 </tbody>
             </table>
 
-            <div style="font-weight: 700; font-size: 8.5pt; color: #334155; margin-bottom: 3px; text-transform: uppercase;">Catatan / Syor CPPP / KCPPP:</div>
+            <div style="font-weight: 700; font-size: 8.5pt; color: #334155; margin-bottom: 3px; text-transform: uppercase;">Catatan / Syor CPPP & KCPPP:</div>
             <div class="remarks-box">
-                ${item.action_remarks || item.kcppp_remarks || 'Tiada catatan.'}
+                <div style="margin-bottom: 6px;"><strong>Syor CPPP:</strong><br>${item.action_remarks ? item.action_remarks : '-'}</div>
+                <div><strong>Arahan KCPPP:</strong><br>${item.kcppp_remarks ? item.kcppp_remarks : '-'}</div>
             </div>
 
             <div class="sign-grid">
