@@ -737,36 +737,83 @@ async function deleteProject() {
 }
 
 async function handlePhotos(event) {
-    const p = projects.find(x => x.id === currentId);
-    if (!p) return;
-    const files = [...event.target.files];
-    if ((p.photos || []).length + files.length > 5) { toast("Maksimum 5 gambar."); return; }
+        const p = projects.find(x => x.id === currentId);
+        if (!p) return;
+        const files = [...event.target.files];
+        if (!files.length) return;
+        if ((p.photos || []).length + files.length > 5) { toast("Maksimum 5 gambar."); return; }
 
-    for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = e => {
-            const img = new Image();
-            img.onload = async () => {
-                const max = 1000;
-                const scale = Math.min(1, max / Math.max(img.width, img.height));
-                const canvas = document.createElement("canvas");
-                canvas.width = Math.round(img.width * scale);
-                canvas.height = Math.round(img.height * scale);
-                canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                p.photos = p.photos || [];
-                p.photos.push({ data: canvas.toDataURL("image/jpeg", 0.72), caption: file.name, date: new Date().toLocaleString("ms-MY") });
-                
-                await syncToDb(p);
-                renderPhotos(p);
-                toast("Gambar ditambah.");
+        document.getElementById('saveBtn').disabled = true;
+        toast("Memampat dan memuat naik gambar... Sila tunggu.");
+
+        for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = async () => {
+                    // 1. Mampatkan gambar (Compress)
+                    const max = 1000;
+                    const scale = Math.min(1, max / Math.max(img.width, img.height));
+                    const canvas = document.createElement("canvas");
+                    canvas.width = Math.round(img.width * scale);
+                    canvas.height = Math.round(img.height * scale);
+                    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // 2. Tukar canvas kepada fail (Blob) untuk di-upload
+                    canvas.toBlob(async (blob) => {
+                        const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                        const path = `progress/${Date.now()}_${cleanName}`;
+
+                        // 3. Upload Blob ke Supabase Storage
+                        const { error } = await _supabase.storage.from('project_attachments').upload(path, blob, { contentType: 'image/jpeg' });
+                        
+                        if (error) { 
+                            toast("Gagal muat naik: " + file.name); 
+                            return; 
+                        }
+
+                        // 4. Dapatkan URL Public dan simpan ke dalam data projek
+                        const { data: urlData } = _supabase.storage.from('project_attachments').getPublicUrl(path);
+                        
+                        p.photos = p.photos || [];
+                        p.photos.push({ 
+                            data: urlData.publicUrl, 
+                            caption: file.name, 
+                            date: new Date().toLocaleString("ms-MY"), 
+                            path: path 
+                        });
+                        
+                        await syncToDb(p);
+                        renderPhotos(p);
+                        toast("Gambar berjaya dimuat naik.");
+                    }, "image/jpeg", 0.75); // Kualiti 75%
+                };
+                img.src = e.target.result;
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
+        }
+        event.target.value = "";
+        document.getElementById('saveBtn').disabled = false;
     }
-    event.target.value = "";
-}
+
+    async function removePhoto(i) {
+        const p = projects.find(x => x.id === currentId);
+        if (!p || !p.photos || !p.photos[i]) return;
+        
+        if (!confirm("Padam gambar ini?")) return;
+
+        const photoData = p.photos[i];
+
+        // Jika gambar ada di Storage, padam fail tersebut dari Supabase
+        if (photoData.path) {
+            await _supabase.storage.from('project_attachments').remove([photoData.path]);
+        }
+
+        p.photos.splice(i, 1);
+        await syncToDb(p);
+        renderPhotos(p);
+        toast("Gambar berjaya dipadam.");
+    }
 
 async function removePhoto(i) {
     const p = projects.find(x => x.id === currentId);
