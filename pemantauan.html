@@ -882,7 +882,7 @@ async function logout() {
                     ${p.photos.map(ph => `
                         <div class="photo-card">
                             <img src="${ph.data}" alt="Gambar Kemajuan">
-                            <div class="photo-caption">${esc(ph.caption \vert{}\vert{} 'Tiada kapsyen')} <br><span>${esc(ph.date || '')}</span></div>
+                            <div class="photo-caption">${esc(ph.caption || 'Tiada kapsyen')} <br><span>${esc(ph.date || '')}</span></div>
                         </div>
                     `).join('')}
                 </div>
