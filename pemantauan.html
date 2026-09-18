@@ -533,7 +533,12 @@ function renderTable() {
           <td class="money">${money(p.budget)}</td>
           <td class="${isOverdue(p) ? 'attention' : ''}">${dateDisplay(p.dueDate)}</td>
           <td>${picCellContent}</td>
-          <td><button class="btn outline small" onclick="openProject('${esc(p.id)}')"><i class="fa-solid fa-magnifying-glass"></i> Perinci</button></td>
+          <td>
+              <div class="flex flex-col gap-1.5 w-24">
+                  <button class="btn outline small w-full" onclick="openProject('${esc(p.id)}')"><i class="fa-solid fa-magnifying-glass"></i> Perinci</button>
+                  <button class="btn small w-full text-white bg-slate-700 hover:bg-slate-800" onclick="cetakLaporanProjek('${esc(p.id)}')"><i class="fa-solid fa-print"></i> Cetak</button>
+              </div>
+          </td>
         </tr>`;
     }).join("");
 
@@ -861,6 +866,153 @@ async function logout() {
     await _supabase.auth.signOut(); 
     window.location.href = 'login.html'; 
 }
+
+
+// --- FUNGSI CETAK LAPORAN PROJEK ---
+    function cetakLaporanProjek(id) {
+        const p = projects.find(x => x.id === id);
+        if(!p) return;
+
+        // Susun gambar jika ada
+        let photosHtml = '';
+        if (p.photos && p.photos.length > 0) {
+            photosHtml = `
+                <div class="section-title">GAMBAR KEMAJUAN PROJEK</div>
+                <div class="photo-grid">
+                    ${p.photos.map(ph => `
+                        <div class="photo-card">
+                            <img src="${ph.data}" alt="Gambar Kemajuan">
+                            <div class="photo-caption">${esc(ph.caption \vert{}\vert{} 'Tiada kapsyen')} <br><span>${esc(ph.date || '')}</span></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            photosHtml = `<div class="section-title">GAMBAR KEMAJUAN PROJEK</div><p style="font-size:10pt; color:#64748b; font-style:italic;">Tiada gambar disertakan.</p>`;
+        }
+
+        const printWindow = window.open('', '_blank');
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Laporan Projek - ${esc(p.code || 'PROJEK')}</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                @media print { @page { size: A4; margin: 15mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                body { font-family: 'Inter', sans-serif; font-size: 10pt; line-height: 1.5; color: #0f172a; max-width: 800px; margin: 0 auto; padding: 20px; }
+                
+                /* Header */
+                .header-container { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #1e3a8a; padding-bottom: 15px; margin-bottom: 20px; }
+                .header-logo { width: 70px; height: auto; }
+                .header-text { text-align: center; flex-grow: 1; padding: 0 15px; }
+                .header-text h2 { margin: 0; font-size: 14pt; font-weight: 800; color: #1e3a8a; text-transform: uppercase; }
+                .header-text h3 { margin: 3px 0 0 0; font-size: 11pt; font-weight: 600; color: #334155; }
+                
+                /* Tajuk Projek */
+                .proj-title-box { background: #f8fafc; border-left: 5px solid #1e3a8a; padding: 12px 15px; margin-bottom: 20px; }
+                .proj-title-box h1 { margin: 0; font-size: 12pt; font-weight: 800; color: #0f172a; }
+                .proj-title-box p { margin: 4px 0 0 0; font-size: 9.5pt; color: #475569; font-weight: 600; }
+                
+                /* Jadual Maklumat */
+                .section-title { background: #1e3a8a; color: white; padding: 5px 10px; font-size: 9.5pt; font-weight: 700; margin: 15px 0 8px 0; text-transform: uppercase; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt; }
+                th, td { border: 1px solid #cbd5e1; padding: 7px 10px; vertical-align: top; }
+                .label-col { background: #f1f5f9; font-weight: 700; width: 25%; color: #334155; }
+                
+                /* Grid Gambar */
+                .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; page-break-inside: auto; }
+                .photo-card { border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px; background: #f8fafc; page-break-inside: avoid; }
+                .photo-card img { width: 100%; height: 220px; object-fit: cover; border-radius: 2px; display: block; }
+                .photo-caption { padding: 8px 5px 2px 5px; font-size: 8.5pt; font-weight: 600; color: #1e293b; text-align: center; }
+                .photo-caption span { color: #64748b; font-weight: 400; font-size: 7.5pt; }
+                
+                .footer { margin-top: 30px; font-size: 8pt; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-style: italic; }
+            </style>
+        </head>
+        <body>
+            <div class="header-container">
+                <img src="https://cetaoxubcdityyhcvtsy.supabase.co/storage/v1/object/public/logo/logo.png" class="header-logo" alt="Logo">
+                <div class="header-text">
+                    <h2>IKTBN CHEMBONG, NEGERI SEMBILAN</h2>
+                    <h3>Laporan Status Kemajuan Projek</h3>
+                </div>
+            </div>
+
+            <div class="proj-title-box">
+                <h1>${esc(p.title)}</h1>
+                <p>KOD PROJEK: ${esc(p.code || 'Tiada Kod')} | KATEGORI: ${esc(p.category)}</p>
+            </div>
+
+            <div class="section-title">A. MAKLUMAT ASAS & STATUS</div>
+            <table>
+                <tr>
+                    <td class="label-col">Pegawai Pemantau (PIC)</td>
+                    <td>${esc(p.pic || '-')}</td>
+                    <td class="label-col">Status Semasa</td>
+                    <td style="font-weight:bold; color:#0f172a;">${esc(p.status)}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Lokasi Tapak</td>
+                    <td>${esc(p.location || '-')}</td>
+                    <td class="label-col">Kemajuan Fizikal</td>
+                    <td style="font-weight:bold; color:#1665a7;">${Number(p.progress) || 0}%</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Tarikh Mula</td>
+                    <td>${dateDisplay(p.startDate)}</td>
+                    <td class="label-col">Tarikh Siap (Jangkaan)</td>
+                    <td>${dateDisplay(p.dueDate)}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Fasa / Perolehan</td>
+                    <td colspan="3">${esc(p.procurement || '-')}</td>
+                </tr>
+            </table>
+
+            <div class="section-title">B. RINGKASAN KEWANGAN</div>
+            <table>
+                <tr>
+                    <td class="label-col">Peruntukan Diluluskan</td>
+                    <td style="font-weight:bold;">${money(p.budget)}</td>
+                    <td class="label-col">Tanggungan Semasa</td>
+                    <td>${money(p.commitment)}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Perbelanjaan Sebenar</td>
+                    <td colspan="3" style="font-weight:bold; color:#059669;">${money(p.spent)}</td>
+                </tr>
+            </table>
+
+            <div class="section-title">C. ISU & TINDAKAN SUSULAN</div>
+            <table>
+                <tr>
+                    <td class="label-col" style="width: 20%;">Catatan Jadual</td>
+                    <td>${esc(p.schedule || 'Tiada catatan')}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Isu / Halangan</td>
+                    <td style="color:#e11d48; font-weight:600;">${esc(p.issue || 'Tiada isu direkodkan')}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Tindakan Seterusnya</td>
+                    <td>${esc(p.nextAction || 'Tiada rekod tindakan')}</td>
+                </tr>
+            </table>
+
+            ${photosHtml}
+
+            <div class="footer">
+                * Dokumen ini dijana secara automatik melalui Modul Pemantauan Projek IKTBN Chembong pada ${new Date().toLocaleString('ms-MY')}.
+            </div>
+        </body>
+        </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 800);
+    }
     
 </script>
 </body>
